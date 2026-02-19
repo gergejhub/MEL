@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-02-19T20:29:14.838615Z",
+  "generated_utc": "2026-02-19T21:46:22Z",
   "actions": [
     {
       "id": "fl-limitation",
@@ -8,7 +8,7 @@
       "triggers": [
         "Limitation"
       ],
-      "lido": "Please overwrite the MAX FL on Aircraft Operator  page Speed and Performance Tab(MAX Alternate and MaxCruise)",
+      "lido": "Please overwrite the MAX FL on Aircraft Operator page Speed and Performance Tab(MAX Alternate and MaxCruise)",
       "other_tasks": "Revalidte the FPL!",
       "fpl": {
         "item10a": {
@@ -69,20 +69,16 @@
         "CPDLC",
         "INOP"
       ],
-      "lido": "Remove: from item10a:J1,J4                                                            Insert 10a: Z,                                                                                                   Insert item 18 DAT/CPDLCX",
+      "lido": "Remove: from item10a:J1,J4 Insert 10a: Z, Insert item 18 DAT/CPDLCX",
       "other_tasks": "Check CRAR amd OM C Airport Briefing",
       "fpl": {
         "item10a": {
-          "add": [],
+          "add": [
+            "Z"
+          ],
           "remove": [
             "J1",
-            "J4",
-            "Insert",
-            "10a:",
-            "Z",
-            "item",
-            "18",
-            "DAT/CPDLCX"
+            "J4"
           ]
         },
         "item10b": {
@@ -90,10 +86,10 @@
           "remove": []
         },
         "item18": {
-          "add": [],
-          "remove": [
+          "add": [
             "DAT/CPDLCX"
-          ]
+          ],
+          "remove": []
         }
       },
       "constraints": {
@@ -136,7 +132,7 @@
         "ADS-B",
         "INOP"
       ],
-      "lido": "Remove: from item10b:L and B1,                                          Insert: H to item  10b                                                                 Insert: SUR/EUADSBX  item 18",
+      "lido": "Remove: from item10b:L and B1, Insert: H to item 10b Insert: SUR/EUADSBX item 18",
       "other_tasks": "SINGLE EUROPEAN SKY (SES): \nThe 27 EU Member States ( Austria, Belgium, Bulgaria, Croatia, Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Ireland, Italy, \nLatvia, Lithuania, Luxembourg, Malta, Netherlands, Poland, Portugal, Romania, Slovakia, Slovenia, Spain, Sweden) plus Norway and Switzerland (29 States in total).\n\nWe can operate with ADS-B OUT inoperative within SES for 3 days.\nRestrictions for countries outside of SES should be checked in CRAR!",
       "fpl": {
         "item10a": {
@@ -144,14 +140,18 @@
           "remove": []
         },
         "item10b": {
-          "add": [],
+          "add": [
+            "H"
+          ],
           "remove": [
-            "L",
-            "B1"
+            "B1",
+            "L"
           ]
         },
         "item18": {
-          "add": [],
+          "add": [
+            "SUR/EUADSBX"
+          ],
           "remove": []
         }
       },
@@ -199,7 +199,7 @@
         "INOP",
         "GPS"
       ],
-      "lido": "Remove: from item 10a:G, Remove:item 18  PBN:A1, B1,C1,D1,O1,O2,S2 insert: B3,B4,B5,C4,D4                  Remove: from item 10a:X,                                                 Remove:item 18 TCAS",
+      "lido": "Remove: from item 10a:G, Remove:item 18 PBN:A1, B1,C1,D1,O1,O2,S2 insert: B3,B4,B5,C4,D4 Remove: from item 10a:X, Remove:item 18 TCAS",
       "other_tasks": "Please Check equipment requirement for DEP/DES/ALT airports For ADS-B see note on ADS-B inop for SES",
       "fpl": {
         "item10a": {
@@ -214,16 +214,22 @@
           "remove": []
         },
         "item18": {
-          "add": [],
+          "add": [
+            "PBN/B3",
+            "PBN/B4",
+            "PBN/B5",
+            "PBN/C4",
+            "PBN/D4"
+          ],
           "remove": [
-            "PBN:A1",
-            "B1",
-            "C1",
-            "D1",
-            "O1",
-            "O2",
-            "S2",
-            "TCAS"
+            "TCAS",
+            "PBN/A1",
+            "PBN/B1",
+            "PBN/C1",
+            "PBN/D1",
+            "PBN/O1",
+            "PBN/O2",
+            "PBN/S2"
           ]
         }
       },
@@ -240,22 +246,16 @@
         "INOP",
         "VOR"
       ],
-      "lido": "Remove: from item 10a:S, select n(Non-Standard Equipment)                                                                                             Insert L (ILS) and V (VHF RTF)                                                      Remove: from item 18 B1                                               Insert:B2,B3,B5",
+      "lido": "Remove: from item 10a:S, select n(Non-Standard Equipment) Insert L (ILS) and V (VHF RTF) Remove: from item 18 B1 Insert:B2,B3,B5",
       "other_tasks": "Check CRAR amd OM C Airport Briefing",
       "fpl": {
         "item10a": {
-          "add": [],
-          "remove": [
-            "S",
-            "select",
-            "n(Non-Standard",
-            "Equipment)",
-            "Insert",
+          "add": [
             "L",
-            "(ILS)",
-            "V",
-            "(VHF",
-            "RTF)"
+            "V"
+          ],
+          "remove": [
+            "S"
           ]
         },
         "item10b": {
@@ -263,9 +263,13 @@
           "remove": []
         },
         "item18": {
-          "add": [],
+          "add": [
+            "PBN/B2",
+            "PBN/B3",
+            "PBN/B5"
+          ],
           "remove": [
-            "B1"
+            "PBN/B1"
           ]
         }
       },
@@ -375,7 +379,7 @@
         "cat",
         "ILS"
       ],
-      "lido": "Please overwrite the Landing Capability on Aircraft Operator  page Equipment Tab (Standard Approach Equipment) according to MEL.                                       Overwrite: AIRCRAFT/DATA FOR ICAO FPL: RVR in item 18 For CAT I: 550m CAT II: 300m CAT IIIA:200m CAT III B : 75m",
+      "lido": "Please overwrite the Landing Capability on Aircraft Operator page Equipment Tab (Standard Approach Equipment) according to MEL. Overwrite: AIRCRAFT/DATA FOR ICAO FPL: RVR in item 18 For CAT I: 550m CAT II: 300m CAT IIIA:200m CAT III B : 75m",
       "other_tasks": "Check Minima for DEP/DES/ALT airports",
       "fpl": {
         "item10a": {
@@ -417,7 +421,7 @@
         "item18": {
           "add": [],
           "remove": [
-            "PBN:S2"
+            "PBN/S2"
           ]
         }
       },
@@ -497,7 +501,7 @@
         "INOP",
         "MCDU"
       ],
-      "lido": "Remove: from item 10a:X,                                                 Remove:item 18 PBN: A1, C1,L1,",
+      "lido": "Remove: from item 10a:X, Remove:item 18 PBN: A1, C1,L1,",
       "other_tasks": "Check VOR/DME/NDB coverage",
       "fpl": {
         "item10a": {
@@ -513,10 +517,9 @@
         "item18": {
           "add": [],
           "remove": [
-            "PBN:",
-            "A1",
-            "C1",
-            "L1"
+            "PBN/A1",
+            "PBN/C1",
+            "PBN/L1"
           ]
         }
       },

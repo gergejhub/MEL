@@ -108,6 +108,7 @@ function parseManualMaxFL(tokens){
 function combine(actionsSelected, manualTags){
   const combined = {
     fpl: { item10a:{add:new Set(), remove:new Set()}, item10b:{add:new Set(), remove:new Set()}, item18:{add:new Set(), remove:new Set()} },
+    fplConflicts: { item10a:new Set(), item10b:new Set(), item18:new Set() },
     flags: {
       nat_hla_not_permitted:false,
       no_class_e:false,
@@ -143,7 +144,7 @@ function combine(actionsSelected, manualTags){
 
   for(const a of actionsSelected){
     // Steps
-    if(a.lido) combined.lidoSteps.push(a.lido);
+    if(a.lido) combined.lidoSteps.push(norm(a.lido).replace(/\s+/g," ").trim());
     if(a.other_tasks) combined.otherTasks.push(a.other_tasks);
 
     // constraints
@@ -203,6 +204,17 @@ function combine(actionsSelected, manualTags){
   combined.otherTasks = uniq(combined.otherTasks);
   combined.notes = uniq(combined.notes);
 
+
+  // Resolve FPL conflicts: if something is both ADD and REMOVE, treat it as REMOVE (conservative)
+  for(const item of ["item10a","item10b","item18"]){
+    for(const x of Array.from(combined.fpl[item].add)){
+      if(combined.fpl[item].remove.has(x)){
+        combined.fplConflicts[item].add(x);
+        combined.fpl[item].add.delete(x);
+      }
+    }
+  }
+
   return combined;
 }
 
@@ -242,12 +254,25 @@ function formatCombined(c){
   // FPL changes
   const fmtSet = (s) => Array.from(s).sort((a,b)=>a.localeCompare(b));
   lines.push("\nICAO FPL VÁLTOZÁSOK (összegzett)");
+  const fmtList = (item, arr) => {
+    if(item !== "item18") return arr.length ? arr.join(", ") : "—";
+    const pbn = arr.filter(x=>x.startsWith("PBN/")).map(x=>x.slice(4)).sort((a,b)=>a.localeCompare(b));
+    const other = arr.filter(x=>!x.startsWith("PBN/")).sort((a,b)=>a.localeCompare(b));
+    const parts = [];
+    if(pbn.length) parts.push(`PBN/${pbn.join(",")}`);
+    if(other.length) parts.push(...other);
+    return parts.length ? parts.join("; ") : "—";
+  };
   for(const item of ["item10a","item10b","item18"]){
     const add = fmtSet(c.fpl[item].add);
     const rem = fmtSet(c.fpl[item].remove);
+    const conf = fmtSet((c.fplConflicts && c.fplConflicts[item]) ? c.fplConflicts[item] : new Set());
     lines.push(`- ${item.toUpperCase()}:`);
-    lines.push(`  • ADD: ${add.length?add.join(", "):"—"}`);
-    lines.push(`  • REMOVE: ${rem.length?rem.join(", "):"—"}`);
+    lines.push(`  • ADD: ${fmtList(item, add)}`);
+    lines.push(`  • REMOVE: ${fmtList(item, rem)}`);
+    if(conf.length){
+      lines.push(`  • CONFLICT (REMOVE > ADD): ${fmtList(item, conf)}`);
+    }
   }
 
   // LIDO steps
