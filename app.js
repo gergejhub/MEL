@@ -485,22 +485,30 @@ async function loadPdfFromFile(file){
     throw new Error("pdfjsLib_not_loaded");
   }
 
-  // Ensure workerSrc is set (otherwise pdf.js often fails when loaded from CDN).
+  // Ensure workerSrc is sane and reachable.
+  // Many corporate networks block jsDelivr; prefer cdnjs (same CDN family as pdf.min.js in index.html).
   try{
-    const ws = window.__PDFJS_WORKER_SRC__ || "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
-    if(pdfjsLib.GlobalWorkerOptions && !pdfjsLib.GlobalWorkerOptions.workerSrc){
-      pdfjsLib.GlobalWorkerOptions.workerSrc = ws;
+    const preferred = window.__PDFJS_WORKER_SRC__ || "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+    if(pdfjsLib.GlobalWorkerOptions){
+      const cur = pdfjsLib.GlobalWorkerOptions.workerSrc || "";
+      const lc = cur.toLowerCase();
+      // Force override if empty OR points to jsDelivr OR looks like a mismatched npm 'pdfjs-dist@...' path.
+      if(!cur || lc.includes("jsdelivr") || lc.includes("pdfjs-dist@")){
+        pdfjsLib.GlobalWorkerOptions.workerSrc = preferred;
+      }
     }
-  }catch(_){}
+  }catch(_){ }
 
   const buf = await file.arrayBuffer();
   el("pdfStatus").textContent = "PDF: betöltés…";
 
-  // Try with worker first; if the worker cannot be started, retry without worker.
+  // Try with worker first; if the worker cannot be started (blocked CDN / CSP), retry without worker.
   try{
     pdfDoc = await pdfjsLib.getDocument({data: buf}).promise;
   }catch(err){
-    // fallback: run without worker (slower, but much more robust)
+    // Robust fallback: force main-thread parsing.
+    try{ pdfjsLib.disableWorker = true; }catch(_){ }
+    try{ if(pdfjsLib.GlobalWorkerOptions) pdfjsLib.GlobalWorkerOptions.workerSrc = ""; }catch(_){ }
     pdfDoc = await pdfjsLib.getDocument({data: buf, disableWorker: true}).promise;
   }
 

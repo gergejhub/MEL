@@ -96,8 +96,16 @@
     </div>
   </footer>
 
+  <!--
+    PDF.js is loaded from cdnjs. IMPORTANT:
+    - Use a matching worker version from the same CDN (corporate networks often block jsDelivr).
+  -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-  <script>pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.js";</script>
+  <script>
+    if (window.pdfjsLib && window.pdfjsLib.GlobalWorkerOptions) {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+    }
+  </script>
   <script src="app.js"></script>
 </body>
 </html>
