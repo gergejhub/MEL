@@ -1,0 +1,528 @@
+{
+  "generated_utc": "2026-02-19T20:29:14.838615Z",
+  "actions": [
+    {
+      "id": "fl-limitation",
+      "limitation": "FL Limitation",
+      "mel_numbers": [],
+      "triggers": [
+        "Limitation"
+      ],
+      "lido": "Please overwrite the MAX FL on Aircraft Operator  page Speed and Performance Tab(MAX Alternate and MaxCruise)",
+      "other_tasks": "Revalidte the FPL!",
+      "fpl": {
+        "item10a": {
+          "add": [],
+          "remove": []
+        },
+        "item10b": {
+          "add": [],
+          "remove": []
+        },
+        "item18": {
+          "add": [],
+          "remove": []
+        }
+      },
+      "constraints": {
+        "requires_max_fl": true
+      }
+    },
+    {
+      "id": "tcas-inop",
+      "limitation": "TCAS INOP",
+      "mel_numbers": [],
+      "triggers": [
+        "INOP",
+        "TCAS"
+      ],
+      "lido": "Remove: from item 10a:X, Remove:item 18 TCAS",
+      "other_tasks": "No class E airspace, no KEF flights (at least below NAT HLA)\nMax 10 days in EU, except Germany: 3 days rule. Other countries: check CRAR",
+      "fpl": {
+        "item10a": {
+          "add": [],
+          "remove": [
+            "X"
+          ]
+        },
+        "item10b": {
+          "add": [],
+          "remove": []
+        },
+        "item18": {
+          "add": [],
+          "remove": [
+            "TCAS"
+          ]
+        }
+      },
+      "constraints": {
+        "nat_hla_not_permitted": true,
+        "no_class_e": true
+      }
+    },
+    {
+      "id": "cpdlc-inop",
+      "limitation": "CPDLC INOP",
+      "mel_numbers": [],
+      "triggers": [
+        "CPDLC",
+        "INOP"
+      ],
+      "lido": "Remove: from item10a:J1,J4                                                            Insert 10a: Z,                                                                                                   Insert item 18 DAT/CPDLCX",
+      "other_tasks": "Check CRAR amd OM C Airport Briefing",
+      "fpl": {
+        "item10a": {
+          "add": [],
+          "remove": [
+            "J1",
+            "J4",
+            "Insert",
+            "10a:",
+            "Z",
+            "item",
+            "18",
+            "DAT/CPDLCX"
+          ]
+        },
+        "item10b": {
+          "add": [],
+          "remove": []
+        },
+        "item18": {
+          "add": [],
+          "remove": [
+            "DAT/CPDLCX"
+          ]
+        }
+      },
+      "constraints": {
+        "datalink_inop": true
+      }
+    },
+    {
+      "id": "adf-inop",
+      "limitation": "ADF INOP",
+      "mel_numbers": [],
+      "triggers": [
+        "INOP",
+        "ADF"
+      ],
+      "lido": "Remove: from item10a:F,",
+      "other_tasks": "Check  ADF requirement for DEP/DES/ALT airports",
+      "fpl": {
+        "item10a": {
+          "add": [],
+          "remove": [
+            "F"
+          ]
+        },
+        "item10b": {
+          "add": [],
+          "remove": []
+        },
+        "item18": {
+          "add": [],
+          "remove": []
+        }
+      },
+      "constraints": {}
+    },
+    {
+      "id": "ads-b-inop",
+      "limitation": "ADS-B INOP",
+      "mel_numbers": [],
+      "triggers": [
+        "ADS-B",
+        "INOP"
+      ],
+      "lido": "Remove: from item10b:L and B1,                                          Insert: H to item  10b                                                                 Insert: SUR/EUADSBX  item 18",
+      "other_tasks": "SINGLE EUROPEAN SKY (SES): \nThe 27 EU Member States ( Austria, Belgium, Bulgaria, Croatia, Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Ireland, Italy, \nLatvia, Lithuania, Luxembourg, Malta, Netherlands, Poland, Portugal, Romania, Slovakia, Slovenia, Spain, Sweden) plus Norway and Switzerland (29 States in total).\n\nWe can operate with ADS-B OUT inoperative within SES for 3 days.\nRestrictions for countries outside of SES should be checked in CRAR!",
+      "fpl": {
+        "item10a": {
+          "add": [],
+          "remove": []
+        },
+        "item10b": {
+          "add": [],
+          "remove": [
+            "L",
+            "B1"
+          ]
+        },
+        "item18": {
+          "add": [],
+          "remove": []
+        }
+      },
+      "constraints": {
+        "adsb_out_inop": true,
+        "adsb_ses_3day": true
+      }
+    },
+    {
+      "id": "ads-c-inop",
+      "limitation": "ADS-C INOP",
+      "mel_numbers": [],
+      "triggers": [
+        "ADS-C",
+        "INOP"
+      ],
+      "lido": "Remove: from item10b:G1",
+      "other_tasks": "",
+      "fpl": {
+        "item10a": {
+          "add": [],
+          "remove": []
+        },
+        "item10b": {
+          "add": [],
+          "remove": [
+            "G1"
+          ]
+        },
+        "item18": {
+          "add": [],
+          "remove": []
+        }
+      },
+      "constraints": {
+        "adsc_inop": true
+      }
+    },
+    {
+      "id": "both-gps-inop",
+      "limitation": "BOTH GPS INOP",
+      "mel_numbers": [],
+      "triggers": [
+        "BOTH",
+        "INOP",
+        "GPS"
+      ],
+      "lido": "Remove: from item 10a:G, Remove:item 18  PBN:A1, B1,C1,D1,O1,O2,S2 insert: B3,B4,B5,C4,D4                  Remove: from item 10a:X,                                                 Remove:item 18 TCAS",
+      "other_tasks": "Please Check equipment requirement for DEP/DES/ALT airports For ADS-B see note on ADS-B inop for SES",
+      "fpl": {
+        "item10a": {
+          "add": [],
+          "remove": [
+            "G",
+            "X"
+          ]
+        },
+        "item10b": {
+          "add": [],
+          "remove": []
+        },
+        "item18": {
+          "add": [],
+          "remove": [
+            "PBN:A1",
+            "B1",
+            "C1",
+            "D1",
+            "O1",
+            "O2",
+            "S2",
+            "TCAS"
+          ]
+        }
+      },
+      "constraints": {
+        "gps_degraded": true
+      }
+    },
+    {
+      "id": "dual-vor-inop",
+      "limitation": "Dual VOR INOP",
+      "mel_numbers": [],
+      "triggers": [
+        "Dual",
+        "INOP",
+        "VOR"
+      ],
+      "lido": "Remove: from item 10a:S, select n(Non-Standard Equipment)                                                                                             Insert L (ILS) and V (VHF RTF)                                                      Remove: from item 18 B1                                               Insert:B2,B3,B5",
+      "other_tasks": "Check CRAR amd OM C Airport Briefing",
+      "fpl": {
+        "item10a": {
+          "add": [],
+          "remove": [
+            "S",
+            "select",
+            "n(Non-Standard",
+            "Equipment)",
+            "Insert",
+            "L",
+            "(ILS)",
+            "V",
+            "(VHF",
+            "RTF)"
+          ]
+        },
+        "item10b": {
+          "add": [],
+          "remove": []
+        },
+        "item18": {
+          "add": [],
+          "remove": [
+            "B1"
+          ]
+        }
+      },
+      "constraints": {
+        "vor_degraded": true
+      }
+    },
+    {
+      "id": "wx-radar-inop",
+      "limitation": "Wx Radar INOP",
+      "mel_numbers": [],
+      "triggers": [
+        "Radar",
+        "INOP"
+      ],
+      "lido": "",
+      "other_tasks": "Check the whole RTE and ALTN RTE for any hazardous WX condition (icing, turbulence, jet stream, etc)\nUse both maps (most helpful is FL100-FL450)",
+      "fpl": {
+        "item10a": {
+          "add": [],
+          "remove": []
+        },
+        "item10b": {
+          "add": [],
+          "remove": []
+        },
+        "item18": {
+          "add": [],
+          "remove": []
+        }
+      },
+      "constraints": {
+        "wx_radar_inop": true
+      }
+    },
+    {
+      "id": "no-iceing-condition",
+      "limitation": "No Iceing Condition",
+      "mel_numbers": [],
+      "triggers": [
+        "Condition",
+        "Iceing"
+      ],
+      "lido": "",
+      "other_tasks": "Check the whole RTE for any possible icing condition (icing areas, CB). Please, check also the TAF, SNOWTAM and METAR for DEP/DES/ALT airports",
+      "fpl": {
+        "item10a": {
+          "add": [],
+          "remove": []
+        },
+        "item10b": {
+          "add": [],
+          "remove": []
+        },
+        "item18": {
+          "add": [],
+          "remove": []
+        }
+      },
+      "constraints": {
+        "no_icing": true
+      }
+    },
+    {
+      "id": "no-rvsm-operation",
+      "limitation": "No RVSM operation",
+      "mel_numbers": [],
+      "triggers": [
+        "operation",
+        "RVSM"
+      ],
+      "lido": "Remove: from item 10a:W and X",
+      "other_tasks": "Plan RTE below FL285",
+      "fpl": {
+        "item10a": {
+          "add": [],
+          "remove": [
+            "W",
+            "X"
+          ]
+        },
+        "item10b": {
+          "add": [],
+          "remove": []
+        },
+        "item18": {
+          "add": [],
+          "remove": []
+        }
+      },
+      "constraints": {
+        "rvsm_not_permitted": true,
+        "max_fl": 285
+      }
+    },
+    {
+      "id": "ils-category-limitation-basic-cat3b-autoland-cat-3a",
+      "limitation": "ILS Category limitation   (Basic: CAT3B autoland cat 3A)",
+      "mel_numbers": [],
+      "triggers": [
+        "limitation",
+        "autoland",
+        "Category",
+        "(Basic",
+        "CAT3B",
+        "3A)",
+        "cat",
+        "ILS"
+      ],
+      "lido": "Please overwrite the Landing Capability on Aircraft Operator  page Equipment Tab (Standard Approach Equipment) according to MEL.                                       Overwrite: AIRCRAFT/DATA FOR ICAO FPL: RVR in item 18 For CAT I: 550m CAT II: 300m CAT IIIA:200m CAT III B : 75m",
+      "other_tasks": "Check Minima for DEP/DES/ALT airports",
+      "fpl": {
+        "item10a": {
+          "add": [],
+          "remove": []
+        },
+        "item10b": {
+          "add": [],
+          "remove": []
+        },
+        "item18": {
+          "add": [],
+          "remove": []
+        }
+      },
+      "constraints": {
+        "ils_category_limited": true
+      }
+    },
+    {
+      "id": "rnp-appch",
+      "limitation": "RNP APPCH",
+      "mel_numbers": [],
+      "triggers": [
+        "APPCH",
+        "RNP"
+      ],
+      "lido": "Remove: from item 18 PBN:S2",
+      "other_tasks": "Check Minima for DEP/DES/ALT airports",
+      "fpl": {
+        "item10a": {
+          "add": [],
+          "remove": []
+        },
+        "item10b": {
+          "add": [],
+          "remove": []
+        },
+        "item18": {
+          "add": [],
+          "remove": [
+            "PBN:S2"
+          ]
+        }
+      },
+      "constraints": {
+        "no_rnp_apch": true
+      }
+    },
+    {
+      "id": "e-gpws-inop",
+      "limitation": "(E)GPWS INOP",
+      "mel_numbers": [],
+      "triggers": [
+        "(E)GPWS",
+        "INOP"
+      ],
+      "lido": "",
+      "other_tasks": "Check OM  C Airport Briefing  for DEP/DES/ALT airports                     Example: FNC (Madeira)flight",
+      "fpl": {
+        "item10a": {
+          "add": [],
+          "remove": []
+        },
+        "item10b": {
+          "add": [],
+          "remove": []
+        },
+        "item18": {
+          "add": [],
+          "remove": []
+        }
+      },
+      "constraints": {
+        "egpws_inop": true
+      }
+    },
+    {
+      "id": "center-tank-transfer-valve-28-26-01",
+      "limitation": "Center Tank Transfer Valve 28-26-01",
+      "mel_numbers": [
+        "28-26-01"
+      ],
+      "triggers": [
+        "28-26-01",
+        "Transfer",
+        "Center",
+        "Valve",
+        "Tank"
+      ],
+      "lido": "",
+      "other_tasks": "NO GO FOR  LONG FLIGHTS: FNC, TFS, FUE, LPA, KEF, DXB,AUH",
+      "fpl": {
+        "item10a": {
+          "add": [],
+          "remove": []
+        },
+        "item10b": {
+          "add": [],
+          "remove": []
+        },
+        "item18": {
+          "add": [],
+          "remove": []
+        }
+      },
+      "constraints": {
+        "fuel_transfer_limited": true
+      }
+    },
+    {
+      "id": "mcdu-inop-22-82-01-02",
+      "limitation": "MCDU INOP                             22-82-01/02",
+      "mel_numbers": [
+        "22-82-01/02"
+      ],
+      "triggers": [
+        "22-82-01/02",
+        "INOP",
+        "MCDU"
+      ],
+      "lido": "Remove: from item 10a:X,                                                 Remove:item 18 PBN: A1, C1,L1,",
+      "other_tasks": "Check VOR/DME/NDB coverage",
+      "fpl": {
+        "item10a": {
+          "add": [],
+          "remove": [
+            "X"
+          ]
+        },
+        "item10b": {
+          "add": [],
+          "remove": []
+        },
+        "item18": {
+          "add": [],
+          "remove": [
+            "PBN:",
+            "A1",
+            "C1",
+            "L1"
+          ]
+        }
+      },
+      "constraints": {
+        "fms_reduced": true
+      }
+    }
+  ]
+}

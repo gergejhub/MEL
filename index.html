@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MEL Ops Assistant (LIDO 4D)</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="title">MEL Ops Assistant</div>
+      <div class="subtitle">MEL / limitation → LIDO 4D teendők + operációs korlátok (multi-limitáció)</div>
+    </div>
+    <div class="right">
+      <label class="file">
+        <input id="pdfFile" type="file" accept="application/pdf" />
+        <span>+ MEL PDF betöltése (lokálisan)</span>
+      </label>
+      <div id="pdfStatus" class="pill">PDF: nincs betöltve</div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <h2>Keresés</h2>
+      <div class="searchRow">
+        <input id="q" class="search" placeholder="Írj be MEL számot (pl. 22-82-01), kulcsszót (TCAS, CPDLC, RNP APCH), vagy bármilyen szövegrészletet…" />
+        <button id="btnSearch" class="btn primary">Keresés</button>
+      </div>
+      <div class="toggles">
+        <label><input id="searchActions" type="checkbox" checked /> Strukturált teendő-adatbázis (Excel)</label>
+        <label><input id="searchPdf" type="checkbox" checked /> MEL PDF keresés (lokálisan a böngészőben)</label>
+      </div>
+
+      <div id="results" class="results"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Aktív limitációk (kombinált)</h2>
+      <div class="activeRow">
+        <input id="manualAdd" class="search" placeholder="Adj hozzá kézzel egy címkét (pl. 'WX RADAR INOP', 'FL350 LIMIT')…" />
+        <button id="btnAddManual" class="btn">Hozzáadás</button>
+        <button id="btnClearActive" class="btn danger">Törlés</button>
+      </div>
+
+      <div id="activeList" class="chips"></div>
+
+      <div class="card">
+        <div class="cardHeader">
+          <div class="cardTitle">Összegzett teendők</div>
+          <button id="btnCopySummary" class="btn">Másolás</button>
+        </div>
+        <pre id="summary" class="summary">Nincs aktív limitáció.</pre>
+      </div>
+
+      <div class="card">
+        <div class="cardHeader">
+          <div class="cardTitle">PDF találatok</div>
+          <div id="pdfProgress" class="muted"></div>
+        </div>
+        <div id="pdfAutoHints" class="muted">—</div>
+        <div id="pdfHits" class="pdfHits">—</div>
+      </div>
+
+      <div class="footnote">
+        Tipp: ha FL LIMIT aktív, írd be a kézi címkébe pl. <b>FL350</b> vagy <b>MAX FL 330</b> is, hogy a számítás tudjon “min”-t venni.
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div>
+      Offline működés: a PDF-t nem küldi sehova, a böngésződben dolgozza fel.
+      GitHub Pages kompatibilis (statikus).
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.js"></script>
+  <script>pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.js";</script>
+  <script src="app.js"></script>
+</body>
+</html>
