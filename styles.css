@@ -131,3 +131,7 @@ h2{margin:0 0 10px 0;font-size:14px;letter-spacing:.25px}
 @media (max-width: 1080px){
   .layout{grid-template-columns:1fr}
 }
+
+
+.bulk{width:100%; min-height:120px; resize:vertical; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.25); color:#fff; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;}
+.row{display:flex; gap:10px; align-items:center; margin-top:10px;}

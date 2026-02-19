@@ -44,7 +44,27 @@
         <button id="btnClearActive" class="btn danger">Törlés</button>
       </div>
 
-      <div id="activeList" class="chips"></div>
+      
+      <div class="card">
+        <div class="cardHeader">
+          <div class="cardTitle">Gyors import (több sor)</div>
+        </div>
+        <div class="muted" style="margin-bottom:8px;">
+          Másold be az AMOS / handover listát (több sor). Kulcsszavak alapján megpróbálom felismerni a limitációkat és hozzáadni az aktív listához.
+          Ha egy sor nem felismerhető, akkor címkeként kerül be, hogy a kombinált korlát-számítás (pl. MAX FL) akkor is működjön.
+        </div>
+        <textarea id="bulkPaste" class="bulk" rows="6" placeholder="Példa:
+9H-WDJ  ATC DATALINK / CPDLC INOP
+9H-WMP  NAV DB OUTDATED (RNP APCH not permitted)
+9H-WMC  SINGLE ENGINE BLEED / NO FL LIMIT"></textarea>
+        <div class="row">
+          <button id="btnBulkAdd" class="btn">Feldolgozás + aktívba</button>
+          <button id="btnBulkClear" class="btn">Mező ürítése</button>
+        </div>
+        <div id="bulkReport" class="muted"></div>
+      </div>
+
+<div id="activeList" class="chips"></div>
 
       <div class="card">
         <div class="cardHeader">
@@ -76,7 +96,7 @@
     </div>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
   <script>pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.js";</script>
   <script src="app.js"></script>
 </body>

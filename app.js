@@ -3,6 +3,7 @@
  * - Optional local PDF search using pdf.js (user loads MEL PDF via file input)
  */
 let ACTIONS = [];
+let ACTION_INDEX = null; // keyword -> [{a, w}]
 let pdfDoc = null;
 let pdfPageTextCache = new Map(); // pageNo -> lowercase text
 let pdfPageRawCache = new Map();  // pageNo -> raw text
@@ -16,11 +17,78 @@ async function loadActions(){
   const res = await fetch("data/mel_actions.json", {cache:"no-store"});
   const js = await res.json();
   ACTIONS = js.actions || [];
+  buildActionIndex();
 }
 
 function escapeHtml(s){
   return (s||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
+
+
+function buildActionIndex(){
+  const map = new Map(); // key -> array of {a,w}
+  const add = (key, a, w)=>{
+    const k = normLower(key);
+    if(!k) return;
+    if(!map.has(k)) map.set(k, []);
+    map.get(k).push({a, w});
+  };
+  for(const a of ACTIONS){
+    for(const t of (a.triggers||[])) add(t, a, 8);
+    for(const m of (a.mel_numbers||[])) add(m, a, 10);
+
+    // limitation words (weak signals)
+    const words = normLower(a.limitation).replace(/[^a-z0-9\-]+/g, " ").split(/\s+/).filter(x=>x.length>=3);
+    for(const w of words) add(w, a, 1);
+  }
+  ACTION_INDEX = {map};
+}
+
+function matchLineToActions(line){
+  if(!ACTION_INDEX || !ACTION_INDEX.map) return [];
+  const low = normLower(line);
+  if(!low) return [];
+  const scores = new Map(); // actionId -> {a,score}
+  for(const [k, arr] of ACTION_INDEX.map){
+    if(k.length < 3) continue;
+    if(low.includes(k)){
+      for(const {a,w} of arr){
+        const id = a.id || a.limitation;
+        const cur = scores.get(id);
+        scores.set(id, {a, score: (cur?cur.score:0) + w});
+      }
+    }
+  }
+  const ranked = Array.from(scores.values()).sort((x,y)=>y.score-x.score);
+  return ranked.map(x=>x.a);
+}
+
+function bulkAddFromText(text){
+  const lines = (text||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  let recognized = 0;
+  let addedActions = 0;
+  let addedLabels = 0;
+
+  for(const line of lines){
+    const matches = matchLineToActions(line);
+    if(matches.length){
+      recognized++;
+      // Add the top 2 matches if they have strong signals (trigger/mel number hit).
+      for(const a of matches.slice(0,2)){
+        addActive(a.limitation, a.id || null);
+        addedActions++;
+      }
+    } else {
+      addActive(line, null);
+      addedLabels++;
+    }
+  }
+
+  const report = `Sorok: ${lines.length} • Felismert: ${recognized} • Hozzáadott (akció): ${addedActions} • Hozzáadott (címke): ${addedLabels}`;
+  const repEl = document.getElementById("bulkReport");
+  if(repEl) repEl.textContent = report;
+}
+
 
 function parseManualMaxFL(tokens){
   // Accept: FL350, FL 350, MAX FL 330, MAXFL330
@@ -411,9 +479,31 @@ function formatPdfHints(h){
 // PDF logic
 async function loadPdfFromFile(file){
   if(!file) return;
+
+  // pdf.js may fail to load if the CDN is blocked in a corporate network.
+  if(typeof pdfjsLib === "undefined"){
+    throw new Error("pdfjsLib_not_loaded");
+  }
+
+  // Ensure workerSrc is set (otherwise pdf.js often fails when loaded from CDN).
+  try{
+    const ws = window.__PDFJS_WORKER_SRC__ || "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+    if(pdfjsLib.GlobalWorkerOptions && !pdfjsLib.GlobalWorkerOptions.workerSrc){
+      pdfjsLib.GlobalWorkerOptions.workerSrc = ws;
+    }
+  }catch(_){}
+
   const buf = await file.arrayBuffer();
   el("pdfStatus").textContent = "PDF: betöltés…";
-  pdfDoc = await pdfjsLib.getDocument({data: buf}).promise;
+
+  // Try with worker first; if the worker cannot be started, retry without worker.
+  try{
+    pdfDoc = await pdfjsLib.getDocument({data: buf}).promise;
+  }catch(err){
+    // fallback: run without worker (slower, but much more robust)
+    pdfDoc = await pdfjsLib.getDocument({data: buf, disableWorker: true}).promise;
+  }
+
   pdfPageTextCache.clear();
   pdfPageRawCache.clear();
   el("pdfStatus").textContent = `PDF: OK (${pdfDoc.numPages} oldal)`;
@@ -536,7 +626,26 @@ function bind(){
     addActive(v);
   });
   el("manualAdd").addEventListener("keydown", (e)=>{ if(e.key==="Enter"){ el("btnAddManual").click(); }});
-  el("btnClearActive").addEventListener("click", clearActive);
+  
+  // Bulk import
+  const bulkAddBtn = document.getElementById("btnBulkAdd");
+  if(bulkAddBtn){
+    bulkAddBtn.addEventListener("click", ()=>{
+      const t = (document.getElementById("bulkPaste")?.value)||"";
+      bulkAddFromText(t);
+    });
+  }
+  const bulkClearBtn = document.getElementById("btnBulkClear");
+  if(bulkClearBtn){
+    bulkClearBtn.addEventListener("click", ()=>{
+      const tp = document.getElementById("bulkPaste");
+      if(tp) tp.value = "";
+      const rep = document.getElementById("bulkReport");
+      if(rep) rep.textContent = "";
+    });
+  }
+
+el("btnClearActive").addEventListener("click", clearActive);
 
   el("btnCopySummary").addEventListener("click", async ()=>{
     const txt = el("summary").textContent || "";
@@ -557,7 +666,12 @@ function bind(){
     }catch(err){
       console.error(err);
       el("pdfStatus").textContent = "PDF: hiba (nem olvasható)";
-      alert("A PDF betöltése nem sikerült. Próbáld meg újra, vagy ellenőrizd, hogy nem jelszó-védett.");
+      const msg = (err && err.message) ? err.message : String(err);
+      if(msg==="pdfjsLib_not_loaded"){
+        alert("A PDF feldolgozó modul (pdf.js) nem töltődött be. Gyakori ok: vállalati hálózat blokkolja a CDN-t. Próbáld meg más hálózatról, vagy jelezd és adok teljesen offline (vendorolt) verziót.");
+      } else {
+        alert("A PDF betöltése nem sikerült. Nem jelszó-védett? Akkor tipikusan a pdf.js worker indítása bukik. Most már van fallback, de ha mégis fennáll: " + msg);
+      }
     }
   });
 }

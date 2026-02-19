@@ -27,3 +27,8 @@ A FL LIMIT jellegű korlátoknál a rendszer tud **minimális MAX FL**-t számol
 ## GitHub Pages
 - Repo gyökerében van az `index.html` → Settings → Pages → Deploy from branch → `main` / root.
 
+
+
+## Gyors import (több sor)
+- Másold be az AMOS / handover listát a „Gyors import (több sor)” mezőbe, majd „Feldolgozás + aktívba”.
+- A rendszer kulcsszavak alapján azonosítja a limitációkat (TCAS/CPDLC/ADS-B/RVSM/RNP APCH/WX RADAR stb.).
