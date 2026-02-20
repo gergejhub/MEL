@@ -62,14 +62,14 @@
       setStatus('CSV törölve.');
     });
     el('csvPasteBtn').addEventListener('click', () => {
-      el('pasteModal').hidden = false;
+      el('pastePanel').hidden = false;
       el('csvPasteArea').value='';
       el('csvPasteArea').focus();
     });
-    el('pasteCloseBtn').addEventListener('click', () => el('pasteModal').hidden = true);
+    el('pasteCloseBtn').addEventListener('click', () => el('pastePanel').hidden = true);
     el('pasteImportBtn').addEventListener('click', () => {
       const txt = el('csvPasteArea').value || '';
-      el('pasteModal').hidden = true;
+      el('pastePanel').hidden = true;
       importCsvText(txt, 'pasted.csv');
     });
     el('copyBtn').addEventListener('click', () => {

@@ -30,6 +30,18 @@
   </div>
 </header>
 
+<!-- Inline CSV paste panel (no modal) -->
+<div class="pastePanel" id="pastePanel" hidden>
+  <div class="pasteCard">
+    <div class="pasteTitle">CSV beillesztés</div>
+    <textarea id="csvPasteArea" placeholder="Illeszd be a teljes CSV tartalmát…"></textarea>
+    <div class="pasteActions">
+      <button class="btn" id="pasteImportBtn">Import</button>
+      <button class="btn danger" id="pasteCloseBtn">Bezárás</button>
+    </div>
+  </div>
+</div>
+
 <main class="grid">
   <section class="panel left">
     <div class="panelHead">
@@ -84,16 +96,6 @@
   </section>
 </main>
 
-<div class="modal" id="pasteModal" hidden>
-  <div class="modalCard">
-    <div class="modalTitle">CSV beillesztés</div>
-    <textarea id="csvPasteArea" placeholder="Illeszd be a teljes CSV tartalmát…"></textarea>
-    <div class="modalActions">
-      <button class="btn" id="pasteImportBtn">Import</button>
-      <button class="btn danger" id="pasteCloseBtn">Bezárás</button>
-    </div>
-  </div>
-</div>
 
 <script src="app.js"></script>
 </body>
