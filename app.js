@@ -966,6 +966,41 @@ function renderRelevantAcList(){
   });
 }
 
+
+function renderSelectedAcItems(p){
+  const host = el("selectedAcItemsBody");
+  if(!host) return;
+  if(!p){
+    host.textContent = "Válassz egy repülőgépet a listából.";
+    return;
+  }
+  // Show only this aircraft's dispatcher-relevant open MEL items (from CSV snapshot).
+  const items = (p.relItems || []);
+  if(!items.length){
+    host.textContent = "Ehhez a lajstromhoz nincs dispatcher‑releváns tétel a CSV-ben.";
+    return;
+  }
+  const lines = [];
+  lines.push(`<div class="muted">Lajstrom: <b>${escapeHtml(p.ac)}</b> | Dispatch‑releváns tételek: <b>${items.length}</b></div>`);
+  lines.push('<div style="margin-top:8px; display:flex; flex-direction:column; gap:8px">');
+  for(const it of items){
+    const mel = (it.melRefs && it.melRefs.length) ? it.melRefs.join(", ") : (it.label||"");
+    const desc = it.desc || it.label || "";
+    const tag = (it.relevantReason ? `<span class="pill" title="Miért releváns">${escapeHtml(it.relevantReason)}</span>` : "");
+    lines.push(`<div style="border:1px solid var(--border); border-radius:12px; padding:8px; background:rgba(2,6,23,.35)">
+      <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start">
+        <div>
+          <div style="font-weight:800; font-size:12px">${escapeHtml(mel)}</div>
+          <div class="muted" style="margin-top:4px">${escapeHtml(desc)}</div>
+        </div>
+        ${tag}
+      </div>
+    </div>`);
+  }
+  lines.push("</div>");
+  host.innerHTML = lines.join("");
+}
+
 function selectAircraftProfile(ac){
   const p = amosTailProfiles.find(x=>x.ac===ac);
   if(!p) return;
@@ -973,8 +1008,13 @@ function selectAircraftProfile(ac){
   const pill = el("selectedAcPill");
   if(pill) pill.textContent = `A/C: ${ac}`;
 
+  // Update selected aircraft MEL list panel
+  renderSelectedAcItems(p);
+
   // Replace active list with this aircraft's dispatcher-relevant suggestions
   clearActive();
+  // Hard reset safeguard (avoid any residual state)
+  if(el('activeList')) el('activeList').innerHTML='';
   let added = 0;
   for(const s of p.suggestions){
     addActive(s.limitation, s.id);
@@ -1059,6 +1099,7 @@ function clearCsvUi(){
   if(el("deltaReport")) el("deltaReport").textContent = "—";
   renderAmsTable();
   renderRelevantAcList();
+  renderSelectedAcItems(null);
 }
 
 // -----------------------
