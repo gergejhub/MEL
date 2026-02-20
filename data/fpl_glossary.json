@@ -1,101 +1,46 @@
 {
-  "X": {
-    "name": "Item 10a: X",
-    "desc": "Mode S transponder capability code (X). Remove if Mode S/TCAS-related capability is not available per MEL / company FPL policy.",
-    "links": [
-      "https://www.eurocontrol.int/publication/ifps-users-manual"
-    ]
-  },
-  "TCAS": {
-    "name": "Item 18: TCAS",
-    "desc": "Indicates TCAS capability filing in Item 18. Remove when TCAS is inoperative per MEL/OPS policy.",
-    "links": [
-      "https://www.eurocontrol.int/publication/ifps-users-manual"
-    ]
+  "PBN": {
+    "desc": "PBN/\u2026: Performance Based Navigation k\u00e9pess\u00e9gek (RNAV/RNP). GNSS kies\u00e9sn\u00e9l a PBN k\u00f3dokat m\u00f3dos\u00edtani kell a MEL/OM szerint.",
+    "ref": "EUROCONTROL IFPS User Manual / PBN Portal"
   },
   "DAT/CPDLCX": {
-    "name": "Item 18: DAT/CPDLCX",
-    "desc": "CPDLC/data-link not available indicator (CPDLCX). Use per company procedure when CPDLC/ATC datalink is inoperative.",
-    "links": [
-      "https://www.eurocontrol.int/publication/ifps-users-manual",
-      "https://learningzone.eurocontrol.int/ilp/customs/FPL/"
-    ]
-  },
-  "B3": {
-    "name": "PBN B3",
-    "desc": "RNAV 5 DME/DME capability.",
-    "links": [
-      "https://support.foreflight.com/hc/en-us/articles/360049193173-ICAO-Equipment-and-PBN-Code-Setup-Guide"
-    ]
-  },
-  "B4": {
-    "name": "PBN B4",
-    "desc": "RNAV 5 VOR/DME capability.",
-    "links": [
-      "https://support.foreflight.com/hc/en-us/articles/360049193173-ICAO-Equipment-and-PBN-Code-Setup-Guide"
-    ]
-  },
-  "B5": {
-    "name": "PBN B5",
-    "desc": "RNAV 5 INS/IRS capability.",
-    "links": [
-      "https://support.foreflight.com/hc/en-us/articles/360049193173-ICAO-Equipment-and-PBN-Code-Setup-Guide"
-    ]
-  },
-  "C4": {
-    "name": "PBN C4",
-    "desc": "RNAV 2 DME/DME/IRU capability.",
-    "links": [
-      "https://support.foreflight.com/hc/en-us/articles/360049193173-ICAO-Equipment-and-PBN-Code-Setup-Guide"
-    ]
-  },
-  "D4": {
-    "name": "PBN D4",
-    "desc": "RNAV 1 DME/DME/IRU capability.",
-    "links": [
-      "https://pbnportal.eu/dam/jcr%3A92be5929-3ad7-4525-b74a-c25d4d96e123/Filing%20the%20Flight%20Plan.pdf"
-    ]
-  },
-  "L1": {
-    "name": "PBN L1",
-    "desc": "RNP 4 capability.",
-    "links": [
-      "https://pbnportal.eu/dam/jcr%3A92be5929-3ad7-4525-b74a-c25d4d96e123/Filing%20the%20Flight%20Plan.pdf"
-    ]
-  },
-  "S2": {
-    "name": "PBN S2",
-    "desc": "RNP APCH with BARO-VNAV.",
-    "links": [
-      "https://pbnportal.eu/dam/jcr%3A92be5929-3ad7-4525-b74a-c25d4d96e123/Filing%20the%20Flight%20Plan.pdf"
-    ]
-  },
-  "O2": {
-    "name": "PBN O2",
-    "desc": "RNP 1 GNSS capability.",
-    "links": [
-      "https://pbnportal.eu/dam/jcr%3A92be5929-3ad7-4525-b74a-c25d4d96e123/Filing%20the%20Flight%20Plan.pdf"
-    ]
+    "desc": "DAT/CPDLCX: datalink/CPDLC nem \u00e1ll rendelkez\u00e9sre; IFPS filingben Item18-ben jelzend\u0151 a MEL/elj\u00e1r\u00e1s szerint.",
+    "ref": "EUROCONTROL IFPS User Manual"
   },
   "J1": {
-    "name": "Item 10a: J1",
-    "desc": "CPDLC ATN VDL Mode 2 capability code. Remove if CPDLC is inoperative per procedure.",
-    "links": [
-      "https://www.eurocontrol.int/publication/ifps-users-manual"
-    ]
+    "desc": "Item10a J1: CPDLC ATN VDL Mode 2 (p\u00e9lda, f\u00fcgg a rendszered implement\u00e1ci\u00f3j\u00e1t\u00f3l). Ha CPDLC INOP: remove.",
+    "ref": "EUROCONTROL IFPS User Manual"
   },
   "J4": {
-    "name": "Item 10a: J4",
-    "desc": "CPDLC FANS 1/A HFDL capability code. Remove if CPDLC is inoperative per procedure.",
-    "links": [
-      "https://www.eurocontrol.int/publication/ifps-users-manual"
-    ]
+    "desc": "Item10a J4: CPDLC FANS 1/A (p\u00e9lda). Ha CPDLC INOP: remove.",
+    "ref": "EUROCONTROL IFPS User Manual"
   },
-  "G": {
-    "name": "Item 10a: G",
-    "desc": "GNSS equipment code. Remove if GNSS not available per MEL/OPS policy.",
-    "links": [
-      "https://www.eurocontrol.int/publication/ifps-users-manual"
-    ]
+  "X": {
+    "desc": "Item10a X: TCAS (ACAS). TCAS INOP eset\u00e9n remove + Item18 TCAS jel\u00f6l\u00e9sek t\u00f6rl\u00e9se.",
+    "ref": "ICAO FPL/IFPS"
+  },
+  "TCAS": {
+    "desc": "Item18 TCAS: TCAS capability jel\u00f6l\u00e9s. TCAS INOP eset\u00e9n t\u00f6rlend\u0151, \u00e9s NAT/ClassE korl\u00e1tok lehetnek MEL szerint.",
+    "ref": "Operator MEL / IFPS"
+  },
+  "B3": {
+    "desc": "PBN B3: RNAV 5 DME/DME",
+    "ref": "PBN Portal"
+  },
+  "B4": {
+    "desc": "PBN B4: RNAV 5 VOR/DME",
+    "ref": "PBN Portal"
+  },
+  "B5": {
+    "desc": "PBN B5: RNAV 5 INS/IRS",
+    "ref": "PBN Portal"
+  },
+  "C4": {
+    "desc": "PBN C4: RNAV 2 DME/DME/IRU",
+    "ref": "PBN Portal"
+  },
+  "D4": {
+    "desc": "PBN D4: RNAV 1 DME/DME/IRU",
+    "ref": "PBN Portal"
   }
 }

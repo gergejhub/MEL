@@ -1,14 +1,24 @@
 {
-  "version": "clean-v2-excelrefresh-2026-02-20",
-  "rules": [
+  "version": "excelrefresh",
+  "actions": [
     {
       "id": "FL_LIMITATION",
       "title": "FL Limitation",
-      "codes": [],
-      "match_keywords": [
-        "MAX FL",
-        "FL LIMITATION",
-        "MAXFL"
+      "tag": "FL",
+      "triggers": [
+        "AIRCRAFT",
+        "ALTERNATE",
+        "AND",
+        "FL Limitation",
+        "LIMITATION",
+        "MAX",
+        "MAXCRUISE",
+        "OPERATOR",
+        "PAGE",
+        "PERFORMANCE",
+        "SPEED",
+        "TAB",
+        "THE"
       ],
       "lido": "Please overwrite the MAX FL on Aircraft Operator  page Speed and Performance Tab(MAX Alternate and MaxCruise)",
       "other": "Revalidte the FPL!"
@@ -16,9 +26,14 @@
     {
       "id": "TCAS_INOP",
       "title": "TCAS INOP",
-      "codes": [],
-      "match_keywords": [
-        "TCAS"
+      "tag": "TCAS",
+      "triggers": [
+        "10A:X",
+        "INOP",
+        "REMOVE:",
+        "REMOVE:ITEM",
+        "TCAS",
+        "TCAS INOP"
       ],
       "lido": "Remove: from item 10a:X, Remove:item 18 TCAS",
       "other": "No class E airspace, no KEF flights (at least below NAT HLA)\nMax 10 days in EU, except Germany: 3 days rule. Other countries: check CRAR"
@@ -26,14 +41,15 @@
     {
       "id": "CPDLC_INOP",
       "title": "CPDLC INOP",
-      "codes": [],
-      "match_keywords": [
-        "DAT/CPDLC",
-        "DAT/CPDLCX",
-        "ATC DATALINK",
+      "tag": "CPDLC",
+      "triggers": [
+        "10A:",
         "CPDLC",
-        "CPDLCX",
-        "DATALINK"
+        "CPDLC INOP",
+        "DAT/CPDLCX",
+        "INOP",
+        "ITEM10A:J1",
+        "REMOVE:"
       ],
       "lido": "Remove: from item10a:J1,J4                                                            Insert 10a: Z,                                                                                                   Insert item 18 DAT/CPDLCX",
       "other": "Check CRAR amd OM C Airport Briefing"
@@ -41,10 +57,13 @@
     {
       "id": "ADF_INOP",
       "title": "ADF INOP",
-      "codes": [],
-      "match_keywords": [
+      "tag": "ADF",
+      "triggers": [
+        "ADF",
         "ADF INOP",
-        "ADF"
+        "INOP",
+        "ITEM10A:F",
+        "REMOVE:"
       ],
       "lido": "Remove: from item10a:F,",
       "other": "Check  ADF requirement for DEP/DES/ALT airports"
@@ -52,14 +71,17 @@
     {
       "id": "ADS_B_INOP",
       "title": "ADS-B INOP",
-      "codes": [],
-      "match_keywords": [
-        "ADS B",
+      "tag": "ADS-B",
+      "triggers": [
+        "10B",
         "ADS-B",
-        "ADS B OUT",
-        "ADS-B OUT",
-        "SUR/EUADSBX",
-        "ADSB"
+        "ADS-B INOP",
+        "AND",
+        "INOP",
+        "INSERT:",
+        "ITEM10B:L",
+        "REMOVE:",
+        "SUR/EUADSBX"
       ],
       "lido": "Remove: from item10b:L and B1,                                          Insert: H to item  10b                                                                 Insert: SUR/EUADSBX  item 18",
       "other": "SINGLE EUROPEAN SKY (SES): \nThe 27 EU Member States ( Austria, Belgium, Bulgaria, Croatia, Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Ireland, Italy, \nLatvia, Lithuania, Luxembourg, Malta, Netherlands, Poland, Portugal, Romania, Slovakia, Slovenia, Spain, Sweden) plus Norway and Switzerland (29 States in total).\n\nWe can operate with ADS-B OUT inoperative within SES for 3 days.\nRestrictions for countries outside of SES should be checked in CRAR!"
@@ -67,11 +89,13 @@
     {
       "id": "ADS_C_INOP",
       "title": "ADS-C INOP",
-      "codes": [],
-      "match_keywords": [
-        "ADS C",
+      "tag": "ADS-C",
+      "triggers": [
         "ADS-C",
-        "ADSC"
+        "ADS-C INOP",
+        "INOP",
+        "ITEM10B:G1",
+        "REMOVE:"
       ],
       "lido": "Remove: from item10b:G1",
       "other": "nan"
@@ -79,16 +103,19 @@
     {
       "id": "BOTH_GPS_INOP",
       "title": "BOTH GPS INOP",
-      "codes": [],
-      "match_keywords": [
-        "GPS 2",
-        "GPS 1",
-        "BOTH GPS",
-        "GPS INOP",
+      "tag": "BOTH",
+      "triggers": [
+        "10A:G",
+        "10A:X",
+        "BOTH",
+        "BOTH GPS INOP",
         "GPS",
-        "GNSS",
-        "GPS2",
-        "GPS1"
+        "INOP",
+        "INSERT:",
+        "PBN:A1",
+        "REMOVE:",
+        "REMOVE:ITEM",
+        "TCAS"
       ],
       "lido": "Remove: from item 10a:G, Remove:item 18  PBN:A1, B1,C1,D1,O1,O2,S2 insert: B3,B4,B5,C4,D4                  Remove: from item 10a:X,                                                 Remove:item 18 TCAS",
       "other": "Please Check equipment requirement for DEP/DES/ALT airports For ADS-B see note on ADS-B inop for SES"
@@ -96,15 +123,22 @@
     {
       "id": "DUAL_VOR_INOP",
       "title": "Dual VOR INOP",
-      "codes": [],
-      "match_keywords": [
-        "VOR 1",
-        "VOR 2",
-        "VOR INOP",
-        "DUAL VOR",
-        "VOR",
-        "VOR1",
-        "VOR2"
+      "tag": "VOR",
+      "triggers": [
+        "10A:S",
+        "AND",
+        "DUAL",
+        "Dual VOR INOP",
+        "EQUIPMENT",
+        "ILS",
+        "INOP",
+        "INSERT:B2",
+        "NON-STANDARD",
+        "REMOVE:",
+        "RTF",
+        "SELECT",
+        "VHF",
+        "VOR"
       ],
       "lido": "Remove: from item 10a:S, select n(Non-Standard Equipment)                                                                                             Insert L (ILS) and V (VHF RTF)                                                      Remove: from item 18 B1                                               Insert:B2,B3,B5",
       "other": "Check CRAR amd OM C Airport Briefing"
@@ -112,12 +146,12 @@
     {
       "id": "WX_RADAR_INOP",
       "title": "Wx Radar INOP",
-      "codes": [],
-      "match_keywords": [
-        "WX RADAR",
-        "WEATHER RADAR",
-        "WXR",
-        "RADAR"
+      "tag": "WX",
+      "triggers": [
+        "INOP",
+        "NAN",
+        "RADAR",
+        "Wx Radar INOP"
       ],
       "lido": "nan",
       "other": "Check the whole RTE and ALTN RTE for any hazardous WX condition (icing, turbulence, jet stream, etc)\nUse both maps (most helpful is FL100-FL450)"
@@ -125,13 +159,12 @@
     {
       "id": "NO_ICEING_CONDITION",
       "title": "No Iceing Condition",
-      "codes": [],
-      "match_keywords": [
-        "NO ICING",
-        "NO ICEING",
-        "ICING CONDITION",
-        "NO ICING CONDITION",
-        "ICEING"
+      "tag": "NO",
+      "triggers": [
+        "CONDITION",
+        "ICEING",
+        "NAN",
+        "No Iceing Condition"
       ],
       "lido": "nan",
       "other": "Check the whole RTE for any possible icing condition (icing areas, CB). Please, check also the TAF, SNOWTAM and METAR for DEP/DES/ALT airports"
@@ -139,35 +172,55 @@
     {
       "id": "NO_RVSM_OPERATION",
       "title": "No RVSM operation",
-      "codes": [],
-      "match_keywords": [
-        "NO RVSM",
-        "RVSM NOT",
+      "tag": "NO",
+      "triggers": [
+        "10A:W",
+        "AND",
+        "No RVSM operation",
+        "OPERATION",
+        "REMOVE:",
         "RVSM"
       ],
       "lido": "Remove: from item 10a:W and X",
       "other": "Plan RTE below FL285"
     },
     {
-      "id": "ILS_CATEGORY_LIMITATION",
+      "id": "ILS_CATEGORY_LIMITATION_BASIC_CAT3B_AUTO",
       "title": "ILS Category limitation   (Basic: CAT3B autoland cat 3A)",
-      "codes": [],
-      "match_keywords": [
-        "CAT I",
-        "CAT 3B",
-        "CAT II",
-        "CAT 3A",
-        "ILS CAT",
-        "CAT III",
-        "ILS CATEGORY",
-        "LANDING CAPABILITY",
-        "ILS",
-        "RVR",
+      "tag": "ILS",
+      "triggers": [
+        "300M",
+        "550M",
+        "75M",
+        "ACCORDING",
+        "AIRCRAFT",
+        "AIRCRAFT/DATA",
+        "APPROACH",
+        "AUTOLAND",
+        "BASIC:",
+        "CAPABILITY",
         "CAT",
-        "CAT3A",
         "CAT3B",
         "CATEGORY",
-        "AUTOLAND"
+        "EQUIPMENT",
+        "FOR",
+        "FPL:",
+        "ICAO",
+        "II:",
+        "III",
+        "IIIA:200M",
+        "ILS",
+        "ILS Category limitation   (Basic: CAT3B autoland cat 3A)",
+        "LANDING",
+        "LIMITATION",
+        "MEL",
+        "OPERATOR",
+        "OVERWRITE:",
+        "PAGE",
+        "RVR",
+        "STANDARD",
+        "TAB",
+        "THE"
       ],
       "lido": "Please overwrite the Landing Capability on Aircraft Operator  page Equipment Tab (Standard Approach Equipment) according to MEL.                                       Overwrite: AIRCRAFT/DATA FOR ICAO FPL: RVR in item 18 For CAT I: 550m CAT II: 300m CAT IIIA:200m CAT III B : 75m",
       "other": "Check Minima for DEP/DES/ALT airports"
@@ -175,26 +228,26 @@
     {
       "id": "RNP_APPCH",
       "title": "RNP APPCH",
-      "codes": [],
-      "match_keywords": [
-        "PBN S2",
-        "RNP APCH",
-        "RNP APPCH",
-        "RNP APPROACH",
-        "RNP",
+      "tag": "RNP",
+      "triggers": [
         "APPCH",
-        "PBN:S2"
+        "PBN:S2",
+        "REMOVE:",
+        "RNP",
+        "RNP APPCH"
       ],
       "lido": "Remove: from item 18 PBN:S2",
       "other": "Check Minima for DEP/DES/ALT airports"
     },
     {
-      "id": "GPWS_INOP",
+      "id": "E_GPWS_INOP",
       "title": "(E)GPWS INOP",
-      "codes": [],
-      "match_keywords": [
+      "tag": "(E)GPWS",
+      "triggers": [
+        "(E)GPWS INOP",
         "GPWS",
-        "EGPWS"
+        "INOP",
+        "NAN"
       ],
       "lido": "nan",
       "other": "Check OM  C Airport Briefing  for DEP/DES/ALT airports                     Example: FNC (Madeira)flight"
@@ -202,13 +255,14 @@
     {
       "id": "CENTER_TANK_TRANSFER_VALVE_28_26_01",
       "title": "Center Tank Transfer Valve 28-26-01",
-      "codes": [
-        "28-26-01"
-      ],
-      "match_keywords": [
+      "tag": "CENTER",
+      "triggers": [
         "28-26-01",
-        "CENTER TANK",
-        "TRANSFER VALVE",
+        "CENTER",
+        "Center Tank Transfer Valve 28-26-01",
+        "NAN",
+        "TANK",
+        "TRANSFER",
         "VALVE"
       ],
       "lido": "nan",
@@ -217,15 +271,16 @@
     {
       "id": "MCDU_INOP_22_82_01_02",
       "title": "MCDU INOP                             22-82-01/02",
-      "codes": [
-        "22-82-01/02"
-      ],
-      "match_keywords": [
-        "22 82",
-        "22-82-02",
-        "22-82-01",
+      "tag": "MCDU",
+      "triggers": [
+        "10A:X",
         "22-82-01/02",
-        "MCDU"
+        "INOP",
+        "MCDU",
+        "MCDU INOP                             22-82-01/02",
+        "PBN:",
+        "REMOVE:",
+        "REMOVE:ITEM"
       ],
       "lido": "Remove: from item 10a:X,                                                 Remove:item 18 PBN: A1, C1,L1,",
       "other": "Check VOR/DME/NDB coverage"

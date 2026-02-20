@@ -2,119 +2,95 @@
 <html lang="hu">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MEL Dispatch Assistant (Clean)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>MEL Dispatch Assistant (Offline Index)</title>
   <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
-<header>
+<header class="topbar">
   <div class="brand">
     <div class="dot"></div>
     <div>
       <div class="title">MEL Dispatch Assistant</div>
-      <div class="sub">Clean dispatch-releváns nézet • CSV → érintett lajstromok → teendők</div>
+      <div class="subtitle">Clean dispatch-releváns nézet • CSV + MEL PDF index (offline)</div>
     </div>
   </div>
-
-  <div class="header-actions">
+  <div class="actions">
     <label class="btn">
       CSV feltöltés
       <input id="csvFile" type="file" accept=".csv,text/csv" hidden>
     </label>
-    <button class="btn secondary" id="pasteCsvBtn">CSV beillesztés</button>
-
-    <label class="btn secondary">
-      MEL PDF feltöltés (opcionális)
+    <button class="btn" id="csvPasteBtn">CSV beillesztés</button>
+    <label class="btn">
+      MEL PDF feltöltés (ellenőrzés)
       <input id="pdfFile" type="file" accept="application/pdf" hidden>
     </label>
-
-    <button class="btn secondary" id="handoverBtn" disabled>Handover export</button>
-    <button class="btn danger" id="clearBtn" disabled>CSV törlés</button>
+    <button class="btn" id="handoverBtn">Handover export</button>
+    <button class="btn danger" id="clearBtn">CSV törlés</button>
   </div>
 </header>
 
-<main>
-  <section class="left">
-    <div class="panel">
-      <div class="panel-h">
-        <div>
-          <div class="panel-title">Dispatch‑releváns repülőgépek</div>
-          <div class="panel-sub" id="fleetMeta">Tölts fel egy AMOS WO Summary CSV‑t.</div>
-        </div>
-        <div class="pill" id="deltaPill" title="Előző importhoz képest">Δ: —</div>
+<main class="grid">
+  <section class="panel left">
+    <div class="panelHead">
+      <div>
+        <div class="h">Dispatch-releváns repülőgépek</div>
+        <div class="meta" id="statusLine">Betöltés…</div>
       </div>
-
-      <div class="list" id="tailList">
-        <div class="empty">Nincs adat.</div>
-      </div>
+      <div class="pill" id="deltaPill" title="előző importhoz képest">Δ</div>
     </div>
-
-    <div class="panel">
-      <div class="panel-h">
-        <div>
-          <div class="panel-title">Kiválasztott lajstrom – releváns MEL tételek</div>
-          <div class="panel-sub" id="selMeta">Válassz egy lajstromot bal oldalt.</div>
-        </div>
-      </div>
-      <div class="list" id="selItems">
-        <div class="empty">Nincs kiválasztott lajstrom.</div>
-      </div>
-      <div class="card">
-        <div class="card-h">Kódok magyarázata (FPL)</div>
-        <div class="card-sub">Rövid leírások a használt ICAO / PBN kódokról. Részletek: EUROCONTROL IFPS Manual / Learning Zone.</div>
-        <div id="glossBox" class="gloss"></div>
-      </div>
+    <div class="list" id="tailsList"></div>
+    <div class="panelFoot">
+      <div class="h2">Kiválasztott lajstrom – releváns MEL tételek</div>
+      <div class="meta" id="selMeta">Válassz egy lajstromot bal oldalt.</div>
+      <div class="list compact" id="selItems"></div>
     </div>
   </section>
 
-  <section class="right">
-    <div class="panel">
-      <div class="panel-h">
-        <div>
-          <div class="panel-title" id="todoTitle">Teendők (dispatch)</div>
-          <div class="panel-sub" id="todoSub">A jobb oldalon mindig csak az aktuálisan kiválasztott gép teendői látszanak.</div>
-        </div>
-        <button class="btn secondary" id="copyBtn" disabled>Másolás</button>
+  <section class="panel right">
+    <div class="panelHead">
+      <div>
+        <div class="h" id="rightTitle">Teendők (dispatch)</div>
+        <div class="meta">A jobb oldalon mindig csak az aktuálisan kiválasztott gép teendői látszanak.</div>
       </div>
+      <button class="btn small" id="copyBtn">Másolás</button>
+    </div>
 
-      <div class="grid2">
-        <div class="card">
-          <div class="card-h">ICAO FPL változások (összegzett)</div>
-          <pre class="mono" id="fplBox">—</pre>
-        </div>
-        <div class="card">
-          <div class="card-h">LIDO 4D / Dispatch teendők</div>
-          <div id="lidoBox" class="ol"></div>
-        </div>
-      </div>
-
+    <div class="cols2">
       <div class="card">
-        <div class="card-h">Operációs korlátok / megjegyzések</div>
-        <pre class="mono" id="opsBox">—</pre>
+        <div class="cardTitle">ICAO FPL változások (összegzett)</div>
+        <div id="fplBox" class="mono"></div>
       </div>
       <div class="card">
-        <div class="card-h">Kódok magyarázata (FPL)</div>
-        <div class="card-sub">Rövid leírások a használt ICAO / PBN kódokról. Részletek: EUROCONTROL IFPS Manual / Learning Zone.</div>
-        <div id="glossBox" class="gloss"></div>
+        <div class="cardTitle">LIDO 4D / Dispatch teendők</div>
+        <div id="lidoBox" class="mono"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="cardTitle">Operációs korlátok / megjegyzések</div>
+      <div id="opsBox" class="mono"></div>
+    </div>
+
+    <div class="card">
+      <div class="cardTitle">Kódok magyarázata (FPL)</div>
+      <div class="meta">A doboz a fenti FPL változások alapján automatikusan listázza a releváns kódokat.</div>
+      <div id="glossaryBox" class="gloss"></div>
+      <div class="meta">
+        Részletek: <a href="https://www.eurocontrol.int/sites/default/files/2025-10/eurocontrol-ifps-user-manual-maint-2-external.pdf" target="_blank" rel="noreferrer">EUROCONTROL IFPS User Manual</a> •
+        <a href="https://learningzone.eurocontrol.int/ilp/customs/FPL/" target="_blank" rel="noreferrer">EUROCONTROL Learning Zone</a>
       </div>
     </div>
   </section>
 </main>
 
-<!-- CSV paste modal -->
-<div class="modal" id="pasteModal" aria-hidden="true">
-  <div class="modal-inner">
-    <div class="modal-h">
-      <div>
-        <div class="modal-title">CSV beillesztés</div>
-        <div class="modal-sub">Másold be a teljes CSV tartalmát (headerekkel együtt).</div>
-      </div>
-      <button class="iconbtn" id="closePaste">✕</button>
-    </div>
-    <textarea id="csvPaste" placeholder="Ide jöhet a teljes CSV..."></textarea>
-    <div class="modal-actions">
-      <button class="btn secondary" id="cancelPaste">Mégse</button>
-      <button class="btn" id="importPaste">Import</button>
+<div class="modal" id="pasteModal" hidden>
+  <div class="modalCard">
+    <div class="modalTitle">CSV beillesztés</div>
+    <textarea id="csvPasteArea" placeholder="Illeszd be a teljes CSV tartalmát…"></textarea>
+    <div class="modalActions">
+      <button class="btn" id="pasteImportBtn">Import</button>
+      <button class="btn danger" id="pasteCloseBtn">Bezárás</button>
     </div>
   </div>
 </div>
