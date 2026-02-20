@@ -65,24 +65,54 @@ function extractMelCodes(text){
   return [...codes];
 }
 
-function matchRule(haystack, codes){
+function matchRules(haystack, codes){
   const h = norm(haystack);
+  const hits = [];
+  const seen = new Set();
   for (const r of state.rules){
+    let ok = false;
+
     // code match
     if (r.codes && r.codes.length){
       for (const c of r.codes){
-        if (codes.includes(c) || h.includes(c)) return r;
+        if (!c) continue;
+        const cc = String(c);
+        if (codes.includes(cc) || h.includes(norm(cc))){
+          ok = true;
+          break;
+        }
       }
     }
+
     // keyword match (strict)
-    for (const kw of (r.match_keywords||[])){
-      const k = norm(kw);
-      if (k.length < 3) continue;
-      if (h.includes(k)) return r;
+    if (!ok){
+      for (const kw of (r.match_keywords||[])){
+        const k = norm(kw);
+        if (k.length < 3) continue;
+        if (h.includes(k)){
+          ok = true;
+          break;
+        }
+      }
+    }
+
+    if (ok){
+      const key = String(r.id || r.title || JSON.stringify(r.match_keywords||[]));
+      if (!seen.has(key)){
+        seen.add(key);
+        hits.push(r);
+      }
     }
   }
-  return null;
+  return hits;
 }
+
+// backwards-compatible: return first hit (if needed)
+function matchRule(haystack, codes){
+  const hits = matchRules(haystack, codes);
+  return hits.length ? hits[0] : null;
+}
+
 
 
 function findRuleByTag(tag){
@@ -618,36 +648,33 @@ function buildTailsFromCsv(records){
     if (isExcluded(hay)) continue;
 
     const codes = extractMelCodes(hay);
-    let rule = matchRule(hay, codes);
+    const rules = matchRules(hay, codes);
+    let rule = null;
 
-    let relevant = false;
-    let reason = '';
-    let tags = new Set();
-
-    if (rule){
-      relevant = true;
-      reason = `MATCH: ${rule.title}`;
-      tags = deriveTagsFromText(rule.title + ' ' + rule.other + ' ' + rule.lido);
+    const candidates = [];
+    if (rules && rules.length){
+      for (const rr of rules){
+        const tgs = deriveTagsFromText((rr.title||'') + ' ' + (rr.other||'') + ' ' + (rr.lido||''));
+        candidates.push({ rule: rr, reason: `MATCH: ${rr.title}`, tags: tgs });
+      }
     } else {
       const ftags = deriveTagsFromText(hay);
       if (ftags.size){
-        const primary = [...ftags][0];
-        const mapped = findRuleByTag(primary);
-        if (mapped){
-          rule = mapped;
-          relevant = true;
-          reason = `MATCH: ${mapped.title}`;
-          tags = deriveTagsFromText(mapped.title + ' ' + mapped.other + ' ' + mapped.lido);
-          tags.add(primary);
-        } else {
-          relevant = true;
-          reason = `KEYWORD: ${primary}`;
-          tags = ftags;
+        const list = [...ftags].slice(0,3);
+        for (const primary of list){
+          const mapped = findRuleByTag(primary);
+          if (mapped){
+            const tgs = deriveTagsFromText((mapped.title||'') + ' ' + (mapped.other||'') + ' ' + (mapped.lido||''));
+            tgs.add(primary);
+            candidates.push({ rule: mapped, reason: `MATCH: ${mapped.title}`, tags: tgs });
+          } else {
+            candidates.push({ rule: null, reason: `KEYWORD: ${primary}`, tags: new Set([primary]) });
+          }
         }
       }
     }
 
-    if (!relevant) continue;
+    if (!candidates.length) continue;
 
     if (!state.tails.has(tail)){
       state.tails.set(tail, { tail, relevantItems: [], ruleMap: new Map(), tagCounts: new Map(), score:0 });
@@ -655,31 +682,39 @@ function buildTailsFromCsv(records){
     const entry = state.tails.get(tail);
 
     const src = `W/O ${wo} • ATA ${ata || '—'} • Due ${due || '—'}`;
-    const title = rule ? rule.title : (tags.size ? [...tags][0] + ' (fallback)' : 'Dispatch relevant');
-    const baseRuleKey = rule ? String(rule.id || rule.title || title) : title;
-// Count distinct dispatch-relevant MEL items by WO when available (AMOS export uses W/O as stable key)
-const woKey = (wo || '').trim();
-const ruleKey = woKey ? `${baseRuleKey}__WO:${woKey}` : baseRuleKey;
+    const woKey = (wo || '').trim();
 
-    if (!entry.ruleMap.has(ruleKey)){
-      const item = { tail, title, rule, reason, sourceSummary: src, occurrences: 1, tags: new Set(tags) };
-      entry.ruleMap.set(ruleKey, item);
-      entry.relevantItems.push(item);
+    for (const cand of candidates){
+      const rule = cand.rule;
+      const reason = cand.reason;
+      const tags = cand.tags;
 
-      const ptags = tags.size ? tags : deriveTagsFromText(title);
-      const eff = new Set();
-      if (ptags.size){
-        for (const tg of ptags){
-          eff.add(decorateTag(tg, title));
+      const title = rule ? rule.title : (tags.size ? [...tags][0] + ' (fallback)' : 'Dispatch relevant');
+      const baseRuleKey = rule ? String(rule.id || rule.title || title) : title;
+      const ruleKey = woKey ? `${baseRuleKey}__WO:${woKey}` : baseRuleKey;
+
+      if (!entry.ruleMap.has(ruleKey)){
+        const item = { tail, title, rule, reason, sourceSummary: src, occurrences: 1, tags: new Set(tags) };
+        entry.ruleMap.set(ruleKey, item);
+        entry.relevantItems.push(item);
+
+        const ptags = tags.size ? tags : deriveTagsFromText(title);
+        const eff = new Set();
+        if (ptags.size){
+          for (const tg of ptags){
+            eff.add(decorateTag(tg, title));
+          }
+        } else {
+          eff.add(title);
+        }
+        for (const tg of eff){
+          entry.tagCounts.set(tg, (entry.tagCounts.get(tg)||0) + 1);
         }
       } else {
-        eff.add(title);
+        const it = entry.ruleMap.get(ruleKey);
+        it.occurrences += 1;
+        for (const tg of tags) it.tags.add(tg);
       }
-      for (const tg of eff){
-        entry.tagCounts.set(tg, (entry.tagCounts.get(tg)||0) + 1);
-      }
-    } else {
-      entry.ruleMap.get(ruleKey).occurrences += 1;
     }
 
     const distinct = entry.ruleMap.size;
