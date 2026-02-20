@@ -152,3 +152,16 @@ h2{margin:0 0 10px 0;font-size:14px;letter-spacing:.25px}
 .badge.ok{ border-color: rgba(34,197,94,0.6); }
 .badge.warn{ border-color: rgba(245,158,11,0.7); }
 .badge.danger{ border-color: rgba(239,68,68,0.7); }
+
+.acList{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+.acItem{ display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.03); cursor:pointer; user-select:none;
+}
+.acItem:hover{ background: rgba(255,255,255,0.06); }
+.acItem.active{ outline: 2px solid rgba(99,102,241,0.55); }
+.acMeta{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.acName{ font-weight:700; letter-spacing:.2px; }
+.acCounts{ font-size:12px; opacity:0.85; }
+.smallCodes{ display:flex; gap:6px; flex-wrap:wrap; }
+.smallCodes code{ font-size:11px; padding:2px 6px; border-radius:999px; background: rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.10); }

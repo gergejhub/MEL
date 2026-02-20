@@ -10,6 +10,8 @@ let pdfPageRawCache = new Map();  // pageNo -> raw text
 let amosRows = [];
 let amosGroups = [];
 let amosRelevant = [];
+let amosTailProfiles = [];
+let selectedAc = null;
 
 
 const el = (id) => document.getElementById(id);
@@ -864,6 +866,135 @@ function renderAmsTable(){
   </table>`;
 }
 
+
+function buildAmsTailProfiles(){
+  // Build per-aircraft dispatcher-relevant profiles with suggested structured actions.
+  const profiles = [];
+  for(const g of amosGroups){
+    const relItems = g.items.filter(it=>it.relevant);
+    if(!relItems.length) continue;
+
+    const suggestionsMap = new Map(); // id/limitation -> {id, limitation, sources:Set}
+    const rawLabels = new Set();
+    const melRefs = new Set();
+    const keyTags = new Set();
+
+    for(const it of relItems){
+      for(const r of (it.melRefs||[])) melRefs.add(r);
+      const hay = `${it.melRefs.join(" ")} ${it.desc||""} ${it.label||""}`.trim();
+
+      // tag inference for quick scan
+      const U = hay.toUpperCase();
+      ["TCAS","CPDLC","DATALINK","ADS-B","RVSM","RNP","RNAV","PBN","WX RADAR","NAV DB","NO ICING","CAT II","CAT III","NAT HLA","ATSU","MCDU","FMS","RA","ADF"].forEach(k=>{
+        if(U.includes(k)) keyTags.add(k);
+      });
+
+      const matches = matchLineToActions(hay);
+      if(matches.length){
+        // take top 2, but only if they look like real dispatcher actions (have id or lido text)
+        for(const a of matches.slice(0,2)){
+          const id = a.id || a.limitation;
+          const key = `${id}`;
+          if(!suggestionsMap.has(key)){
+            suggestionsMap.set(key, {id: a.id || null, limitation: a.limitation, sources:new Set()});
+          }
+          suggestionsMap.get(key).sources.add(it.desc || it.label || "");
+        }
+      } else {
+        rawLabels.add(it.label || it.desc || "");
+      }
+    }
+
+    const suggestions = [...suggestionsMap.values()].map(x=>({
+      id: x.id,
+      limitation: x.limitation,
+      sources: [...x.sources].slice(0,3)
+    }));
+
+    profiles.push({
+      ac: g.ac,
+      relCount: relItems.length,
+      openCount: g.items.length,
+      melRefs: [...melRefs],
+      keyTags: [...keyTags].slice(0,8),
+      suggestions,
+      rawLabels: [...rawLabels].slice(0,6),
+      relItems
+    });
+  }
+  profiles.sort((a,b)=> (b.relCount-a.relCount) || a.ac.localeCompare(b.ac));
+  amosTailProfiles = profiles;
+}
+
+function renderRelevantAcList(){
+  const host = el("relevantAcList");
+  const sum = el("relevantAcSummary");
+  const pill = el("selectedAcPill");
+  if(!host || !sum || !pill) return;
+
+  if(!amosTailProfiles.length){
+    sum.textContent = "—";
+    host.textContent = "—";
+    pill.textContent = "A/C: —";
+    return;
+  }
+
+  sum.innerHTML = `Dispatcher‑releváns A/C: <b>${amosTailProfiles.length}</b> (CSV import alapján). Kattintásra automatikus teendőlista.`;
+  pill.textContent = selectedAc ? `A/C: ${selectedAc}` : "A/C: —";
+
+  host.innerHTML = amosTailProfiles.map(p=>{
+    const cls = (selectedAc===p.ac) ? "acItem active" : "acItem";
+    const codes = p.keyTags.slice(0,6).map(k=>`<code>${escapeHtml(k)}</code>`).join("");
+    return `<div class="${cls}" data-ac="${escapeHtml(p.ac)}">
+      <div class="acMeta">
+        <div class="acName">${escapeHtml(p.ac)}</div>
+        <div class="acCounts">rel: <b>${p.relCount}</b> | open: ${p.openCount}</div>
+        <div class="smallCodes">${codes}</div>
+      </div>
+      <div class="badge ${p.relCount>=3?"danger":"warn"}">TEENDŐ</div>
+    </div>`;
+  }).join("");
+
+  host.querySelectorAll("[data-ac]").forEach(node=>{
+    node.addEventListener("click", ()=>{
+      const ac = node.getAttribute("data-ac");
+      selectAircraftProfile(ac);
+    });
+  });
+}
+
+function selectAircraftProfile(ac){
+  const p = amosTailProfiles.find(x=>x.ac===ac);
+  if(!p) return;
+  selectedAc = ac;
+  const pill = el("selectedAcPill");
+  if(pill) pill.textContent = `A/C: ${ac}`;
+
+  // Replace active list with this aircraft's dispatcher-relevant suggestions
+  clearActive();
+  let added = 0;
+  for(const s of p.suggestions){
+    addActive(s.limitation, s.id);
+    added++;
+  }
+  for(const lbl of p.rawLabels){
+    // Keep labels as a fallback for "MAX FL", "NO ICING" type free text
+    addActive(lbl, null);
+    added++;
+  }
+
+  // Add an info line to the summary header (without contaminating the active list)
+  const hdr = document.getElementById("summaryHeader");
+  if(hdr) hdr.textContent = `Összegzett teendők – ${ac}`;
+
+  // Re-render list highlight
+  renderRelevantAcList();
+
+  // Optional: scroll summary into view
+  const sm = el("summary");
+  if(sm) sm.scrollIntoView({behavior:"smooth", block:"start"});
+}
+
 async function importAmsCsv(){
   try{
     const file = el("amosCsvFile")?.files?.[0] || null;
@@ -881,6 +1012,8 @@ async function importAmsCsv(){
     amosGroups = buildAmsGroups(amosRows);
     amosRelevant = amosGroups.flatMap(g=>g.items.filter(it=>it.relevant));
     renderAmsTable();
+    buildAmsTailProfiles();
+    renderRelevantAcList();
   }catch(err){
     console.error(err);
     alert("CSV import hiba: " + (err?.message || String(err)));
@@ -910,8 +1043,10 @@ function addRelevantFromCsvToActive(){
 function clearCsvUi(){
   if(el("amosCsvPaste")) el("amosCsvPaste").value="";
   if(el("amosCsvFile")) el("amosCsvFile").value="";
-  amosRows=[]; amosGroups=[]; amosRelevant=[];
+  amosRows=[]; amosGroups=[]; amosRelevant=[]; amosTailProfiles=[]; selectedAc=null;
+  const hdr = document.getElementById('summaryHeader'); if(hdr) hdr.textContent='Összegzett teendők';
   renderAmsTable();
+  renderRelevantAcList();
 }
 function bind(){
   el("btnSearch").addEventListener("click", doSearch);

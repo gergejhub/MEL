@@ -82,10 +82,23 @@
 <div class="muted" id="amosCsvReport">—</div>
 <div class="csvTable" id="amosCsvTable">—</div>
 </div>
+
+<div class="card">
+  <div class="cardHeader">
+    <div class="cardTitle">Dispatch‑releváns repülőgépek (CSV)</div>
+    <div class="pill" id="selectedAcPill" title="Kijelölt lajstrom">A/C: —</div>
+  </div>
+  <div class="muted" id="relevantAcSummary">—</div>
+  <div class="acList" id="relevantAcList">—</div>
+  <div class="muted" style="margin-top:8px; line-height:1.35;">
+    Kattints egy lajstromra: az adott A/C dispatcher‑releváns MEL‑jei automatikusan aktívba kerülnek, és lent megjelenik a kombinált teendőlista.
+  </div>
+</div>
+
 <div class="chips" id="activeList"></div>
 <div class="card">
 <div class="cardHeader">
-<div class="cardTitle">Összegzett teendők</div>
+<div class="cardTitle" id="summaryHeader">Összegzett teendők</div>
 <button class="btn" id="btnCopySummary">Másolás</button>
 </div>
 <pre class="summary" id="summary">Nincs aktív limitáció.</pre>
