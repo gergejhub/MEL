@@ -140,58 +140,103 @@ function deriveTagsFromText(text){
 }
 
 // ---------- FPL parsing ----------
-function parseFplFromLido(lidoText){
-  const t = String(lidoText||'').replace(/\s+/g,' ').trim();
-  const res = { item10a:{add:new Set(), remove:new Set()}, item10b:{add:new Set(), remove:new Set()}, item18:{add:new Set(), remove:new Set()} };
-  if (!t) return res;
+function cleanToken(x){
+  return String(x||'').trim().toUpperCase().replace(/[;]+$/,'').replace(/[,]+$/,'').replace(/\.$/,'');
+}
 
-  // Split into clauses starting with Remove/Insert/Add/Overwrite
-  const clauses = t.split(/\b(?=Remove:|Insert:|Insert\b|Add:|Overwrite:|Overwrit[e|o]:|Please\b)/i).map(s=>s.trim()).filter(Boolean);
-  for (const c of clauses){
+function parseInstructionsFromLido(lidoText){
+  const t = String(lidoText||'').replace(/\s+/g,' ').trim();
+  if (!t) return [];
+  const clauses = t.split(/\b(?=Remove:|Insert:|Insert\b|Add:|Overwrite:|Overwrit[e|o]:|Please\b)/i)
+    .map(s=>s.trim()).filter(Boolean);
+
+  const out = [];
+  let lastItem = null;
+
+  for (const c0 of clauses){
+    const c = String(c0||'').trim();
     const lc = c.toLowerCase();
     const isRemove = lc.startsWith('remove:') || lc.startsWith('remove ');
     const isInsert = lc.startsWith('insert') || lc.startsWith('add:') || lc.startsWith('insert:');
-    // identify item
+    const isOverwrite = lc.startsWith('overwrite') || lc.startsWith('please overwrite') || lc.startsWith('overwrit');
+
+    let verb = 'NOTE';
+    if (isRemove) verb = 'REMOVE';
+    else if (isInsert) verb = 'ADD';
+    else if (isOverwrite) verb = 'OVERWRITE';
+
     let item = null;
     if (/item\s*10a/i.test(c) || /10a:/i.test(c)) item = 'item10a';
     else if (/item\s*10b/i.test(c) || /10b:/i.test(c)) item = 'item10b';
     else if (/item\s*18/i.test(c)) item = 'item18';
 
-    // Extract tokens like X, J1, J4 from "10a:J1,J4" or "item 18 TCAS" or "PBN:S2"
     const tokens = [];
-    // pbn tokens
+    const pbnCodes = new Set();
     const pbn = c.match(/PBN:\s*([A-Z0-9,]+)/i);
-    if (pbn){ pbn[1].split(',').forEach(x=>tokens.push('PBN:'+x.trim().toUpperCase())); }
+    if (pbn){
+      pbn[1].split(',').map(x=>cleanToken(x)).filter(Boolean).forEach(x=>{ pbnCodes.add(x); tokens.push('PBN:'+x); });
+    }
     const sur = c.match(/SUR\/([A-Z0-9]+)/i);
-    if (sur){ tokens.push('SUR/'+sur[1].toUpperCase()); }
+    if (sur){ tokens.push('SUR/'+cleanToken(sur[1])); }
     const dat = c.match(/DAT\/([A-Z0-9]+)/i);
-    if (dat){ tokens.push('DAT/'+dat[1].toUpperCase()); }
-    // codes like "10a:X" or "10b:L and B1"
+    if (dat){ tokens.push('DAT/'+cleanToken(dat[1])); }
     const codeList = c.match(/10[AB]:\s*([A-Z0-9, ]+)/i);
     if (codeList){
-      codeList[1].replace(/and/ig,',').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean).forEach(x=>tokens.push(x));
+      codeList[1].replace(/and/ig,',').split(',')
+        .map(x=>cleanToken(x)).filter(Boolean)
+        .forEach(x=>tokens.push(x));
       if (!item) item = /10a:/i.test(c) ? 'item10a' : 'item10b';
     }
-    // plain tokens (TCAS etc) for item 18 remove
-    if (/item\s*18/i.test(c)){
+    if (/item\s*18/i.test(c) || /\bitem18\b/i.test(c)){
       const after = c.split(/item\s*18/i)[1] || '';
-      after.replace(/[:]/g,' ').split(/\s+/).map(x=>x.trim().toUpperCase()).filter(x=>x && x.length<=12).forEach(x=>{
-        if (['REMOVE','INSERT','FROM','ITEM'].includes(x)) return;
-        if (/^\d+$/.test(x)) return;
-        if (x==='10A' || x==='10B' || x==='18') return;
-        if (x==='PBN' || x==='SUR' || x==='DAT') return;
-        // keep alnum tokens like TCAS
-        if (/^[A-Z0-9\/]+$/.test(x)) tokens.push(x);
-      });
+      after.replace(/[:]/g,' ').split(/\s+/)
+        .map(x=>cleanToken(x))
+        .filter(x=>x && x.length<=12)
+        .forEach(x=>{
+          if (['REMOVE','INSERT','FROM','ITEM','ADD','OVERWRITE','PLEASE'].includes(x)) return;
+          if (/^\d+$/.test(x)) return;
+          if (x==='10A' || x==='10B' || x==='18') return;
+          if (x==='PBN' || x==='SUR' || x==='DAT') return;
+          // avoid duplicating PBN codes already captured as PBN:XX
+          if (/^[A-Z]\d$/.test(x) && pbnCodes.has(x)) return;
+          if (/^[A-Z0-9\/]+$/.test(x)) tokens.push(x);
+        });
       if (!item) item = 'item18';
     }
 
-    if (!item || !tokens.length) continue;
-    const bucket = isRemove ? res[item].remove : (isInsert ? res[item].add : null);
-    if (!bucket) continue;
-    tokens.forEach(x=>bucket.add(x));
+    // Generic capability codes list (e.g. "insert: B3, B4, C4") even if no item text present
+    if (!tokens.length && (isInsert || isRemove)){
+      const cap = [...c.matchAll(/\b([A-Z]\d)\b/g)].map(m=>cleanToken(m[1]));
+      // Only accept if looks like a list (>=2) to avoid false positives
+      const uniq = [...new Set(cap)].filter(Boolean);
+      if (uniq.length >= 2) uniq.forEach(x=>tokens.push(x));
+    }
+
+    if (!item && lastItem && tokens.length){
+      const looksLikeCaps = tokens.every(x=>/^(PBN:)?[A-Z]\d$/.test(x) || /^PBN:/.test(x));
+      if (looksLikeCaps) item = lastItem;
+    }
+    if (item) lastItem = item;
+
+    out.push({verb, item, tokens: tokens.map(cleanToken).filter(Boolean), raw: c});
   }
-  // Remove precedence: if token in both, keep remove only
+  return out;
+}
+
+function parseFplFromLido(lidoText){
+  const res = { item10a:{add:new Set(), remove:new Set()}, item10b:{add:new Set(), remove:new Set()}, item18:{add:new Set(), remove:new Set()} };
+  const instr = parseInstructionsFromLido(lidoText);
+  for (const i of instr){
+    if (!i.item || !i.tokens.length) continue;
+    const bucket = i.verb==='REMOVE' ? res[i.item].remove : (i.verb==='ADD' ? res[i.item].add : null);
+    if (!bucket) continue;
+    i.tokens.forEach(x=>{
+      const tok = cleanToken(x);
+      if (!tok) return;
+      if (tok==='PBN:' || tok==='PBN') return;
+      bucket.add(tok);
+    });
+  }
   for (const it of ['item10a','item10b','item18']){
     for (const x of [...res[it].add]){
       if (res[it].remove.has(x)) res[it].add.delete(x);
@@ -410,6 +455,12 @@ function renderTodos(t){
       const op = it.rule.other.trim();
       if (op && !seenOps.has(op)){ seenOps.add(op); opsNotes.push(op); }
     }
+
+    // Extra: ILS CAT detail (what exact CAT capability remains)
+    if (/ILS\s+Category\s+limitation/i.test(it.rule.title||'')){
+      const det = deriveIlsCatDetail(it.rule.title, it.rule.lido);
+      if (det && !seenOps.has(det)) { seenOps.add(det); opsNotes.unshift(det); }
+    }
   }
   // precedence remove > add
   for (const k of ['item10a','item10b','item18']){
@@ -425,12 +476,68 @@ function renderTodos(t){
   $('opsBox').textContent = opsNotes.length ? opsNotes.join('\n\n') : '—';
 }
 
+function deriveIlsCatDetail(title, lido){
+  const t = String(title||'');
+  const l = String(lido||'');
+  // Try to extract the "autoland cat 3A" style hint
+  const m = t.match(/cat\s*3\s*([ab])/i);
+  const aut = t.match(/autoland\s*cat\s*3\s*([ab])/i);
+  const basic = t.match(/basic:\s*cat\s*3\s*([ab])/i);
+  const basicCat = basic ? ('CAT III' + basic[1].toUpperCase()) : null;
+  const autoCat = aut ? ('CAT III' + aut[1].toUpperCase()) : (m ? ('CAT III' + m[1].toUpperCase()) : null);
+
+  // Extract RVR mapping if present
+  const rvr = {};
+  const map = [...l.matchAll(/CAT\s*(I{1,3}[AB]?)\s*:\s*(\d+)m/ig)];
+  for (const mm of map){
+    rvr[mm[1].toUpperCase()] = mm[2] + 'm';
+  }
+
+  const parts = [];
+  if (basicCat || autoCat){
+    parts.push(`ILS CAT – capability: ${basicCat ? basicCat : 'CAT III'}${autoCat ? ` (autoland limited to ${autoCat})` : ''}.`);
+    if (basicCat && autoCat && basicCat !== autoCat){
+      parts.push(`Expected impact: ${basicCat} not available as autoland; plan with ${autoCat} minima where applicable.`);
+    }
+  } else {
+    parts.push('ILS CAT – landing capability degraded per MEL.');
+  }
+  if (Object.keys(rvr).length){
+    // present in human terms
+    const seq = ['I','II','IIIA','IIIB'].filter(k=>rvr[k]);
+    const line = seq.map(k=>`CAT ${k.replace('I','I').replace('II','II').replace('IIIA','IIIA').replace('IIIB','IIIB')}: RVR ${rvr[k]}`).join(' | ');
+    parts.push(`Reference RVR mapping (ICAO FPL item 18): ${line}.`);
+  }
+  parts.push('Action: update LIDO 4D Landing Capability per MEL; verify DEP/DES/ALT minima/briefing.');
+  return parts.join(' ');
+}
+
 
 function formatLidoForDisplay(raw){
-  const t = String(raw||'').replace(/\s+/g,' ').trim();
-  if (!t) return '';
-  const clauses = t.split(/\b(?=Remove:|Insert:|Insert\b|Add:|Overwrite:|Please\b)/i).map(s=>s.trim()).filter(Boolean);
-  return clauses.map(c => c.replace(/\s*,\s*/g, ', ').replace(/\s*:\s*/g, ': ')).join('\n');
+  const instr = parseInstructionsFromLido(raw);
+  if (!instr.length) return '';
+
+  const lines = [];
+  for (const i of instr){
+    if (i.verb === 'NOTE'){
+      // keep short notes only
+      const s = String(i.raw||'').trim();
+      if (s) lines.push(s);
+      continue;
+    }
+    if (i.verb === 'OVERWRITE'){
+      // show as overwrite instruction (not an ICAO item change)
+      lines.push(`OVERWRITE: ${String(i.raw||'').replace(/\s+/g,' ').trim()}`);
+      continue;
+    }
+    if (i.item && i.tokens.length){
+      const itemLabel = i.item.toUpperCase().replace('ITEM','ITEM ');
+      lines.push(`${i.verb}: ${itemLabel} → ${i.tokens.join(', ')}`);
+    } else {
+      lines.push(String(i.raw||'').replace(/\s+/g,' ').trim());
+    }
+  }
+  return lines.join('\n');
 }
 
 
