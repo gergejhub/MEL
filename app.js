@@ -450,7 +450,7 @@ function buildTailsFromCsv(records){
     if (isExcluded(hay)) continue;
 
     const codes = extractMelCodes(hay);
-    const rule = matchRule(hay, codes);
+    let rule = matchRule(hay, codes);
 
     let relevant = false;
     let reason = '';
