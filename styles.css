@@ -60,3 +60,14 @@ textarea{width:100%;min-height:320px;background:rgba(0,0,0,.25);border:0;color:v
 #lidoBox .li-t{margin:0; white-space:pre-wrap; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size:13px; line-height:1.45; color:rgba(255,255,255,0.92); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
   padding:10px; border-radius:10px; width:100%;}
+
+
+/* Highlights for Insert/Remove */
+.rm{color:#ffb4b4;font-weight:800;}
+.ins{color:#b9ffcf;font-weight:800;}
+.fpl{display:flex;flex-direction:column;gap:8px;}
+.fpl-row{display:flex;gap:12px;align-items:flex-start;padding:6px 8px;border:1px solid rgba(255,255,255,.10);border-radius:10px;background:rgba(255,255,255,.03);} 
+.fpl-k{min-width:90px;font-weight:800;opacity:.92;}
+.fpl-v{white-space:pre-wrap;line-height:1.25;}
+.fpl-v .k{display:inline-block;min-width:56px;opacity:.70;font-weight:800;}
+.li-t{white-space:pre-wrap;}

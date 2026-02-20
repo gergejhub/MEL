@@ -116,6 +116,8 @@ const FALLBACK = [
   {tag:'EGPWS', re:/\bEGPWS\b|\bGPWS\b/i},
   {tag:'MCDU', re:/\bMCDU\b/i},
   {tag:'CENTER TANK', re:/CENTER\s+TANK|TRANSFER\s+VALVE/i},
+  {tag:'ADF', re:/\bADF\b/i},
+  {tag:'VOR', re:/\bVOR\b/i},
   {tag:'MAX FL', re:/MAX\s*FL\b|FL\s*\d{2,3}\b/i},
 ];
 
@@ -232,7 +234,7 @@ function clearAll(){
   $('tailList').innerHTML = '<div class="empty">Nincs adat.</div>';
   $('selItems').innerHTML = '<div class="empty">Nincs kiválasztott lajstrom.</div>';
   $('todoTitle').textContent = 'Teendők (dispatch)';
-  $('fplBox').textContent = '—';
+  $('fplBox').innerHTML = '<span class="muted">—</span>';
   $('lidoBox').innerHTML = '';
   $('opsBox').textContent = '—';
   setFleetMeta('Tölts fel egy AMOS WO Summary CSV‑t.');
@@ -288,13 +290,15 @@ function renderTailList(){
   }
   $('tailList').innerHTML = '';
   for (const t of tails){
+    const distinct = t.ruleMap ? t.ruleMap.size : t.relevantItems.length;
+
     const div = document.createElement('div');
     div.className = 'item' + (state.selectedTail === t.tail ? ' active' : '');
     div.dataset.tail = t.tail;
 
     const scoreBadge = document.createElement('span');
     scoreBadge.className = 'badge ' + (t.score>=4 ? 'crit' : (t.score>=2 ? 'hot' : ''));
-    scoreBadge.textContent = `${t.relevantItems.length} MEL`;
+    scoreBadge.textContent = `${distinct} MEL`;
 
     const title = document.createElement('div');
     title.className = 'item-title';
@@ -303,21 +307,30 @@ function renderTailList(){
 
     const sub = document.createElement('div');
     sub.className = 'item-sub';
-    sub.textContent = `Dispatch releváns tételek: ${t.relevantItems.length}`;
+    sub.textContent = `Dispatch releváns tételek: ${distinct}`;
 
     const tags = document.createElement('div');
     tags.className = 'tags';
-    [...t.tags].slice(0,7).forEach(tag=>{
+
+    const tc = t.tagCounts || new Map();
+    const tagList = [...tc.entries()].sort((a,b)=>b[1]-a[1] || a[0].localeCompare(b[0]));
+    tagList.slice(0,7).forEach(([tag,count])=>{
       const s = document.createElement('span');
       s.className = 'tag';
-      s.textContent = tag;
+      s.textContent = count>1 ? `${tag} ×${count}` : tag;
       tags.appendChild(s);
     });
-    if (!t.tags.size){
+
+    if (!tagList.length){
       const s = document.createElement('span');
       s.className = 'tag muted';
       const why = (t.relevantItems[0] && t.relevantItems[0].reason) ? t.relevantItems[0].reason : 'MATCH';
       s.textContent = why.replace(/^MATCH:\s*/,'match: ');
+      tags.appendChild(s);
+    } else if (tagList.length > 7){
+      const s = document.createElement('span');
+      s.className = 'tag muted';
+      s.textContent = `+${tagList.length-7}`;
       tags.appendChild(s);
     }
 
@@ -367,7 +380,7 @@ function renderTodos(t){
   $('copyBtn').disabled = !t;
   if (!t){
     $('todoTitle').textContent = 'Teendők (dispatch)';
-    $('fplBox').textContent = '—';
+    $('fplBox').innerHTML = '<span class="muted">—</span>';
     $('lidoBox').innerHTML = '';
     $('opsBox').textContent = '—';
     return;
@@ -405,9 +418,9 @@ function renderTodos(t){
     }
   }
 
-  $('fplBox').textContent = formatFpl(fplAgg);
+  $('fplBox').innerHTML = formatFplHtml(fplAgg);
   $('lidoBox').innerHTML = lidoSteps.length
-    ? lidoSteps.map((s,i)=>`<div class="li"><div class="li-n">${i+1}.</div><pre class="li-t">${escapeHtml(s)}</pre></div>`).join('')
+    ? lidoSteps.map((s,i)=>`<div class="li"><div class="li-n">${i+1}.</div><pre class="li-t">${highlightInstr(s)}</pre></div>`).join('')
     : '<div class="empty">—</div>';
   $('opsBox').textContent = opsNotes.length ? opsNotes.join('\n\n') : '—';
 }
@@ -418,6 +431,31 @@ function formatLidoForDisplay(raw){
   if (!t) return '';
   const clauses = t.split(/\b(?=Remove:|Insert:|Insert\b|Add:|Overwrite:|Please\b)/i).map(s=>s.trim()).filter(Boolean);
   return clauses.map(c => c.replace(/\s*,\s*/g, ', ').replace(/\s*:\s*/g, ': ')).join('\n');
+}
+
+
+function highlightInstr(text){
+  const esc = escapeHtml(text);
+  return esc
+    .replace(/^(Remove:[^\n]*)/gmi, '<span class="rm">$1</span>')
+    .replace(/^(Insert:[^\n]*|Insert\b[^\n]*|Add:[^\n]*|Overwrite:[^\n]*)/gmi, '<span class="ins">$1</span>');
+}
+
+function formatFplHtml(fpl){
+  const fmt = (set, cls) => {
+    if (!set.size) return '<span class="muted">—</span>';
+    const txt = [...set].sort().join(', ');
+    return `<span class="${cls}">${escapeHtml(txt)}</span>`;
+  };
+  const row = (label, addSet, rmSet) =>
+    `<div class="fpl-row"><div class="fpl-k">${label}</div>` +
+    `<div class="fpl-v"><span class="k">ADD</span> ${fmt(addSet,'ins')} ` +
+    `<span class="k">REMOVE</span> ${fmt(rmSet,'rm')}</div></div>`;
+  return `<div class="fpl">` +
+    row('ITEM10A', fpl.item10a.add, fpl.item10a.remove) +
+    row('ITEM10B', fpl.item10b.add, fpl.item10b.remove) +
+    row('ITEM18',  fpl.item18.add,  fpl.item18.remove) +
+  `</div>`;
 }
 
 function escapeHtml(s){
@@ -461,7 +499,6 @@ function buildTailsFromCsv(records){
       reason = `MATCH: ${rule.title}`;
       tags = deriveTagsFromText(rule.title + ' ' + rule.other + ' ' + rule.lido);
     } else {
-      // strict fallback (must hit dispatch-impact keywords)
       const ftags = deriveTagsFromText(hay);
       if (ftags.size){
         const primary = [...ftags][0];
@@ -483,19 +520,31 @@ function buildTailsFromCsv(records){
     if (!relevant) continue;
 
     if (!state.tails.has(tail)){
-      state.tails.set(tail, { tail, items: [], relevantItems: [], tags:new Set(), score:0 });
+      state.tails.set(tail, { tail, relevantItems: [], ruleMap: new Map(), tagCounts: new Map(), score:0 });
     }
     const entry = state.tails.get(tail);
-    const title = rule ? rule.title : (tags.size ? [...tags][0] + ' (fallback)' : 'Dispatch relevant');
-    const src = `W/O ${wo} • ATA ${ata || '—'} • Due ${due || '—'}`;
 
-    const item = { tail, title, rule, reason, sourceSummary: src };
-    entry.relevantItems.push(item);
-    tags.forEach(x=>entry.tags.add(x));
-    entry.score = Math.max(entry.score, Math.min(5, entry.relevantItems.length + entry.tags.size/3));
+    const src = `W/O ${wo} • ATA ${ata || '—'} • Due ${due || '—'}`;
+    const title = rule ? rule.title : (tags.size ? [...tags][0] + ' (fallback)' : 'Dispatch relevant');
+    const ruleKey = rule ? String(rule.id || rule.title || title) : title;
+
+    if (!entry.ruleMap.has(ruleKey)){
+      const item = { tail, title, rule, reason, sourceSummary: src, occurrences: 1, tags: new Set(tags) };
+      entry.ruleMap.set(ruleKey, item);
+      entry.relevantItems.push(item);
+
+      const ptags = tags.size ? tags : deriveTagsFromText(title);
+      const primaryTag = ptags.size ? [...ptags][0] : title;
+      entry.tagCounts.set(primaryTag, (entry.tagCounts.get(primaryTag)||0) + 1);
+    } else {
+      entry.ruleMap.get(ruleKey).occurrences += 1;
+    }
+
+    const distinct = entry.ruleMap.size;
+    const tagWeight = entry.tagCounts.size / 3;
+    entry.score = Math.max(entry.score, Math.min(5, distinct + tagWeight));
   }
 
-  // remove empty
   for (const [k,v] of [...state.tails.entries()]){
     if (!v.relevantItems.length) state.tails.delete(k);
   }
