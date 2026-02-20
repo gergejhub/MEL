@@ -1,1305 +1,592 @@
-/* MEL Ops Assistant
- * - Structured dispatcher actions from data/mel_actions.json
- * - Optional local PDF search using pdf.js (user loads MEL PDF via file input)
- */
-let ACTIONS = [];
-let ACTION_INDEX = null; // keyword -> [{a, w}]
-let pdfDoc = null;
-let pdfPageTextCache = new Map(); // pageNo -> lowercase text
-let pdfPageRawCache = new Map();  // pageNo -> raw text
-let amosRows = [];
-let amosGroups = [];
-let amosRelevant = [];
-let amosTailProfiles = [];
-let selectedAc = null;
 
+'use strict';
 
-const el = (id) => document.getElementById(id);
+const $ = (id) => document.getElementById(id);
 
-function norm(s){ return (s||"").toString().trim(); }
-function normLower(s){ return norm(s).toLowerCase(); }
+const state = {
+  rules: [],
+  csvRows: [],
+  tails: new Map(),      // tail -> { items: [...], relevantItems: [...], tags: Set, score: number }
+  selectedTail: null,
+  pdfFile: null,
+  lastSnapshotKey: 'mel_dispatch_last_snapshot_v1'
+};
 
-async function loadActions(){
-  // Load the structured dispatcher action DB.
-  // IMPORTANT: a missing/blocked JSON fetch used to prevent ALL UI buttons from working.
-  // We now fail gracefully.
-  const candidates = [
-    "data/mel_actions.json",
-    "./data/mel_actions.json",
-  ];
-  let lastErr = null;
-  for(const url of candidates){
-    try{
-      const res = await fetch(url, {cache:"no-store"});
-      if(!res.ok) throw new Error(`actions_fetch_${res.status}_${url}`);
-      const js = await res.json();
-      ACTIONS = js.actions || [];
-      buildActionIndex();
-      const s = document.getElementById("dbStatus");
-      if(s) s.textContent = `DB: OK (${ACTIONS.length})`;
-      return true;
-    }catch(e){
-      lastErr = e;
+// -------- CSV parsing (handles quotes) --------
+function parseCSV(text){
+  const rows = [];
+  let row = [];
+  let cur = '';
+  let i = 0;
+  let inQuotes = false;
+  while (i < text.length){
+    const c = text[i];
+    if (inQuotes){
+      if (c === '"'){
+        if (text[i+1] === '"'){ cur += '"'; i += 2; continue; }
+        inQuotes = false; i++; continue;
+      }
+      cur += c; i++; continue;
+    } else {
+      if (c === '"'){ inQuotes = true; i++; continue; }
+      if (c === ','){ row.push(cur); cur=''; i++; continue; }
+      if (c === '\r'){ i++; continue; }
+      if (c === '\n'){ row.push(cur); rows.push(row); row=[]; cur=''; i++; continue; }
+      cur += c; i++; continue;
+    }
+  }
+  // last
+  row.push(cur);
+  if (row.length > 1 || row[0].trim() !== '') rows.push(row);
+
+  if (!rows.length) return {headers:[], records:[]};
+  const headers = rows[0].map(h=>h.trim());
+  const records = rows.slice(1).filter(r=>r.some(x=>String(x||'').trim()!=='')).map(r=>{
+    const obj = {};
+    headers.forEach((h,idx)=>obj[h]= (r[idx] ?? '').trim());
+    return obj;
+  });
+  return {headers, records};
+}
+
+function norm(s){
+  return String(s||'').toUpperCase().replace(/\s+/g,' ').trim();
+}
+
+function extractMelCodes(text){
+  const t = String(text||'');
+  const codes = new Set();
+  const re1 = /\b(\d{2}-\d{2}-\d{2}(?:\/\d{2})?)\b/g;
+  let m;
+  while ((m=re1.exec(t))!==null){ codes.add(m[1]); }
+  // Some CSVs have MEL xx-xx-xxA like 31-30-07A
+  const re2 = /\b(\d{2}-\d{2}-\d{2}[A-Z])\b/g;
+  while ((m=re2.exec(t))!==null){ codes.add(m[1]); }
+  return [...codes];
+}
+
+function matchRule(haystack, codes){
+  const h = norm(haystack);
+  for (const r of state.rules){
+    // code match
+    if (r.codes && r.codes.length){
+      for (const c of r.codes){
+        if (codes.includes(c) || h.includes(c)) return r;
+      }
+    }
+    // keyword match (strict)
+    for (const kw of (r.match_keywords||[])){
+      const k = norm(kw);
+      if (k.length < 3) continue;
+      if (h.includes(k)) return r;
+    }
+  }
+  return null;
+}
+
+// Strict fallback keywords (dispatch-impact only)
+const FALLBACK = [
+  {tag:'TCAS', re:/\bTCAS\b/i},
+  {tag:'CPDLC', re:/\bCPDLC\b|\bDATALINK\b|\bDAT\/CPDLC/i},
+  {tag:'ADS-B', re:/\bADS[\s-]?B\b|\bADSB\b|\bSUR\/EUADSBX\b/i},
+  {tag:'RVSM', re:/\bRVSM\b/i},
+  {tag:'RNP', re:/\bRNP\b|\bPBN:\s*S2\b|\bAPPCH\b/i},
+  {tag:'WXR', re:/WX\s*RADAR|\bWXR\b|\bWEATHER RADAR\b/i},
+  {tag:'NO ICING', re:/NO\s+ICING|\bICING\b/i},
+  {tag:'ILS CAT', re:/\bCAT\s*II\b|\bCAT\s*III\b|\bAUTOLAND\b|\bLANDING CAPABILITY\b/i},
+  {tag:'NAV DB', re:/NAV\s*DB|DATABASE\s*(OUT|EXPIR)/i},
+  {tag:'EGPWS', re:/\bEGPWS\b|\bGPWS\b/i},
+  {tag:'MCDU', re:/\bMCDU\b/i},
+  {tag:'CENTER TANK', re:/CENTER\s+TANK|TRANSFER\s+VALVE/i},
+  {tag:'MAX FL', re:/MAX\s*FL\b|FL\s*\d{2,3}\b/i},
+];
+
+const EXCLUDE = [
+  /\bLAV(ATORY)?\b/i, /\bTOILET\b/i, /\bGALLEY\b/i, /\bSEAT\b/i, /\bIFE\b/i,
+  /\bCARPET\b/i, /\bODOR\b/i, /\bDIRTY SOCKS\b/i, /\bCATERING\b/i, /\bCOFFEE\b/i,
+];
+
+function isExcluded(text){
+  const t = String(text||'');
+  return EXCLUDE.some(rx=>rx.test(t));
+}
+
+function deriveTagsFromText(text){
+  const tags = new Set();
+  for (const f of FALLBACK){
+    if (f.re.test(text)) tags.add(f.tag);
+  }
+  return tags;
+}
+
+// ---------- FPL parsing ----------
+function parseFplFromLido(lidoText){
+  const t = String(lidoText||'').replace(/\s+/g,' ').trim();
+  const res = { item10a:{add:new Set(), remove:new Set()}, item10b:{add:new Set(), remove:new Set()}, item18:{add:new Set(), remove:new Set()} };
+  if (!t) return res;
+
+  // Split into clauses starting with Remove/Insert/Add/Overwrite
+  const clauses = t.split(/\b(?=Remove:|Insert:|Insert\b|Add:|Overwrite:|Overwrit[e|o]:|Please\b)/i).map(s=>s.trim()).filter(Boolean);
+  for (const c of clauses){
+    const lc = c.toLowerCase();
+    const isRemove = lc.startsWith('remove:') || lc.startsWith('remove ');
+    const isInsert = lc.startsWith('insert') || lc.startsWith('add:') || lc.startsWith('insert:');
+    // identify item
+    let item = null;
+    if (/item\s*10a/i.test(c) || /10a:/i.test(c)) item = 'item10a';
+    else if (/item\s*10b/i.test(c) || /10b:/i.test(c)) item = 'item10b';
+    else if (/item\s*18/i.test(c)) item = 'item18';
+
+    // Extract tokens like X, J1, J4 from "10a:J1,J4" or "item 18 TCAS" or "PBN:S2"
+    const tokens = [];
+    // pbn tokens
+    const pbn = c.match(/PBN:\s*([A-Z0-9,]+)/i);
+    if (pbn){ pbn[1].split(',').forEach(x=>tokens.push('PBN:'+x.trim().toUpperCase())); }
+    const sur = c.match(/SUR\/([A-Z0-9]+)/i);
+    if (sur){ tokens.push('SUR/'+sur[1].toUpperCase()); }
+    const dat = c.match(/DAT\/([A-Z0-9]+)/i);
+    if (dat){ tokens.push('DAT/'+dat[1].toUpperCase()); }
+    // codes like "10a:X" or "10b:L and B1"
+    const codeList = c.match(/10[AB]:\s*([A-Z0-9, ]+)/i);
+    if (codeList){
+      codeList[1].replace(/and/ig,',').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean).forEach(x=>tokens.push(x));
+      if (!item) item = /10a:/i.test(c) ? 'item10a' : 'item10b';
+    }
+    // plain tokens (TCAS etc) for item 18 remove
+    if (/item\s*18/i.test(c)){
+      const after = c.split(/item\s*18/i)[1] || '';
+      after.replace(/[:]/g,' ').split(/\s+/).map(x=>x.trim().toUpperCase()).filter(x=>x && x.length<=12).forEach(x=>{
+        if (['REMOVE','INSERT','FROM','ITEM'].includes(x)) return;
+        if (/^\d+$/.test(x)) return;
+        if (x==='10A' || x==='10B' || x==='18') return;
+        if (x==='PBN' || x==='SUR' || x==='DAT') return;
+        // keep alnum tokens like TCAS
+        if (/^[A-Z0-9\/]+$/.test(x)) tokens.push(x);
+      });
+      if (!item) item = 'item18';
+    }
+
+    if (!item || !tokens.length) continue;
+    const bucket = isRemove ? res[item].remove : (isInsert ? res[item].add : null);
+    if (!bucket) continue;
+    tokens.forEach(x=>bucket.add(x));
+  }
+  // Remove precedence: if token in both, keep remove only
+  for (const it of ['item10a','item10b','item18']){
+    for (const x of [...res[it].add]){
+      if (res[it].remove.has(x)) res[it].add.delete(x);
+    }
+  }
+  return res;
+}
+
+function formatFpl(fpl){
+  const fmt = (set) => set.size ? [...set].sort().join(', ') : '—';
+  return [
+    'ITEM10A:',
+    `  • ADD: ${fmt(fpl.item10a.add)}`,
+    `  • REMOVE: ${fmt(fpl.item10a.remove)}`,
+    'ITEM10B:',
+    `  • ADD: ${fmt(fpl.item10b.add)}`,
+    `  • REMOVE: ${fmt(fpl.item10b.remove)}`,
+    'ITEM18:',
+    `  • ADD: ${fmt(fpl.item18.add)}`,
+    `  • REMOVE: ${fmt(fpl.item18.remove)}`
+  ].join('\n');
+}
+
+// -------- UI --------
+function setFleetMeta(msg){ $('fleetMeta').textContent = msg; }
+function setSelMeta(msg){ $('selMeta').textContent = msg; }
+
+function openModal(){
+  $('pasteModal').setAttribute('aria-hidden','false');
+  $('csvPaste').focus();
+}
+function closeModal(){
+  $('pasteModal').setAttribute('aria-hidden','true');
+}
+
+function clearAll(){
+  state.csvRows = [];
+  state.tails = new Map();
+  state.selectedTail = null;
+  $('tailList').innerHTML = '<div class="empty">Nincs adat.</div>';
+  $('selItems').innerHTML = '<div class="empty">Nincs kiválasztott lajstrom.</div>';
+  $('todoTitle').textContent = 'Teendők (dispatch)';
+  $('fplBox').textContent = '—';
+  $('lidoBox').innerHTML = '';
+  $('opsBox').textContent = '—';
+  setFleetMeta('Tölts fel egy AMOS WO Summary CSV‑t.');
+  setSelMeta('Válassz egy lajstromot bal oldalt.');
+  $('handoverBtn').disabled = true;
+  $('clearBtn').disabled = true;
+  $('copyBtn').disabled = true;
+  $('deltaPill').textContent = 'Δ: —';
+}
+
+function buildSnapshot(records){
+  // create deterministic string: tail|wo|ata|desc|due
+  const parts = records.map(r=>{
+    const tail = r['A/C'] || r['A/C ' ] || '';
+    const wo = r['W/O'] || '';
+    const ata = r['ATA'] || '';
+    const desc = r['Workorder-description and/or complaint'] || r['Workorder-description'] || '';
+    const due = r['Due-/C.-Date'] || '';
+    return `${tail}|${wo}|${ata}|${desc}|${due}`;
+  }).sort();
+  const blob = parts.join('\n');
+  return sha1(blob);
+}
+
+function sha1(str){
+  // lightweight SHA-1 via SubtleCrypto if available
+  // fallback: simple hash (not cryptographic) if needed
+  if (crypto?.subtle?.digest){
+    const enc = new TextEncoder().encode(str);
+    return crypto.subtle.digest('SHA-1', enc).then(buf=>{
+      const arr = Array.from(new Uint8Array(buf));
+      return arr.map(b=>b.toString(16).padStart(2,'0')).join('');
+    });
+  }
+  let h=0;
+  for (let i=0;i<str.length;i++){ h = (h*31 + str.charCodeAt(i))|0; }
+  return Promise.resolve(String(h));
+}
+
+function computeDelta(newKey){
+  const oldKey = localStorage.getItem(state.lastSnapshotKey);
+  localStorage.setItem(state.lastSnapshotKey, newKey);
+  if (!oldKey) return {label:'NEW', detail:'Első import'};
+  if (oldKey === newKey) return {label:'0', detail:'Nincs változás'};
+  return {label:'!', detail:'Változás van (NEW/REMOVED/CHANGED részletezés a következő iterációban)'}; // keep minimal
+}
+
+function renderTailList(){
+  const tails = [...state.tails.values()].sort((a,b)=>b.score-a.score || a.tail.localeCompare(b.tail));
+  if (!tails.length){
+    $('tailList').innerHTML = '<div class="empty">Nincs dispatch-releváns tétel a CSV-ben.</div>';
+    return;
+  }
+  $('tailList').innerHTML = '';
+  for (const t of tails){
+    const div = document.createElement('div');
+    div.className = 'item' + (state.selectedTail === t.tail ? ' active' : '');
+    div.dataset.tail = t.tail;
+
+    const scoreBadge = document.createElement('span');
+    scoreBadge.className = 'badge ' + (t.score>=4 ? 'crit' : (t.score>=2 ? 'hot' : ''));
+    scoreBadge.textContent = `${t.relevantItems.length} MEL`;
+
+    const title = document.createElement('div');
+    title.className = 'item-title';
+    title.innerHTML = `<span>${escapeHtml(t.tail)}</span>`;
+    title.appendChild(scoreBadge);
+
+    const sub = document.createElement('div');
+    sub.className = 'item-sub';
+    sub.textContent = `Dispatch releváns tételek: ${t.relevantItems.length}`;
+
+    const tags = document.createElement('div');
+    tags.className = 'tags';
+    [...t.tags].slice(0,7).forEach(tag=>{
+      const s = document.createElement('span');
+      s.className = 'tag';
+      s.textContent = tag;
+      tags.appendChild(s);
+    });
+    if (!t.tags.size){
+      const s = document.createElement('span');
+      s.className = 'tag muted';
+      s.textContent = 'match: actions.json';
+      tags.appendChild(s);
+    }
+
+    const main = document.createElement('div');
+    main.className = 'item-main';
+    main.appendChild(title);
+    main.appendChild(sub);
+    main.appendChild(tags);
+
+    div.appendChild(main);
+    div.addEventListener('click', ()=>selectTail(t.tail));
+    $('tailList').appendChild(div);
+  }
+}
+
+function renderSelectedItems(t){
+  if (!t){
+    $('selItems').innerHTML = '<div class="empty">Nincs kiválasztott lajstrom.</div>';
+    setSelMeta('Válassz egy lajstromot bal oldalt.');
+    return;
+  }
+  setSelMeta(`Aktív dispatch-releváns tételek: ${t.relevantItems.length}`);
+  if (!t.relevantItems.length){
+    $('selItems').innerHTML = '<div class="empty">Nincs releváns tétel.</div>';
+    return;
+  }
+  $('selItems').innerHTML = '';
+  for (const it of t.relevantItems){
+    const div = document.createElement('div');
+    div.className = 'item';
+    const title = document.createElement('div');
+    title.className = 'item-title';
+    title.innerHTML = `<span>${escapeHtml(it.title)}</span> <span class="badge">${escapeHtml(it.reason)}</span>`;
+    const sub = document.createElement('div');
+    sub.className = 'item-sub';
+    sub.textContent = it.sourceSummary;
+    const main = document.createElement('div');
+    main.className = 'item-main';
+    main.appendChild(title);
+    main.appendChild(sub);
+    div.appendChild(main);
+    $('selItems').appendChild(div);
+  }
+}
+
+function renderTodos(t){
+  $('copyBtn').disabled = !t;
+  if (!t){
+    $('todoTitle').textContent = 'Teendők (dispatch)';
+    $('fplBox').textContent = '—';
+    $('lidoBox').innerHTML = '';
+    $('opsBox').textContent = '—';
+    return;
+  }
+  $('todoTitle').textContent = `Teendők – ${t.tail}`;
+
+  // Aggregate rules
+  const fplAgg = { item10a:{add:new Set(), remove:new Set()}, item10b:{add:new Set(), remove:new Set()}, item18:{add:new Set(), remove:new Set()} };
+  const lidoSteps = [];
+  const opsNotes = [];
+  const seenStep = new Set();
+  const seenOps = new Set();
+
+  for (const it of t.relevantItems){
+    if (!it.rule) continue;
+    const fpl = parseFplFromLido(it.rule.lido);
+    // merge
+    for (const k of ['item10a','item10b','item18']){
+      for (const x of fpl[k].add) fplAgg[k].add.add(x);
+      for (const x of fpl[k].remove) fplAgg[k].remove.add(x);
+    }
+    if (it.rule.lido){
+      const step = it.rule.lido.replace(/\s+/g,' ').trim();
+      if (step && !seenStep.has(step)){ seenStep.add(step); lidoSteps.push(step); }
+    }
+    if (it.rule.other){
+      const op = it.rule.other.trim();
+      if (op && !seenOps.has(op)){ seenOps.add(op); opsNotes.push(op); }
+    }
+  }
+  // precedence remove > add
+  for (const k of ['item10a','item10b','item18']){
+    for (const x of [...fplAgg[k].add]){
+      if (fplAgg[k].remove.has(x)) fplAgg[k].add.delete(x);
     }
   }
 
-  // Graceful failure: keep the app usable (manual tags, CSV parsing, etc.)
-  ACTIONS = [];
-  ACTION_INDEX = {map:new Map()};
-  const s = document.getElementById("dbStatus");
-  if(s) s.textContent = "DB: HIBA";
-  console.error("Failed to load data/mel_actions.json", lastErr);
-  const r = document.getElementById("results");
-  if(r){
-    r.innerHTML = `
-      <div class="card" style="border:1px solid rgba(255,80,80,.45);">
-        <div class="cardHeader"><div class="cardTitle">⚠ Nem töltődött be a teendő-adatbázis</div></div>
-        <div class="muted" style="line-height:1.35;">
-          A <b>data/mel_actions.json</b> nem érhető el (hiányzik a repóból, rossz branch, vagy 404 GitHub Pages alatt).
-          Ettől még a kézi címkék, a CSV import és a PDF betöltés működhet – csak az "Excel-alapú" találatok nem.
-          <br><br>
-          Gyors check: nyisd meg a böngészőben ezt: <b>/data/mel_actions.json</b> – ha 404, akkor nincs fent a fájl.
-        </div>
-      </div>`;
-  }
-  return false;
+  $('fplBox').textContent = formatFpl(fplAgg);
+  $('lidoBox').innerHTML = lidoSteps.length ? lidoSteps.map((s,i)=>`<div class="li"><b>${i+1}.</b> ${escapeHtml(s)}</div>`).join('') : '<div class="empty">—</div>';
+  $('opsBox').textContent = opsNotes.length ? opsNotes.join('\n\n') : '—';
 }
 
 function escapeHtml(s){
-  return (s||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-
-function buildActionIndex(){
-  const map = new Map(); // key -> array of {a,w}
-  const add = (key, a, w)=>{
-    const k = normLower(key);
-    if(!k) return;
-    if(!map.has(k)) map.set(k, []);
-    map.get(k).push({a, w});
-  };
-  for(const a of ACTIONS){
-    for(const t of (a.triggers||[])) add(t, a, 8);
-    for(const m of (a.mel_numbers||[])) add(m, a, 10);
-
-    // limitation words (weak signals)
-    const words = normLower(a.limitation).replace(/[^a-z0-9\-]+/g, " ").split(/\s+/).filter(x=>x.length>=3);
-    for(const w of words) add(w, a, 1);
-  }
-  ACTION_INDEX = {map};
+function selectTail(tail){
+  // hard reset selection
+  state.selectedTail = tail;
+  // rerender list active state
+  renderTailList();
+  const t = state.tails.get(tail);
+  renderSelectedItems(t);
+  renderTodos(t);
+  $('handoverBtn').disabled = false;
 }
 
-function matchLineToActions(line){
-  if(!ACTION_INDEX || !ACTION_INDEX.map) return [];
-  const low = normLower(line);
-  if(!low) return [];
-  const scores = new Map(); // actionId -> {a,score}
-  for(const [k, arr] of ACTION_INDEX.map){
-    if(k.length < 3) continue;
-    if(low.includes(k)){
-      for(const {a,w} of arr){
-        const id = a.id || a.limitation;
-        const cur = scores.get(id);
-        scores.set(id, {a, score: (cur?cur.score:0) + w});
-      }
-    }
-  }
-  const ranked = Array.from(scores.values()).sort((x,y)=>y.score-x.score);
-  return ranked.map(x=>x.a);
-}
+function buildTailsFromCsv(records){
+  state.tails = new Map();
 
-function bulkAddFromText(text){
-  const lines = (text||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-  let recognized = 0;
-  let addedActions = 0;
-  let addedLabels = 0;
+  for (const r of records){
+    const tail = (r['A/C'] || '').trim();
+    if (!tail) continue;
+    const desc = r['Workorder-description and/or complaint'] || r['Workorder-description'] || '';
+    const ata = r['ATA'] || '';
+    const due = r['Due-/C.-Date'] || '';
+    const wo = r['W/O'] || '';
+    const hay = `${desc} ${ata} ${wo}`;
 
-  for(const line of lines){
-    const matches = matchLineToActions(line);
-    if(matches.length){
-      recognized++;
-      // Add the top 2 matches if they have strong signals (trigger/mel number hit).
-      for(const a of matches.slice(0,2)){
-        addActive(a.limitation, a.id || null);
-        addedActions++;
-      }
+    if (isExcluded(hay)) continue;
+
+    const codes = extractMelCodes(hay);
+    const rule = matchRule(hay, codes);
+
+    let relevant = false;
+    let reason = '';
+    let tags = new Set();
+
+    if (rule){
+      relevant = true;
+      reason = `MATCH: ${rule.title}`;
+      tags = deriveTagsFromText(rule.title + ' ' + rule.other + ' ' + rule.lido);
     } else {
-      addActive(line, null);
-      addedLabels++;
-    }
-  }
-
-  const report = `Sorok: ${lines.length} • Felismert: ${recognized} • Hozzáadott (akció): ${addedActions} • Hozzáadott (címke): ${addedLabels}`;
-  const repEl = document.getElementById("bulkReport");
-  if(repEl) repEl.textContent = report;
-}
-
-
-function parseManualMaxFL(tokens){
-  // Accept: FL350, FL 350, MAX FL 330, MAXFL330
-  let best = null;
-  for(const t of tokens){
-    const m = t.match(/\b(?:max\s*)?fl\s*([0-9]{2,3})\b/i) || t.match(/\bfl([0-9]{2,3})\b/i);
-    if(m){
-      const v = parseInt(m[1],10);
-      if(!Number.isNaN(v)){
-        if(best===null || v < best) best = v;
+      // strict fallback (must hit dispatch-impact keywords)
+      const ftags = deriveTagsFromText(hay);
+      if (ftags.size){
+        relevant = true;
+        reason = `KEYWORD: ${[...ftags][0]}`;
+        tags = ftags;
       }
     }
+
+    if (!relevant) continue;
+
+    if (!state.tails.has(tail)){
+      state.tails.set(tail, { tail, items: [], relevantItems: [], tags:new Set(), score:0 });
+    }
+    const entry = state.tails.get(tail);
+    const title = rule ? rule.title : (tags.size ? [...tags][0] + ' (fallback)' : 'Dispatch relevant');
+    const src = `W/O ${wo} • ATA ${ata || '—'} • Due ${due || '—'}`;
+
+    const item = { tail, title, rule, reason, sourceSummary: src };
+    entry.relevantItems.push(item);
+    tags.forEach(x=>entry.tags.add(x));
+    entry.score = Math.max(entry.score, Math.min(5, entry.relevantItems.length + entry.tags.size/3));
   }
-  return best; // in hundreds of feet e.g. 350
+
+  // remove empty
+  for (const [k,v] of [...state.tails.entries()]){
+    if (!v.relevantItems.length) state.tails.delete(k);
+  }
 }
 
-function combine(actionsSelected, manualTags){
-  const combined = {
-    fpl: { item10a:{add:new Set(), remove:new Set()}, item10b:{add:new Set(), remove:new Set()}, item18:{add:new Set(), remove:new Set()} },
-    fplConflicts: { item10a:new Set(), item10b:new Set(), item18:new Set() },
-    flags: {
-      nat_hla_not_permitted:false,
-      no_class_e:false,
-      no_icing:false,
-      no_rnp_apch:false,
-      no_ts_forecast:false,
-      wx_radar_inop:false,
-      adsb_out_inop:false,
-      datalink_inop:false,
-      fms_reduced:false,
-      cat2_not_available:false,
-      cat3_not_available:false,
-      mx_req_at_refuel:false,
-      rvsm_not_permitted:false,
-      adsb_ses_3day:false,
-      adsc_inop:false,
-      ils_category_limited:false,
-      gps_degraded:false,
-      vor_degraded:false,
-      fuel_transfer_limited:false,
-      egpws_inop:false,
-    },
-    maxFL: null,
-    lidoSteps: [],
-    otherTasks: [],
-    notes: []
-  };
+async function importCsvText(text){
+  const {records} = parseCSV(text);
+  state.csvRows = records;
 
-  // manual parsing
-  const manualTokens = manualTags.map(t => t.toUpperCase());
-  const mf = parseManualMaxFL(manualTags);
-  if(mf !== null) combined.maxFL = mf;
-
-  for(const a of actionsSelected){
-    // Steps
-    if(a.lido) combined.lidoSteps.push(norm(a.lido).replace(/\s+/g," ").trim());
-    if(a.other_tasks) combined.otherTasks.push(a.other_tasks);
-
-    // constraints
-    const c = a.constraints || {};
-    for(const k of Object.keys(combined.flags)){
-      if(c[k] === true) combined.flags[k] = true;
-    }
-    if(typeof c.max_fl === "number") {
-      if(combined.maxFL === null || c.max_fl < combined.maxFL) combined.maxFL = c.max_fl;
-    }
-
-    if(c.requires_max_fl) {
-      combined.notes.push("FL LIMIT aktív: adj meg kézi címkét pl. 'FL350' / 'MAX FL 330', különben csak a LIDO teendőt listázom.");
-    }
-    // FPL changes (structured from Excel)
-    const fpl = a.fpl || {};
-    const addFrom = (item, arr) => { (arr||[]).forEach(x => combined.fpl[item].add.add(x)); };
-    const remFrom = (item, arr) => { (arr||[]).forEach(x => combined.fpl[item].remove.add(x)); };
-
-    if(fpl.item10a){ addFrom("item10a", fpl.item10a.add); remFrom("item10a", fpl.item10a.remove); }
-    if(fpl.item10b){ addFrom("item10b", fpl.item10b.add); remFrom("item10b", fpl.item10b.remove); }
-    if(fpl.item18){ addFrom("item18", fpl.item18.add); remFrom("item18", fpl.item18.remove); }
-
-
-    (a.fpl_mods||[]).forEach(m => {
-      // we keep as note; exact parsing can be messy
-      combined.notes.push(`${a.limitation}: ${m.action.toUpperCase()}: ${m.text}`);
-    });
+  if (!records.length){
+    setFleetMeta('A CSV üres vagy nem értelmezhető.');
+    clearAll();
+    return;
   }
 
-  // detect contradictions: add+remove same code
-  const contradictions = [];
-  for(const item of ["item10a","item10b","item18"]){
-    const addSet = combined.fpl[item].add;
-    const remSet = combined.fpl[item].remove;
-    for(const code of addSet){
-      if(remSet.has(code)) contradictions.push(`${item.toUpperCase()} code '${code}' egyszerre ADD és REMOVE — ellenőrizd kézzel.`);
-    }
-  }
-  if(contradictions.length) combined.notes.push(...contradictions);
+  buildTailsFromCsv(records);
+  renderTailList();
+  state.selectedTail = null;
+  renderSelectedItems(null);
+  renderTodos(null);
 
-  // de-duplicate steps preserving order (simple)
-  const uniq = (arr) => {
-    const seen=new Set();
-    const out=[];
-    for(const x of arr){
-      const k = x.trim();
-      if(!k) continue;
-      const key = k.toLowerCase();
-      if(seen.has(key)) continue;
-      seen.add(key);
-      out.push(k);
-    }
-    return out;
-  };
-  combined.lidoSteps = uniq(combined.lidoSteps);
-  combined.otherTasks = uniq(combined.otherTasks);
-  combined.notes = uniq(combined.notes);
+  $('handoverBtn').disabled = state.tails.size === 0;
+  $('clearBtn').disabled = false;
 
+  setFleetMeta(`Importált sorok: ${records.length} • Dispatch‑releváns lajstromok: ${state.tails.size}`);
 
-  // Resolve FPL conflicts: if something is both ADD and REMOVE, treat it as REMOVE (conservative)
-  for(const item of ["item10a","item10b","item18"]){
-    for(const x of Array.from(combined.fpl[item].add)){
-      if(combined.fpl[item].remove.has(x)){
-        combined.fplConflicts[item].add(x);
-        combined.fpl[item].add.delete(x);
-      }
-    }
-  }
-
-  return combined;
+  const snap = await buildSnapshot(records);
+  const delta = computeDelta(snap);
+  $('deltaPill').textContent = `Δ: ${delta.label}`;
+  $('deltaPill').title = delta.detail;
 }
 
-function formatCombined(c){
+function handoverExport(){
+  const tails = [...state.tails.values()].sort((a,b)=>b.score-a.score || a.tail.localeCompare(b.tail));
   const lines = [];
-  // Key restrictions
-  const flags = c.flags;
-  const restr = [];
-  if(flags.nat_hla_not_permitted) restr.push("NAT HLA: NOT PERMITTED");
-  if(flags.no_class_e) restr.push("Class E airspace: NOT PERMITTED (TCAS INOP)");
-  if(flags.no_icing) restr.push("ICING ops: NOT PERMITTED");
-  if(flags.no_rnp_apch) restr.push("RNP APCH: NOT PERMITTED");
-  if(flags.wx_radar_inop) restr.push("WX RADAR INOP: TS/hazardous wx forecast korlát (ellenőrzés szükséges)");
-  if(flags.no_ts_forecast) restr.push("TS forecast condition: NO FCST TS (dispatch constraint)");
-  if(flags.datalink_inop) restr.push("CPDLC/DATALINK: INOP (FPL + ATC constraints)");
-  if(flags.adsb_out_inop) restr.push("ADS-B OUT: INOP (airspace/route constraints lehetséges)");
-  if(flags.fms_reduced) restr.push("FMS/MCDU: degraded (PBN / navaid coverage ellenőrzés)");
-  if(flags.rvsm_not_permitted) restr.push("RVSM: NOT PERMITTED (tipikusan RTE ≤ FL285)");
-  if(flags.adsb_ses_3day) restr.push("ADS-B OUT INOP: SES-en belül tipikusan max 3 nap (CRAR ellenőrzés)");
-  if(flags.adsc_inop) restr.push("ADS-C: INOP (oceanic/CPDLC/ATC constraints lehetséges)");
-  if(flags.ils_category_limited) restr.push("ILS CAT capability: korlátozott (minima/RVR + landing capability átírás LIDO-ban)");
-  if(flags.gps_degraded) restr.push("GPS degraded: PBN/RNAV capability csökkent (FPL PBN módosítás + navaid coverage check)");
-  if(flags.vor_degraded) restr.push("VOR degraded: route/alt navaid coverage + FPL nav capability módosítás");
-  if(flags.fuel_transfer_limited) restr.push("Fuel transfer limit: long flights tiltás (fuel system MEL – ellenőrizd a listát)");
-  if(flags.egpws_inop) restr.push("(E)GPWS INOP: OM-C Airport Briefing korlátozások (special airports)");
-  if(flags.cat2_not_available) restr.push("CAT II: NOT AVAILABLE");
-  if(flags.cat3_not_available) restr.push("CAT III: NOT AVAILABLE");
-  if(c.maxFL !== null) restr.push(`MAX FL: FL${c.maxFL}`);
-
-  lines.push("OPERÁCIÓS KORLÁTOK");
-  if(restr.length){
-    restr.forEach(x=>lines.push(`- ${x}`));
-  } else {
-    lines.push("- (nincs explicit operációs tiltás a jelenlegi szabálykészlet alapján)");
+  lines.push(`DISPATCH MEL SUMMARY (${new Date().toLocaleString()})`);
+  lines.push(`Impacted A/C: ${tails.length}`);
+  lines.push('');
+  for (const t of tails){
+    const topTags = [...t.tags].slice(0,6).join(', ') || '—';
+    lines.push(`${t.tail} • ${t.relevantItems.length} item(s) • tags: ${topTags}`);
+    // top 2 rules
+    const top = t.relevantItems.slice(0,2).map(x=>x.rule?x.rule.title:x.title).join(' | ');
+    if (top) lines.push(`  - ${top}`);
   }
-
-  // FPL changes
-  const fmtSet = (s) => Array.from(s).sort((a,b)=>a.localeCompare(b));
-  lines.push("\nICAO FPL VÁLTOZÁSOK (összegzett)");
-  const fmtList = (item, arr) => {
-    if(item !== "item18") return arr.length ? arr.join(", ") : "—";
-    const pbn = arr.filter(x=>x.startsWith("PBN/")).map(x=>x.slice(4)).sort((a,b)=>a.localeCompare(b));
-    const other = arr.filter(x=>!x.startsWith("PBN/")).sort((a,b)=>a.localeCompare(b));
-    const parts = [];
-    if(pbn.length) parts.push(`PBN/${pbn.join(",")}`);
-    if(other.length) parts.push(...other);
-    return parts.length ? parts.join("; ") : "—";
-  };
-  for(const item of ["item10a","item10b","item18"]){
-    const add = fmtSet(c.fpl[item].add);
-    const rem = fmtSet(c.fpl[item].remove);
-    const conf = fmtSet((c.fplConflicts && c.fplConflicts[item]) ? c.fplConflicts[item] : new Set());
-    lines.push(`- ${item.toUpperCase()}:`);
-    lines.push(`  • ADD: ${fmtList(item, add)}`);
-    lines.push(`  • REMOVE: ${fmtList(item, rem)}`);
-    if(conf.length){
-      lines.push(`  • CONFLICT (REMOVE > ADD): ${fmtList(item, conf)}`);
-    }
-  }
-
-  // LIDO steps
-  lines.push("\nLIDO 4D / DISPATCH TEENDŐK");
-  if(c.lidoSteps.length){
-    c.lidoSteps.forEach((s,i)=>lines.push(`${i+1}. ${s}`));
-  } else {
-    lines.push("—");
-  }
-
-  // Other tasks
-  lines.push("\nEGYÉB (OM / CRAR / briefing) TEENDŐK");
-  if(c.otherTasks.length){
-    c.otherTasks.forEach((s,i)=>lines.push(`${i+1}. ${s}`));
-  } else {
-    lines.push("—");
-  }
-
-  if(c.notes.length){
-    lines.push("\nMEGJEGYZÉS / PARSING INFO");
-    c.notes.forEach(x=>lines.push(`- ${x}`));
-  }
-
-  return lines.join("\n");
+  return lines.join('\n');
 }
 
-function renderActionsMatches(matches){
-  const out = [];
-  if(!matches.length){
-    out.push(`<div class="muted">Nincs találat a strukturált adatbázisban. (Próbáld a PDF keresést vagy adj hozzá kézzel.)</div>`);
-    el("results").innerHTML = out.join("");
-    return;
-  }
-  for(const a of matches){
-    const tags = [];
-    if((a.mel_numbers||[]).length) tags.push(...a.mel_numbers.map(x=>`MEL ${x}`));
-    if((a.triggers||[]).length) tags.push(...a.triggers.slice(0,6));
-    out.push(`
-      <div class="item">
-        <div class="itemTop">
-          <div>
-            <div class="itemTitle">${escapeHtml(a.limitation)}</div>
-            <div class="tags">${tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join("")}</div>
-          </div>
-          <div class="itemActions">
-            <button class="btn primary" data-add="${escapeHtml(a.id)}">+ Aktív</button>
-          </div>
-        </div>
-        <div class="kv">
-          <div class="k">LIDO</div><div class="v">${escapeHtml(a.lido||"—")}</div>
-          <div class="k">Other</div><div class="v">${escapeHtml(a.other_tasks||"—")}</div>
-        </div>
-      </div>
-    `);
-  }
-  el("results").innerHTML = out.join("");
-  // bind add buttons
-  document.querySelectorAll("button[data-add]").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      const id = btn.getAttribute("data-add");
-      const a = ACTIONS.find(x=>x.id===id);
-      if(a) addActive(a.limitation, a.id);
-    });
-  });
-}
-
-function actionSearch(query){
-  const q = normLower(query);
-  if(!q) return [];
-  const hits = [];
-  for(const a of ACTIONS){
-    const lim = normLower(a.limitation);
-    const lido = normLower(a.lido);
-    const other = normLower(a.other_tasks);
-    const trig = (a.triggers||[]).map(x=>x.toLowerCase());
-    const mel = (a.mel_numbers||[]).map(x=>x.toLowerCase());
-    const score =
-      (lim.includes(q)? 4:0) +
-      (trig.some(t=>t===q)? 6:0) +
-      (trig.some(t=>t.includes(q))? 3:0) +
-      (mel.some(m=>m===q)? 7:0) +
-      (mel.some(m=>m.includes(q))? 5:0) +
-      (lido.includes(q)? 1:0) +
-      (other.includes(q)? 1:0);
-    if(score>0) hits.push({score, a});
-  }
-  hits.sort((x,y)=>y.score-x.score);
-  return hits.slice(0, 20).map(x=>x.a);
-}
-
-// Active limitations state
-const active = []; // {label, id?}
-
-function addActive(label, id=null){
-  const L = norm(label);
-  if(!L) return;
-  if(active.some(x=>x.label.toLowerCase()===L.toLowerCase())) return;
-  active.push({label:L, id});
-  renderActive();
-}
-function removeActive(label){
-  const idx = active.findIndex(x=>x.label===label);
-  if(idx>=0) active.splice(idx,1);
-  renderActive();
-}
-function clearActive(){
-  active.splice(0, active.length);
-  renderActive();
-}
-
-function renderActive(){
-  const chips = active.map(x=>`
-    <span class="chip">
-      <span>${escapeHtml(x.label)}</span>
-      <button title="Eltávolítás" data-del="${escapeHtml(x.label)}">×</button>
-    </span>
-  `);
-  el("activeList").innerHTML = chips.join("") || `<span class="muted">—</span>`;
-
-  document.querySelectorAll("button[data-del]").forEach(b=>{
-    b.addEventListener("click", ()=> removeActive(b.getAttribute("data-del")));
-  });
-
-  // Build combined summary
-  const selectedActions = active
-    .map(x => x.id ? ACTIONS.find(a=>a.id===x.id) : null)
-    .filter(Boolean);
-  // also try to match manual labels to actions by fuzzy
-  for(const x of active){
-    if(x.id) continue;
-    const m = actionSearch(x.label)[0];
-    if(m) selectedActions.push(m);
-  }
-
-  const combined = combine(selectedActions, active.map(x=>x.label));
-  el("summary").textContent = formatCombined(combined);
-}
-
-
-function extractPdfHints(raw){
-  // Heuristic extraction from MEL text (keeps it short and actionable)
-  const t = (raw||"").replace(/\s+/g, " ").trim();
-  const out = { fpl: [], prohibitions: [], limits: [], conditions: [] };
-
-  // FPL: look for Item 10/18 and Remove/Insert hints
-  const fplMatches = [];
-  const reFpl = /\b(?:item\s*10a|item\s*10b|item\s*18|item10a|item10b|item18)\b.{0,80}?\b(?:remove|insert|delete|add)\b.{0,90}/ig;
-  let m;
-  while((m = reFpl.exec(t)) !== null && fplMatches.length < 8){
-    fplMatches.push(m[0]);
-  }
-  out.fpl = fplMatches;
-
-  // Prohibitions/mandatory phrases
-  const phrases = [
-    /not permitted/ig,
-    /shall not/ig,
-    /do not/ig,
-    /prohibited/ig,
-    /must not/ig,
-    /not allowed/ig
-  ];
-  const hits = [];
-  for(const r of phrases){
-    let mm;
-    while((mm = r.exec(t)) !== null && hits.length < 10){
-      const start = Math.max(0, mm.index - 80);
-      const end = Math.min(t.length, mm.index + 120);
-      hits.push(t.slice(start, end));
-    }
-  }
-  out.prohibitions = hits;
-
-  // Numeric limits (days/FL)
-  const lim = [];
-  const reLim = /\b(max(?:imum)?\s*)?(\d{1,3})\s*(days?|day)\b/ig;
-  while((m = reLim.exec(t)) !== null && lim.length < 6){
-    lim.push(m[0]);
-  }
-  const reFl = /\bFL\s*\d{2,3}\b/ig;
-  while((m = reFl.exec(t)) !== null && lim.length < 10){
-    lim.push(m[0]);
-  }
-  out.limits = lim;
-
-  // Conditions (IF/WHEN/PROVIDED)
-  const cond = [];
-  const reCond = /\b(?:provided|if|when|only when|only if|subject to)\b.{0,120}/ig;
-  while((m = reCond.exec(t)) !== null && cond.length < 8){
-    cond.push(m[0]);
-  }
-  out.conditions = cond;
-
-  // De-dup
-  const uniq = (arr) => {
-    const s = new Set();
-    const o = [];
-    for(const x of arr){
-      const k = x.toLowerCase();
-      if(s.has(k)) continue;
-      s.add(k);
-      o.push(x);
-    }
-    return o;
-  };
-  out.fpl = uniq(out.fpl);
-  out.prohibitions = uniq(out.prohibitions);
-  out.limits = uniq(out.limits);
-  out.conditions = uniq(out.conditions);
-
-  return out;
-}
-
-function formatPdfHints(h){
-  const lines = [];
-  const addSection = (title, arr) => {
-    if(!arr || !arr.length) return;
-    lines.push(title);
-    arr.slice(0,8).forEach(x=>lines.push(`- ${x}`));
-    lines.push("");
-  };
-  addSection("AUTO-HINT (PDF): FPL / Item 10/18 nyomok", h.fpl);
-  addSection("AUTO-HINT (PDF): Tiltás / kötelező művelet nyomok", h.prohibitions);
-  addSection("AUTO-HINT (PDF): Limits", h.limits);
-  addSection("AUTO-HINT (PDF): Feltételek", h.conditions);
-  return lines.length ? lines.join("\n") : "—";
-}
-
-// PDF logic
-async function loadPdfFromFile(file){
-  if(!file) return;
-
-  // pdf.js may fail to load if the CDN is blocked in a corporate network.
-  if(typeof pdfjsLib === "undefined"){
-    throw new Error("pdfjsLib_not_loaded");
-  }
-
-  // Ensure workerSrc is sane and reachable.
-  // Many corporate networks block jsDelivr; prefer cdnjs (same CDN family as pdf.min.js in index.html).
+async function copyText(txt){
   try{
-    const preferred = window.__PDFJS_WORKER_SRC__ || "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
-    if(pdfjsLib.GlobalWorkerOptions){
-      const cur = pdfjsLib.GlobalWorkerOptions.workerSrc || "";
-      const lc = cur.toLowerCase();
-      // Force override if empty OR points to jsDelivr OR looks like a mismatched npm 'pdfjs-dist@...' path.
-      if(!cur || lc.includes("jsdelivr") || lc.includes("pdfjs-dist@")){
-        pdfjsLib.GlobalWorkerOptions.workerSrc = preferred;
-      }
-    }
-  }catch(_){ }
+    await navigator.clipboard.writeText(txt);
+    return true;
+  }catch{
+    // fallback
+    const ta=document.createElement('textarea');
+    ta.value=txt; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    return true;
+  }
+}
 
-  const buf = await file.arrayBuffer();
-  el("pdfStatus").textContent = "PDF: betöltés…";
-
-  // Try with worker first; if the worker cannot be started (blocked CDN / CSP), retry without worker.
+async function init(){
+  // load rules
   try{
-    pdfDoc = await pdfjsLib.getDocument({data: buf}).promise;
-  }catch(err){
-    // Robust fallback: force main-thread parsing.
-    try{ pdfjsLib.disableWorker = true; }catch(_){ }
-    try{ if(pdfjsLib.GlobalWorkerOptions) pdfjsLib.GlobalWorkerOptions.workerSrc = ""; }catch(_){ }
-    pdfDoc = await pdfjsLib.getDocument({data: buf, disableWorker: true}).promise;
-  }
-
-  pdfPageTextCache.clear();
-  pdfPageRawCache.clear();
-  el("pdfStatus").textContent = `PDF: OK (${pdfDoc.numPages} oldal)`;
-}
-
-async function extractPageText(pageNo){
-  if(pdfPageRawCache.has(pageNo)) return pdfPageRawCache.get(pageNo);
-  const page = await pdfDoc.getPage(pageNo);
-  const tc = await page.getTextContent();
-  const strings = tc.items.map(it => it.str).filter(Boolean);
-  const raw = strings.join(" ").replace(/\s+/g, " ").trim();
-  pdfPageRawCache.set(pageNo, raw);
-  pdfPageTextCache.set(pageNo, raw.toLowerCase());
-  return raw;
-}
-
-function makeSnippet(raw, qLower){
-  const rawLower = raw.toLowerCase();
-  const idx = rawLower.indexOf(qLower);
-  if(idx<0) return raw.slice(0, 220) + (raw.length>220 ? "…" : "");
-  const start = Math.max(0, idx-90);
-  const end = Math.min(raw.length, idx+140);
-  let sn = raw.slice(start, end);
-  if(start>0) sn = "…" + sn;
-  if(end<raw.length) sn = sn + "…";
-  // highlight (simple)
-  const esc = escapeHtml(sn);
-  const re = new RegExp(qLower.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "ig");
-  return esc.replace(re, m=>`<mark>${escapeHtml(m)}</mark>`);
-}
-
-async function searchPdf(query){
-  const q = normLower(query);
-  if(!pdfDoc || !q){
-    el("pdfAutoHints").textContent = "—";
-    el("pdfHits").innerHTML = "—";
-    return;
-  }
-  el("pdfHits").innerHTML = "";
-  el("pdfProgress").textContent = "Keresés a PDF-ben… (oldalanként cache-elve)";
-  const hits = [];
-  const maxHits = 12;
-
-  for(let p=1; p<=pdfDoc.numPages; p++){
-    // update progress occasionally
-    if(p % 25 === 0) el("pdfProgress").textContent = `Keresés: ${p}/${pdfDoc.numPages} oldal… találat: ${hits.length}`;
-    const low = pdfPageTextCache.get(p);
-    if(low){
-      if(low.includes(q)){
-        const raw = pdfPageRawCache.get(p) || "";
-        hits.push({page:p, raw});
-      }
-    } else {
-      const raw = await extractPageText(p);
-      if(raw.toLowerCase().includes(q)){
-        hits.push({page:p, raw});
-      }
-    }
-    if(hits.length >= maxHits) break;
-  }
-
-  el("pdfProgress").textContent = hits.length ? `Találat: ${hits.length} (max ${maxHits})` : "Nincs találat (vagy még nem került feldolgozásra a releváns oldal).";
-
-  if(!hits.length){
-    el("pdfAutoHints").textContent = "—";
-    el("pdfHits").innerHTML = `<div class="muted">Nincs találat a betöltött PDF-ben a megadott kifejezésre.</div>`;
-    return;
-  }
-
-  // Auto-hints from the first hit (heuristic)
-  try{
-    const hints = extractPdfHints(hits[0].raw);
-    el("pdfAutoHints").textContent = formatPdfHints(hints);
+    const r = await fetch('data/actions.json', {cache:'no-store'});
+    const j = await r.json();
+    state.rules = j.rules || [];
   }catch(e){
-    el("pdfAutoHints").textContent = "—";
+    console.error('actions.json load failed', e);
+    state.rules = [];
   }
 
-  const html = hits.map(h=>{
-    // Provide viewer hint; user can open locally in another tab if they have viewer; cannot link to local file reliably
-    return `
-      <div class="hit">
-        <div class="meta">
-          <div>Oldal: <b>${h.page}</b></div>
-          <div class="muted">PDF snippet (lokális)</div>
-        </div>
-        <div class="snip">${makeSnippet(h.raw, q)}</div>
-      </div>
-    `;
-  });
-  el("pdfHits").innerHTML = html.join("");
-}
-
-async function findBestActionMatch(q){
-  const res = searchStructured(String(q||""), 1);
-  return res && res[0] ? res[0].a : null;
-}
-
-async function doSearch(){
-  const query = el("q").value;
-  const doA = el("searchActions").checked;
-  const doP = el("searchPdf").checked;
-
-  if(doA){
-    const matches = actionSearch(query);
-    renderActionsMatches(matches);
-  } else {
-    el("results").innerHTML = `<div class="muted">Strukturált adatbázis keresés kikapcsolva.</div>`;
-  }
-  if(doP){
-    await searchPdf(query);
-  } else {
-    el("pdfAutoHints").textContent = "—";
-    el("pdfHits").innerHTML = "—";
-    el("pdfProgress").textContent = "";
-  }
-}
-
-
-// -----------------------
-// AMOS CSV import helpers
-// -----------------------
-function readFileAsText(file){
-  return new Promise((resolve,reject)=>{
-    const r = new FileReader();
-    r.onload = ()=>resolve(String(r.result||""));
-    r.onerror = ()=>reject(r.error||new Error("File read error"));
-    r.readAsText(file);
-  });
-}
-
-// Basic CSV parser supporting quotes and delimiter auto-detect (comma/semicolon/tab)
-function parseCsvText(text){
-  const lines = String(text||"").replace(/\uFEFF/g,"").split(/\r?\n/).filter(l=>l.trim().length>0);
-  if(!lines.length) return {rows:[], delimiter:","};
-
-  const header = lines[0];
-  const candidates = [",",";","\t"];
-  let delimiter = ",";
-  let best = 0;
-  for(const d of candidates){
-    const c = header.split(d).length;
-    if(c>best){ best=c; delimiter=d; }
-  }
-
-  const parseLine = (line)=>{
-    const out=[];
-    let cur="", inQ=false;
-    for(let i=0;i<line.length;i++){
-      const ch=line[i];
-      if(inQ){
-        if(ch === '"'){
-          const next=line[i+1];
-          if(next === '"'){ cur+='"'; i++; }
-          else inQ=false;
-        } else cur+=ch;
-      } else {
-        if(ch === '"') inQ=true;
-        else if(ch === delimiter){ out.push(cur); cur=""; }
-        else cur+=ch;
-      }
-    }
-    out.push(cur);
-    return out;
-  };
-
-  const headerCols = parseLine(lines[0]).map(s=>s.trim());
-  const rows=[];
-  for(let i=1;i<lines.length;i++){
-    const cols=parseLine(lines[i]);
-    if(cols.length===1 && cols[0].trim()==="") continue;
-    const obj={};
-    for(let j=0;j<headerCols.length;j++){
-      obj[headerCols[j]] = (cols[j] ?? "").trim();
-    }
-    rows.push(obj);
-  }
-  return {rows, delimiter};
-}
-
-function extractMelRefsFromText(t){
-  const text = String(t||"");
-  const rx1 = /\b\d{2}-\d{2}-\d{2}(?:[A-Z])?(?:-[A-Z])?\b/g;   // 30-45-03-A / 25-20-01A
-  const rx2 = /\b\d{2}-\d{2}-\d{2}[A-Z]\b/g;                  // 31-30-07A
-  const hits = new Set();
-  for(const m of text.match(rx1) || []) hits.add(m);
-  for(const m of text.match(rx2) || []) hits.add(m);
-  return [...hits];
-}
-
-function classifyDispatchRelevance(desc, melRefs, label){
-  const line = [desc||"", label||"", (melRefs||[]).join(" ")].join(" ");
-  // 1) strongest: matches action matrix (Excel-derived), by MEL ref or trigger keywords
-  const matches = matchLineToActions(line);
-  if(matches && matches.length){
-    const top = matches[0];
-    const why = top.limitation ? `MATCH: ${top.limitation}` : "MATCH: action matrix";
-    return {relevant:true, reason: why, matches};
-  }
-
-  // 2) strict keyword heuristic for genuinely dispatch-impact items (fallback only)
-  const s = String(line||"").toUpperCase();
-
-  const include = [
-    "TCAS","CPDLC","ATC DATALINK","DATALINK",
-    "ADS-B","ADSB","ADSC",
-    "RVSM",
-    "NAT HLA","HLA",
-    "RNP","RNAV","PBN",
-    "WX RADAR","WEATHER RADAR",
-    "NO ICING",
-    "CAT II","CAT III",
-    "NAV DB","NAV DATABASE",
-    "MCDU","FMS",
-    "RA INOP","RADIO ALTIMETER",
-    "EGPWS","GPWS",
-    "ATSU"
-  ];
-
-  const exclude = [
-    "LAVATORY","TOILET","WASTE","SEAT","IFE","GALLEY","COFFEE","WATER",
-    "PAINT","CARPET","CUSHION","LIGHTING","CABIN","ODOR","ODOUR","TRIM",
-    "WINDOW","DOOR","COVER","PANEL","SCREW","COSMETIC"
-  ];
-
-  if(exclude.some(k=>s.includes(k))) return {relevant:false, reason:"EXCLUDE: cabin/ground item", matches:[]};
-
-  for(const k of include){
-    if(s.includes(k)) return {relevant:true, reason:`KEYWORD: ${k}`, matches:[]};
-  }
-
-  return {relevant:false, reason:"", matches:[]};
-}
-
-function guessLimitationLabel(row){
-  const desc = row["Workorder-description and/or complaint"] || row["Workorder description and/or complaint"] || row["Description"] || "";
-  const melRefs = extractMelRefsFromText(desc);
-  const ac = row["A/C"] || row["Aircraft"] || "";
-  const ata = row["ATA"] || "";
-  if(melRefs.length) return `${melRefs[0]} (${ata})`;
-
-  const U = String(desc).toUpperCase();
-  let kw = "";
-  if(U.includes("CPDLC") || U.includes("DATALINK")) kw = "CPDLC / ATC DATALINK INOP";
-  else if(U.includes("TCAS")) kw = "TCAS INOP";
-  else if(U.includes("ADS-B") || U.includes("ADSB")) kw = "ADS-B OUT INOP";
-  else if(U.includes("WX RADAR") || U.includes("WEATHER RADAR")) kw = "WX RADAR INOP";
-  else if(U.includes("NAV DB") || U.includes("NAV DATABASE")) kw = "NAV DB OUTDATED";
-  else if(U.includes("RNP")) kw = "RNP APCH NOT PERMITTED";
-  else if(U.includes("RVSM")) kw = "RVSM NOT PERMITTED";
-  else if(U.includes("NO ICING")) kw = "NO ICING";
-  else kw = desc ? desc.slice(0,60) : "UNKNOWN";
-  return kw + (ac ? ` [${ac}]` : "");
-}
-
-function buildAmsGroups(rows){
-  const groups = new Map();
-  for(const r of rows){
-    const state = (r["State"]||"").toLowerCase();
-    if(state && state!=="open") continue;
-
-    const ac = r["A/C"] || r["Aircraft"] || "—";
-    const desc = r["Workorder-description and/or complaint"] || r["Workorder description and/or complaint"] || "";
-    const melRefs = extractMelRefsFromText(desc);
-    const itemLabel = guessLimitationLabel(r);
-    const rel = classifyDispatchRelevance(desc, melRefs, itemLabel);
-
-    const item = {
-      ac,
-      ata: r["ATA"] || "",
-      wo: r["W/O"] || r["WO"] || "",
-      issue: r["Issue-Date"] || r["Issue Date"] || "",
-      due: r["Due-/C.-Date"] || r["Due Date"] || "",
-      melRefs,
-      desc,
-      label: itemLabel,
-      relevant: rel.relevant,
-      relevantReason: rel.reason,
-      actionMatches: rel.matches || []
-    };
-
-    if(!groups.has(ac)) groups.set(ac, []);
-    groups.get(ac).push(item);
-  }
-  const out = [...groups.entries()].map(([ac,items])=>({ac, items}));
-  out.sort((a,b)=>a.ac.localeCompare(b.ac));
-  return out;
-}
-
-function renderAmsTable(){
-  const host = el("amosCsvTable");
-  const rep = el("amosCsvReport");
-  // v2 layout: table may not exist; keep it optional.
-  if(!rep) return;
-  if(!amosGroups.length){
-    rep.textContent="—";
-    if(host) host.textContent="—";
-    return;
-  }
-  const totalAcs = amosGroups.length;
-  const totalItems = amosGroups.reduce((s,g)=>s+g.items.length,0);
-  const relItems = amosRelevant.length;
-  rep.innerHTML = `A/C: <b>${totalAcs}</b> | Open tételek: <b>${totalItems}</b> | Dispatcher‑releváns: <b>${relItems}</b>`;
-
-  const rowsHtml = [];
-  for(const g of amosGroups){
-    const rel = g.items.filter(it=>it.relevant);
-    const badgeClass = rel.length ? (rel.length>=3 ? "danger":"warn") : "ok";
-    rowsHtml.push(`<tr>
-      <td><span class="badge ${badgeClass}">${g.ac}</span></td>
-      <td>${g.items.length}</td>
-      <td>${rel.length}</td>
-      <td>${rel.slice(0,3).map(it=>{
-        const mel = it.melRefs[0] ? `<code>${it.melRefs[0]}</code>` : "";
-        return `${mel} ${escapeHtml(it.desc||"").slice(0,140)}`;
-      }).join("<br>") || "—"}</td>
-    </tr>`);
-  }
-  if(!host) return;
-  host.innerHTML = `<table>
-    <thead><tr><th>A/C</th><th>Open db</th><th>Rel. db</th><th>Top releváns tételek</th></tr></thead>
-    <tbody>${rowsHtml.join("")}</tbody>
-  </table>`;
-}
-
-
-function buildAmsTailProfiles(){
-  // Build per-aircraft dispatcher-relevant profiles with suggested structured actions.
-  const profiles = [];
-  for(const g of amosGroups){
-    const relItems = g.items.filter(it=>it.relevant);
-    if(!relItems.length) continue;
-
-    const suggestionsMap = new Map(); // id/limitation -> {id, limitation, sources:Set}
-    const rawLabels = new Set();
-    const melRefs = new Set();
-    const keyTags = new Set();
-
-    for(const it of relItems){
-      for(const r of (it.melRefs||[])) melRefs.add(r);
-      const hay = `${it.melRefs.join(" ")} ${it.desc||""} ${it.label||""}`.trim();
-
-      // tag inference for quick scan
-      const U = hay.toUpperCase();
-      ["TCAS","CPDLC","DATALINK","ADS-B","RVSM","RNP","RNAV","PBN","WX RADAR","NAV DB","NO ICING","CAT II","CAT III","NAT HLA","ATSU","MCDU","FMS","RA","ADF"].forEach(k=>{
-        if(U.includes(k)) keyTags.add(k);
-      });
-
-      const matches = matchLineToActions(hay);
-      if(matches.length){
-        // take top 2, but only if they look like real dispatcher actions (have id or lido text)
-        for(const a of matches.slice(0,2)){
-          const id = a.id || a.limitation;
-          const key = `${id}`;
-          if(!suggestionsMap.has(key)){
-            suggestionsMap.set(key, {id: a.id || null, limitation: a.limitation, sources:new Set()});
-          }
-          suggestionsMap.get(key).sources.add(it.desc || it.label || "");
-        }
-      } else {
-        rawLabels.add(it.label || it.desc || "");
-      }
-    }
-
-    const suggestions = [...suggestionsMap.values()].map(x=>({
-      id: x.id,
-      limitation: x.limitation,
-      sources: [...x.sources].slice(0,3)
-    }));
-
-    profiles.push({
-      ac: g.ac,
-      relCount: relItems.length,
-      openCount: g.items.length,
-      melRefs: [...melRefs],
-      keyTags: [...keyTags].slice(0,8),
-      suggestions,
-      rawLabels: [...rawLabels].slice(0,6),
-      relItems
-    });
-  }
-  profiles.sort((a,b)=> (b.relCount-a.relCount) || a.ac.localeCompare(b.ac));
-  amosTailProfiles = profiles;
-}
-
-function renderRelevantAcList(){
-  const host = el("relevantAcList");
-  const sum = el("relevantAcSummary");
-  const pill = el("selectedAcPill");
-  if(!host || !sum || !pill) return;
-
-  if(!amosTailProfiles.length){
-    sum.textContent = "—";
-    host.textContent = "—";
-    pill.textContent = "A/C: —";
-    return;
-  }
-
-  sum.innerHTML = `Dispatcher‑releváns A/C: <b>${amosTailProfiles.length}</b> (CSV import alapján). Kattintásra automatikus teendőlista.`;
-  pill.textContent = selectedAc ? `A/C: ${selectedAc}` : "A/C: —";
-
-  host.innerHTML = amosTailProfiles.map(p=>{
-    const cls = (selectedAc===p.ac) ? "acItem active" : "acItem";
-    const codes = p.keyTags.slice(0,6).map(k=>`<code>${escapeHtml(k)}</code>`).join("");
-    return `<div class="${cls}" data-ac="${escapeHtml(p.ac)}">
-      <div class="acMeta">
-        <div class="acName">${escapeHtml(p.ac)}</div>
-        <div class="acCounts">rel: <b>${p.relCount}</b> | open: ${p.openCount}</div>
-        <div class="smallCodes">${codes}</div>
-      </div>
-      <div class="badge ${p.relCount>=3?"danger":"warn"}">TEENDŐ</div>
-    </div>`;
-  }).join("");
-
-  host.querySelectorAll("[data-ac]").forEach(node=>{
-    node.addEventListener("click", ()=>{
-      const ac = node.getAttribute("data-ac");
-      selectAircraftProfile(ac);
-    });
-  });
-}
-
-
-function renderSelectedAcItems(p){
-  const host = el("selectedAcItemsBody");
-  if(!host) return;
-  if(!p){
-    host.textContent = "Válassz egy repülőgépet a listából.";
-    return;
-  }
-  // Show only this aircraft's dispatcher-relevant open MEL items (from CSV snapshot).
-  const items = (p.relItems || []);
-  if(!items.length){
-    host.textContent = "Ehhez a lajstromhoz nincs dispatcher‑releváns tétel a CSV-ben.";
-    return;
-  }
-  const lines = [];
-  lines.push(`<div class="muted">Lajstrom: <b>${escapeHtml(p.ac)}</b> | Dispatch‑releváns tételek: <b>${items.length}</b></div>`);
-  lines.push('<div style="margin-top:8px; display:flex; flex-direction:column; gap:8px">');
-  for(const it of items){
-    const mel = (it.melRefs && it.melRefs.length) ? it.melRefs.join(", ") : (it.label||"");
-    const desc = it.desc || it.label || "";
-    const tag = (it.relevantReason ? `<span class="pill" title="Miért releváns">${escapeHtml(it.relevantReason)}</span>` : "");
-    lines.push(`<div style="border:1px solid var(--border); border-radius:12px; padding:8px; background:rgba(2,6,23,.35)">
-      <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start">
-        <div>
-          <div style="font-weight:800; font-size:12px">${escapeHtml(mel)}</div>
-          <div class="muted" style="margin-top:4px">${escapeHtml(desc)}</div>
-        </div>
-        ${tag}
-      </div>
-    </div>`);
-  }
-  lines.push("</div>");
-  host.innerHTML = lines.join("");
-}
-
-function selectAircraftProfile(ac){
-  const p = amosTailProfiles.find(x=>x.ac===ac);
-  if(!p) return;
-  selectedAc = ac;
-  const pill = el("selectedAcPill");
-  if(pill) pill.textContent = `A/C: ${ac}`;
-
-  // Update selected aircraft MEL list panel
-  renderSelectedAcItems(p);
-
-  // Replace active list with this aircraft's dispatcher-relevant suggestions
-  clearActive();
-  // Hard reset safeguard (avoid any residual state)
-  if(el('activeList')) el('activeList').innerHTML='';
-  let added = 0;
-  for(const s of p.suggestions){
-    addActive(s.limitation, s.id);
-    added++;
-  }
-  for(const lbl of p.rawLabels){
-    // Keep labels as a fallback for "MAX FL", "NO ICING" type free text
-    addActive(lbl, null);
-    added++;
-  }
-
-  // Add an info line to the summary header (without contaminating the active list)
-  const hdr = document.getElementById("summaryHeader");
-  if(hdr) hdr.textContent = `Összegzett teendők – ${ac}`;
-
-  // Re-render list highlight
-  renderRelevantAcList();
-
-  // Optional: scroll summary into view
-  const sm = el("summary");
-  if(sm) sm.scrollIntoView({behavior:"smooth", block:"start"});
-}
-
-async function importAmsCsv(){
-  try{
-    const file = el("amosCsvFile")?.files?.[0] || null;
-    let text = el("amosCsvPaste")?.value || "";
-    if(file){
-      text = await readFileAsText(file);
-      if(!el("amosCsvPaste").value) el("amosCsvPaste").value = text;
-    }
-    if(!text.trim()){
-      alert("Nincs CSV tartalom. Tölts fel fájlt vagy illeszd be a CSV-t.");
-      return;
-    }
-    const parsed = parseCsvText(text);
-    amosRows = parsed.rows;
-    amosGroups = buildAmsGroups(amosRows);
-    amosRelevant = amosGroups.flatMap(g=>g.items.filter(it=>it.relevant));
-    renderAmsTable();
-
-    // Delta mode: compare with previous snapshot (localStorage)
-    const curSnap = buildCsvSnapshot();
-    let prevSnap = null;
-    try{ prevSnap = JSON.parse(localStorage.getItem(LS_SNAPSHOT_KEY)||"null"); }catch{ prevSnap=null; }
-    renderDelta(prevSnap, curSnap);
-    try{ localStorage.setItem(LS_SNAPSHOT_KEY, JSON.stringify(curSnap)); }catch{}
-
-    buildAmsTailProfiles();
-    renderRelevantAcList();
-  }catch(err){
-    console.error(err);
-    alert("CSV import hiba: " + (err?.message || String(err)));
-  }
-}
-
-function addRelevantFromCsvToActive(){
-  if(!amosRelevant.length){
-    alert("Nincs dispatcher‑releváns tétel (vagy még nincs CSV import).");
-    return;
-  }
-  let added=0, mapped=0;
-  for(const it of amosRelevant){
-    const query = (it.melRefs[0] || it.label || it.desc || "").toString();
-    const match = findBestActionMatch(query);
-    if(match?.id){
-      addActive(`${it.ac}: ${match.limitation}`, match.id);
-      mapped++; added++;
-    } else {
-      addActive(`${it.ac}: ${it.label}`, null);
-      added++;
-    }
-  }
-  el("bulkReport").textContent = `CSV-ből aktívba téve: ${added} (strukturált match: ${mapped})`;
-}
-
-function clearCsvUi(){
-  if(el("amosCsvPaste")) el("amosCsvPaste").value="";
-  if(el("amosCsvFile")) el("amosCsvFile").value="";
-  amosRows=[]; amosGroups=[]; amosRelevant=[]; amosTailProfiles=[]; selectedAc=null;
-  const hdr = document.getElementById('summaryHeader'); if(hdr) hdr.textContent='Összegzett teendők';
-  if(el("deltaReport")) el("deltaReport").textContent = "—";
-  renderAmsTable();
-  renderRelevantAcList();
-  renderSelectedAcItems(null);
-}
-
-// -----------------------
-// Delta mode + handover export
-// -----------------------
-const LS_SNAPSHOT_KEY = "melops_last_csv_snapshot_v1";
-
-function buildCsvSnapshot(){
-  const snap = {};
-  for(const g of (amosGroups||[])){
-    const items = (g.items||[]).map(it=>{
-      const mel = (it.melRefs && it.melRefs[0]) ? it.melRefs[0] : "";
-      const ata = it.ata || "";
-      const desc = (it.desc||"").replace(/\s+/g," ").trim().slice(0,140);
-      return `${mel}|${ata}|${desc}`;
-    }).sort();
-    snap[g.ac] = items;
-  }
-  return snap;
-}
-
-function diffSnapshots(prev, cur){
-  prev = prev || {};
-  cur = cur || {};
-  const prevTails = new Set(Object.keys(prev));
-  const curTails = new Set(Object.keys(cur));
-  const added = [];
-  const removed = [];
-  const changed = [];
-  for(const t of curTails){ if(!prevTails.has(t)) added.push(t); }
-  for(const t of prevTails){ if(!curTails.has(t)) removed.push(t); }
-  for(const t of curTails){
-    if(prevTails.has(t)){
-      const a = (prev[t]||[]).join("\n");
-      const b = (cur[t]||[]).join("\n");
-      if(a!==b) changed.push(t);
-    }
-  }
-  added.sort(); removed.sort(); changed.sort();
-  return {added, removed, changed};
-}
-
-function renderDelta(prev, cur){
-  const host = el("deltaReport");
-  if(!host) return;
-  if(!cur || !Object.keys(cur).length){
-    host.textContent = "—";
-    return;
-  }
-  if(!prev || !Object.keys(prev).length){
-    host.textContent = "Delta mód: nincs előző snapshot (első import).";
-    return;
-  }
-  const d = diffSnapshots(prev, cur);
-  const lines = [];
-  lines.push(`Delta mód (előző reporthoz képest):`);
-  lines.push(`NEW: ${d.added.length} | REMOVED: ${d.removed.length} | CHANGED: ${d.changed.length}`);
-  if(d.added.length) lines.push(`NEW A/C: ${d.added.join(", ")}`);
-  if(d.removed.length) lines.push(`REMOVED A/C: ${d.removed.join(", ")}`);
-  if(d.changed.length) lines.push(`CHANGED A/C: ${d.changed.join(", ")}`);
-  host.textContent = lines.join("\n");
-}
-
-function buildHandoverText(){
-  if(!amosTailProfiles || !amosTailProfiles.length){
-    return "Nincs CSV import / nincs dispatcher-releváns A/C.";
-  }
-  const lines = [];
-  lines.push(`DISPATCH-RELEVANT MEL SUMMARY (CSV snapshot)`);
-  lines.push(`A/C affected: ${amosTailProfiles.length}`);
-  lines.push("");
-  for(const p of amosTailProfiles){
-    const tags = (p.keyTags||[]).slice(0,8).join(", ") || "—";
-    const top = (p.suggestions||[]).slice(0,3).map(s=>s.limitation).join(" | ");
-    lines.push(`${p.ac} — rel ${p.relCount} / open ${p.openCount} — ${tags}`);
-    if(top) lines.push(`  Actions: ${top}`);
-    if(p.melRefs && p.melRefs.length) lines.push(`  MEL refs: ${p.melRefs.slice(0,5).join(", ")}${p.melRefs.length>5?"…":""}`);
-  }
-  lines.push("");
-  lines.push("NOTE: Verify MEL/CRAR/OM-C as applicable. Generated for dispatcher workflow only.");
-  return lines.join("\n");
-}
-
-function bind(){
-  el("btnSearch").addEventListener("click", doSearch);
-  el("q").addEventListener("keydown", (e)=>{ if(e.key==="Enter") doSearch(); });
-
-  el("btnAddManual").addEventListener("click", ()=>{
-    const v = el("manualAdd").value;
-    el("manualAdd").value = "";
-    addActive(v);
-  });
-  el("manualAdd").addEventListener("keydown", (e)=>{ if(e.key==="Enter"){ el("btnAddManual").click(); }});
-  
-  // Bulk import
-  const bulkAddBtn = document.getElementById("btnBulkAdd");
-  if(bulkAddBtn){
-    bulkAddBtn.addEventListener("click", ()=>{
-      const t = (document.getElementById("bulkPaste")?.value)||"";
-      bulkAddFromText(t);
-    });
-  }
-  const bulkClearBtn = document.getElementById("btnBulkClear");
-  if(bulkClearBtn){
-    bulkClearBtn.addEventListener("click", ()=>{
-      const tp = document.getElementById("bulkPaste");
-      if(tp) tp.value = "";
-      const rep = document.getElementById("bulkReport");
-      if(rep) rep.textContent = "";
-    });
-  }
-
-el("btnClearActive").addEventListener("click", clearActive);
-
-  el("btnCopySummary").addEventListener("click", async ()=>{
-    const txt = el("summary").textContent || "";
-    try{
-      await navigator.clipboard.writeText(txt);
-      el("btnCopySummary").textContent = "Másolva ✓";
-      setTimeout(()=> el("btnCopySummary").textContent = "Másolás", 900);
-    }catch{
-      alert("Nem sikerült a vágólapra másolni. Jelöld ki kézzel a szöveget.");
-    }
+  // bind
+  $('pasteCsvBtn').addEventListener('click', openModal);
+  $('closePaste').addEventListener('click', closeModal);
+  $('cancelPaste').addEventListener('click', closeModal);
+  $('importPaste').addEventListener('click', async ()=>{
+    const txt = $('csvPaste').value;
+    closeModal();
+    await importCsvText(txt);
   });
 
-  el("pdfFile").addEventListener("change", async (e)=>{
-    const f = e.target.files && e.target.files[0];
-    if(!f) return;
-    try{
-      await loadPdfFromFile(f);
-    }catch(err){
-      console.error(err);
-      el("pdfStatus").textContent = "PDF: hiba (nem olvasható)";
-      const msg = (err && err.message) ? err.message : String(err);
-      if(msg==="pdfjsLib_not_loaded"){
-        alert("A PDF feldolgozó modul (pdf.js) nem töltődött be. Gyakori ok: vállalati hálózat blokkolja a CDN-t. Próbáld meg más hálózatról, vagy jelezd és adok teljesen offline (vendorolt) verziót.");
-      } else {
-        alert("A PDF betöltése nem sikerült. Nem jelszó-védett? Akkor tipikusan a pdf.js worker indítása bukik. Most már van fallback, de ha mégis fennáll: " + msg);
-      }
-    }
+  $('csvFile').addEventListener('change', async (ev)=>{
+    const f = ev.target.files?.[0];
+    if (!f) return;
+    const txt = await f.text();
+    await importCsvText(txt);
+    ev.target.value = '';
   });
 
-  // Handover export
-  if(el("btnCopyHandover")) el("btnCopyHandover").addEventListener("click", async ()=>{
-    const txt = buildHandoverText();
-    try{
-      await navigator.clipboard.writeText(txt);
-      el("btnCopyHandover").textContent = "Másolva ✓";
-      setTimeout(()=> el("btnCopyHandover").textContent = "Handover export", 900);
-    }catch{
-      alert("Nem sikerült a vágólapra másolni. Jelöld ki kézzel a szöveget.");
-    }
+  $('pdfFile').addEventListener('change', async (ev)=>{
+    const f = ev.target.files?.[0];
+    if (!f) return;
+    state.pdfFile = f;
+    // We don't parse PDF here (no pdf.js). This is just to keep workflow consistent & allow user to open it.
+    // We'll just update meta.
+    const mb = (f.size/1024/1024).toFixed(1);
+    const old = $('fleetMeta').textContent;
+    $('fleetMeta').textContent = old + ` • MEL PDF: ${f.name} (${mb} MB)`;
+    ev.target.value='';
   });
 
-  // AMOS CSV import
-  if(el("btnImportCsv")) el("btnImportCsv").addEventListener("click", importAmsCsv);
-  if(el("btnAddRelevantFromCsv")) el("btnAddRelevantFromCsv").addEventListener("click", addRelevantFromCsvToActive);
-  if(el("btnClearCsv")) el("btnClearCsv").addEventListener("click", clearCsvUi);
-  if(el("amosCsvFile")) el("amosCsvFile").addEventListener("change", importAmsCsv);
+  $('handoverBtn').addEventListener('click', async ()=>{
+    const txt = handoverExport();
+    await copyText(txt);
+  });
+
+  $('clearBtn').addEventListener('click', ()=>{
+    clearAll();
+  });
+
+  $('copyBtn').addEventListener('click', async ()=>{
+    if (!state.selectedTail) return;
+    const t = state.tails.get(state.selectedTail);
+    const txt = [
+      `A/C: ${t.tail}`,
+      '',
+      $('fplBox').textContent,
+      '',
+      'LIDO / DISPATCH STEPS:',
+      ...t.relevantItems.filter(x=>x.rule?.lido).map(x=>`- ${x.rule.lido.replace(/\s+/g,' ').trim()}`),
+      '',
+      'OPS NOTES:',
+      ...t.relevantItems.filter(x=>x.rule?.other).map(x=>`- ${x.rule.other.replace(/\s+/g,' ').trim()}`)
+    ].join('\n');
+    await copyText(txt);
+  });
+
+  clearAll();
 }
 
-(async function init(){
-  // Bind UI first so basic buttons work even if DB fetch fails.
-  bind();
-  const ok = await loadActions();
-})();
+init();
