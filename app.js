@@ -677,7 +677,7 @@ async function findBestActionMatch(q){
   return res && res[0] ? res[0].a : null;
 }
 
-function doSearch(){
+async function doSearch(){
   const query = el("q").value;
   const doA = el("searchActions").checked;
   const doP = el("searchPdf").checked;
