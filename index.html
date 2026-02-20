@@ -1,111 +1,123 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="hu">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MEL Ops Assistant (LIDO 4D)</title>
-  <link rel="stylesheet" href="styles.css" />
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>MEL Ops Assistant (LIDO 4D)</title>
+<link href="styles.css" rel="stylesheet"/>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <div class="title">MEL Ops Assistant</div>
-      <div class="subtitle">MEL / limitation → LIDO 4D teendők + operációs korlátok (multi-limitáció)</div>
-    </div>
-    <div class="right">
-      <label class="file">
-        <input id="pdfFile" type="file" accept="application/pdf" />
-        <span>+ MEL PDF betöltése (lokálisan)</span>
-      </label>
-      <div id="pdfStatus" class="pill">PDF: nincs betöltve</div>
-    </div>
-  </header>
-
-  <main class="layout">
-    <section class="panel">
-      <h2>Keresés</h2>
-      <div class="searchRow">
-        <input id="q" class="search" placeholder="Írj be MEL számot (pl. 22-82-01), kulcsszót (TCAS, CPDLC, RNP APCH), vagy bármilyen szövegrészletet…" />
-        <button id="btnSearch" class="btn primary">Keresés</button>
-      </div>
-      <div class="toggles">
-        <label><input id="searchActions" type="checkbox" checked /> Strukturált teendő-adatbázis (Excel)</label>
-        <label><input id="searchPdf" type="checkbox" checked /> MEL PDF keresés (lokálisan a böngészőben)</label>
-      </div>
-
-      <div id="results" class="results"></div>
-    </section>
-
-    <section class="panel">
-      <h2>Aktív limitációk (kombinált)</h2>
-      <div class="activeRow">
-        <input id="manualAdd" class="search" placeholder="Adj hozzá kézzel egy címkét (pl. 'WX RADAR INOP', 'FL350 LIMIT')…" />
-        <button id="btnAddManual" class="btn">Hozzáadás</button>
-        <button id="btnClearActive" class="btn danger">Törlés</button>
-      </div>
-
-      
-      <div class="card">
-        <div class="cardHeader">
-          <div class="cardTitle">Gyors import (több sor)</div>
-        </div>
-        <div class="muted" style="margin-bottom:8px;">
+<header class="topbar">
+<div class="brand">
+<div class="title">MEL Ops Assistant</div>
+<div class="subtitle">MEL / limitation → LIDO 4D teendők + operációs korlátok (multi-limitáció)</div>
+</div>
+<div class="right">
+<label class="file">
+<input accept="application/pdf" id="pdfFile" type="file"/>
+<span>+ MEL PDF betöltése (lokálisan)</span>
+</label>
+<div class="pill" id="pdfStatus">PDF: nincs betöltve</div>
+</div>
+</header>
+<main class="layout">
+<section class="panel">
+<h2>Keresés</h2>
+<div class="searchRow">
+<input class="search" id="q" placeholder="Írj be MEL számot (pl. 22-82-01), kulcsszót (TCAS, CPDLC, RNP APCH), vagy bármilyen szövegrészletet…"/>
+<button class="btn primary" id="btnSearch">Keresés</button>
+</div>
+<div class="toggles">
+<label><input checked="" id="searchActions" type="checkbox"/> Strukturált teendő-adatbázis (Excel)</label>
+<label><input checked="" id="searchPdf" type="checkbox"/> MEL PDF keresés (lokálisan a böngészőben)</label>
+</div>
+<div class="results" id="results"></div>
+</section>
+<section class="panel">
+<h2>Aktív limitációk (kombinált)</h2>
+<div class="activeRow">
+<input class="search" id="manualAdd" placeholder="Adj hozzá kézzel egy címkét (pl. 'WX RADAR INOP', 'FL350 LIMIT')…"/>
+<button class="btn" id="btnAddManual">Hozzáadás</button>
+<button class="btn danger" id="btnClearActive">Törlés</button>
+</div>
+<div class="card">
+<div class="cardHeader">
+<div class="cardTitle">Gyors import (több sor)</div>
+</div>
+<div class="muted" style="margin-bottom:8px;">
           Másold be az AMOS / handover listát (több sor). Kulcsszavak alapján megpróbálom felismerni a limitációkat és hozzáadni az aktív listához.
           Ha egy sor nem felismerhető, akkor címkeként kerül be, hogy a kombinált korlát-számítás (pl. MAX FL) akkor is működjön.
         </div>
-        <textarea id="bulkPaste" class="bulk" rows="6" placeholder="Példa:
+<textarea class="bulk" id="bulkPaste" placeholder="Példa:
 9H-WDJ  ATC DATALINK / CPDLC INOP
 9H-WMP  NAV DB OUTDATED (RNP APCH not permitted)
-9H-WMC  SINGLE ENGINE BLEED / NO FL LIMIT"></textarea>
-        <div class="row">
-          <button id="btnBulkAdd" class="btn">Feldolgozás + aktívba</button>
-          <button id="btnBulkClear" class="btn">Mező ürítése</button>
-        </div>
-        <div id="bulkReport" class="muted"></div>
-      </div>
+9H-WMC  SINGLE ENGINE BLEED / NO FL LIMIT" rows="6"></textarea>
+<div class="row">
+<button class="btn" id="btnBulkAdd">Feldolgozás + aktívba</button>
+<button class="btn" id="btnBulkClear">Mező ürítése</button>
+</div>
+<div class="muted" id="bulkReport"></div>
+</div>
 
-<div id="activeList" class="chips"></div>
-
-      <div class="card">
-        <div class="cardHeader">
-          <div class="cardTitle">Összegzett teendők</div>
-          <button id="btnCopySummary" class="btn">Másolás</button>
-        </div>
-        <pre id="summary" class="summary">Nincs aktív limitáció.</pre>
-      </div>
-
-      <div class="card">
-        <div class="cardHeader">
-          <div class="cardTitle">PDF találatok</div>
-          <div id="pdfProgress" class="muted"></div>
-        </div>
-        <div id="pdfAutoHints" class="muted">—</div>
-        <div id="pdfHits" class="pdfHits">—</div>
-      </div>
-
-      <div class="footnote">
+<div class="card">
+<div class="cardHeader">
+<div class="cardTitle">AMOS CSV import (flotta)</div>
+</div>
+<div class="muted" style="margin-bottom:8px;">
+    Tölts fel egy AMOS “WO Summary” CSV-t, vagy másold be a teljes tartalmát. A rendszer A/C szerint csoportosít,
+    MEL hivatkozásokat próbál kinyerni a leírásból, és kiemeli a dispatcher‑releváns tételeket.
+  </div>
+<div class="row" style="gap:10px; flex-wrap:wrap;">
+<label class="file">
+<input accept=".csv,text/csv" id="amosCsvFile" type="file"/>
+<span>+ CSV betöltése</span>
+</label>
+<button class="btn" id="btnImportCsv">Import</button>
+<button class="btn" id="btnAddRelevantFromCsv">Dispatcher‑relevánsak aktívba</button>
+<button class="btn danger" id="btnClearCsv">CSV törlés</button>
+</div>
+<textarea class="bulk" id="amosCsvPaste" placeholder="Ide is beillesztheted a teljes CSV tartalmat…" rows="6"></textarea>
+<div class="muted" id="amosCsvReport">—</div>
+<div class="csvTable" id="amosCsvTable">—</div>
+</div>
+<div class="chips" id="activeList"></div>
+<div class="card">
+<div class="cardHeader">
+<div class="cardTitle">Összegzett teendők</div>
+<button class="btn" id="btnCopySummary">Másolás</button>
+</div>
+<pre class="summary" id="summary">Nincs aktív limitáció.</pre>
+</div>
+<div class="card">
+<div class="cardHeader">
+<div class="cardTitle">PDF találatok</div>
+<div class="muted" id="pdfProgress"></div>
+</div>
+<div class="muted" id="pdfAutoHints">—</div>
+<div class="pdfHits" id="pdfHits">—</div>
+</div>
+<div class="footnote">
         Tipp: ha FL LIMIT aktív, írd be a kézi címkébe pl. <b>FL350</b> vagy <b>MAX FL 330</b> is, hogy a számítás tudjon “min”-t venni.
       </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div>
+</section>
+</main>
+<footer class="footer">
+<div>
       Offline működés: a PDF-t nem küldi sehova, a böngésződben dolgozza fel.
       GitHub Pages kompatibilis (statikus).
     </div>
-  </footer>
-
-  <!--
+</footer>
+<!--
     PDF.js is loaded from cdnjs. IMPORTANT:
     - Use a matching worker version from the same CDN (corporate networks often block jsDelivr).
   -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-  <script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script>
     if (window.pdfjsLib && window.pdfjsLib.GlobalWorkerOptions) {
       window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
     }
   </script>
-  <script src="app.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

@@ -7,6 +7,10 @@ let ACTION_INDEX = null; // keyword -> [{a, w}]
 let pdfDoc = null;
 let pdfPageTextCache = new Map(); // pageNo -> lowercase text
 let pdfPageRawCache = new Map();  // pageNo -> raw text
+let amosRows = [];
+let amosGroups = [];
+let amosRelevant = [];
+
 
 const el = (id) => document.getElementById(id);
 
@@ -629,7 +633,12 @@ async function searchPdf(query){
   el("pdfHits").innerHTML = html.join("");
 }
 
-async function doSearch(){
+async function findBestActionMatch(q){
+  const res = searchStructured(String(q||""), 1);
+  return res && res[0] ? res[0].a : null;
+}
+
+function doSearch(){
   const query = el("q").value;
   const doA = el("searchActions").checked;
   const doP = el("searchPdf").checked;
@@ -649,6 +658,222 @@ async function doSearch(){
   }
 }
 
+
+// -----------------------
+// AMOS CSV import helpers
+// -----------------------
+function readFileAsText(file){
+  return new Promise((resolve,reject)=>{
+    const r = new FileReader();
+    r.onload = ()=>resolve(String(r.result||""));
+    r.onerror = ()=>reject(r.error||new Error("File read error"));
+    r.readAsText(file);
+  });
+}
+
+// Basic CSV parser supporting quotes and delimiter auto-detect (comma/semicolon/tab)
+function parseCsvText(text){
+  const lines = String(text||"").replace(/\uFEFF/g,"").split(/\r?\n/).filter(l=>l.trim().length>0);
+  if(!lines.length) return {rows:[], delimiter:","};
+
+  const header = lines[0];
+  const candidates = [",",";","\t"];
+  let delimiter = ",";
+  let best = 0;
+  for(const d of candidates){
+    const c = header.split(d).length;
+    if(c>best){ best=c; delimiter=d; }
+  }
+
+  const parseLine = (line)=>{
+    const out=[];
+    let cur="", inQ=false;
+    for(let i=0;i<line.length;i++){
+      const ch=line[i];
+      if(inQ){
+        if(ch === '"'){
+          const next=line[i+1];
+          if(next === '"'){ cur+='"'; i++; }
+          else inQ=false;
+        } else cur+=ch;
+      } else {
+        if(ch === '"') inQ=true;
+        else if(ch === delimiter){ out.push(cur); cur=""; }
+        else cur+=ch;
+      }
+    }
+    out.push(cur);
+    return out;
+  };
+
+  const headerCols = parseLine(lines[0]).map(s=>s.trim());
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    const cols=parseLine(lines[i]);
+    if(cols.length===1 && cols[0].trim()==="") continue;
+    const obj={};
+    for(let j=0;j<headerCols.length;j++){
+      obj[headerCols[j]] = (cols[j] ?? "").trim();
+    }
+    rows.push(obj);
+  }
+  return {rows, delimiter};
+}
+
+function extractMelRefsFromText(t){
+  const text = String(t||"");
+  const rx1 = /\b\d{2}-\d{2}-\d{2}(?:[A-Z])?(?:-[A-Z])?\b/g;   // 30-45-03-A / 25-20-01A
+  const rx2 = /\b\d{2}-\d{2}-\d{2}[A-Z]\b/g;                  // 31-30-07A
+  const hits = new Set();
+  for(const m of text.match(rx1) || []) hits.add(m);
+  for(const m of text.match(rx2) || []) hits.add(m);
+  return [...hits];
+}
+
+function isDispatchRelevantText(t){
+  const s = String(t||"").toUpperCase();
+  const keys = [
+    "TCAS","CPDLC","DATALINK","ATC DATALINK","ADS-B","ADSB","RVSM","RNP","RNAV","PBN",
+    "NAV DB","NAV DATABASE","WX RADAR","WEATHER RADAR","NO ICING","CAT II","CAT III",
+    "NAT HLA","HLA","MCDU","FMS","RA INOP","RADIO ALTIMETER","EGPWS","GPWS","ADF INOP",
+    "ATSU","SATCOM","HF","SELCAL"
+  ];
+  return keys.some(k=>s.includes(k));
+}
+
+function guessLimitationLabel(row){
+  const desc = row["Workorder-description and/or complaint"] || row["Workorder description and/or complaint"] || row["Description"] || "";
+  const melRefs = extractMelRefsFromText(desc);
+  const ac = row["A/C"] || row["Aircraft"] || "";
+  const ata = row["ATA"] || "";
+  if(melRefs.length) return `${melRefs[0]} (${ata})`;
+
+  const U = String(desc).toUpperCase();
+  let kw = "";
+  if(U.includes("CPDLC") || U.includes("DATALINK")) kw = "CPDLC / ATC DATALINK INOP";
+  else if(U.includes("TCAS")) kw = "TCAS INOP";
+  else if(U.includes("ADS-B") || U.includes("ADSB")) kw = "ADS-B OUT INOP";
+  else if(U.includes("WX RADAR") || U.includes("WEATHER RADAR")) kw = "WX RADAR INOP";
+  else if(U.includes("NAV DB") || U.includes("NAV DATABASE")) kw = "NAV DB OUTDATED";
+  else if(U.includes("RNP")) kw = "RNP APCH NOT PERMITTED";
+  else if(U.includes("RVSM")) kw = "RVSM NOT PERMITTED";
+  else if(U.includes("NO ICING")) kw = "NO ICING";
+  else kw = desc ? desc.slice(0,60) : "UNKNOWN";
+  return kw + (ac ? ` [${ac}]` : "");
+}
+
+function buildAmsGroups(rows){
+  const groups = new Map();
+  for(const r of rows){
+    const state = (r["State"]||"").toLowerCase();
+    if(state && state!=="open") continue;
+
+    const ac = r["A/C"] || r["Aircraft"] || "—";
+    const desc = r["Workorder-description and/or complaint"] || r["Workorder description and/or complaint"] || "";
+    const melRefs = extractMelRefsFromText(desc);
+
+    const item = {
+      ac,
+      ata: r["ATA"] || "",
+      wo: r["W/O"] || r["WO"] || "",
+      issue: r["Issue-Date"] || r["Issue Date"] || "",
+      due: r["Due-/C.-Date"] || r["Due Date"] || "",
+      melRefs,
+      desc,
+      label: guessLimitationLabel(r),
+      relevant: isDispatchRelevantText(desc) || melRefs.length>0
+    };
+
+    if(!groups.has(ac)) groups.set(ac, []);
+    groups.get(ac).push(item);
+  }
+  const out = [...groups.entries()].map(([ac,items])=>({ac, items}));
+  out.sort((a,b)=>a.ac.localeCompare(b.ac));
+  return out;
+}
+
+function renderAmsTable(){
+  const host = el("amosCsvTable");
+  const rep = el("amosCsvReport");
+  if(!amosGroups.length){
+    rep.textContent="—";
+    host.textContent="—";
+    return;
+  }
+  const totalAcs = amosGroups.length;
+  const totalItems = amosGroups.reduce((s,g)=>s+g.items.length,0);
+  const relItems = amosRelevant.length;
+  rep.innerHTML = `A/C: <b>${totalAcs}</b> | Open tételek: <b>${totalItems}</b> | Dispatcher‑releváns: <b>${relItems}</b>`;
+
+  const rowsHtml = [];
+  for(const g of amosGroups){
+    const rel = g.items.filter(it=>it.relevant);
+    const badgeClass = rel.length ? (rel.length>=3 ? "danger":"warn") : "ok";
+    rowsHtml.push(`<tr>
+      <td><span class="badge ${badgeClass}">${g.ac}</span></td>
+      <td>${g.items.length}</td>
+      <td>${rel.length}</td>
+      <td>${rel.slice(0,3).map(it=>{
+        const mel = it.melRefs[0] ? `<code>${it.melRefs[0]}</code>` : "";
+        return `${mel} ${escapeHtml(it.desc||"").slice(0,140)}`;
+      }).join("<br>") || "—"}</td>
+    </tr>`);
+  }
+  host.innerHTML = `<table>
+    <thead><tr><th>A/C</th><th>Open db</th><th>Rel. db</th><th>Top releváns tételek</th></tr></thead>
+    <tbody>${rowsHtml.join("")}</tbody>
+  </table>`;
+}
+
+async function importAmsCsv(){
+  try{
+    const file = el("amosCsvFile")?.files?.[0] || null;
+    let text = el("amosCsvPaste")?.value || "";
+    if(file){
+      text = await readFileAsText(file);
+      if(!el("amosCsvPaste").value) el("amosCsvPaste").value = text;
+    }
+    if(!text.trim()){
+      alert("Nincs CSV tartalom. Tölts fel fájlt vagy illeszd be a CSV-t.");
+      return;
+    }
+    const parsed = parseCsvText(text);
+    amosRows = parsed.rows;
+    amosGroups = buildAmsGroups(amosRows);
+    amosRelevant = amosGroups.flatMap(g=>g.items.filter(it=>it.relevant));
+    renderAmsTable();
+  }catch(err){
+    console.error(err);
+    alert("CSV import hiba: " + (err?.message || String(err)));
+  }
+}
+
+function addRelevantFromCsvToActive(){
+  if(!amosRelevant.length){
+    alert("Nincs dispatcher‑releváns tétel (vagy még nincs CSV import).");
+    return;
+  }
+  let added=0, mapped=0;
+  for(const it of amosRelevant){
+    const query = (it.melRefs[0] || it.label || it.desc || "").toString();
+    const match = findBestActionMatch(query);
+    if(match?.id){
+      addActive(`${it.ac}: ${match.limitation}`, match.id);
+      mapped++; added++;
+    } else {
+      addActive(`${it.ac}: ${it.label}`, null);
+      added++;
+    }
+  }
+  el("bulkReport").textContent = `CSV-ből aktívba téve: ${added} (strukturált match: ${mapped})`;
+}
+
+function clearCsvUi(){
+  if(el("amosCsvPaste")) el("amosCsvPaste").value="";
+  if(el("amosCsvFile")) el("amosCsvFile").value="";
+  amosRows=[]; amosGroups=[]; amosRelevant=[];
+  renderAmsTable();
+}
 function bind(){
   el("btnSearch").addEventListener("click", doSearch);
   el("q").addEventListener("keydown", (e)=>{ if(e.key==="Enter") doSearch(); });
@@ -707,6 +932,12 @@ el("btnClearActive").addEventListener("click", clearActive);
       }
     }
   });
+
+  // AMOS CSV import
+  if(el("btnImportCsv")) el("btnImportCsv").addEventListener("click", importAmsCsv);
+  if(el("btnAddRelevantFromCsv")) el("btnAddRelevantFromCsv").addEventListener("click", addRelevantFromCsvToActive);
+  if(el("btnClearCsv")) el("btnClearCsv").addEventListener("click", clearCsvUi);
+  if(el("amosCsvFile")) el("amosCsvFile").addEventListener("change", importAmsCsv);
 }
 
 (async function init(){

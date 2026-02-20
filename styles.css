@@ -135,3 +135,20 @@ h2{margin:0 0 10px 0;font-size:14px;letter-spacing:.25px}
 
 .bulk{width:100%; min-height:120px; resize:vertical; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.25); color:#fff; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;}
 .row{display:flex; gap:10px; align-items:center; margin-top:10px;}
+
+.csvTable{
+  margin-top:10px;
+  border:1px solid var(--border);
+  background: rgba(0,0,0,0.15);
+  border-radius:12px;
+  padding:10px;
+  overflow:auto;
+  max-height:340px;
+}
+.csvTable table{ width:100%; border-collapse:collapse; font-size:12px; }
+.csvTable th,.csvTable td{ border-bottom:1px solid rgba(255,255,255,0.06); padding:6px 8px; vertical-align:top; }
+.csvTable th{ position:sticky; top:0; background: rgba(17,24,39,0.95); text-align:left; font-weight:600; }
+.badge{ display:inline-block; padding:2px 6px; border-radius:999px; border:1px solid rgba(255,255,255,0.15); font-size:11px; margin-right:6px; white-space:nowrap; }
+.badge.ok{ border-color: rgba(34,197,94,0.6); }
+.badge.warn{ border-color: rgba(245,158,11,0.7); }
+.badge.danger{ border-color: rgba(239,68,68,0.7); }
