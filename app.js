@@ -139,6 +139,29 @@ function deriveTagsFromText(text){
   return tags;
 }
 
+
+function ilsDetailFromTitle(title){
+  const u = String(title||'').toUpperCase();
+  const has3B = /CAT\s*3B/.test(u) || /CAT3B/.test(u);
+  const has3A = /CAT\s*3A/.test(u) || /CAT3A/.test(u);
+  const hasII = /CAT\s*II\b/.test(u) || /CAT\s*2\b/.test(u) || /CAT2\b/.test(u);
+  const hasI  = /CAT\s*I\b/.test(u) || /CAT\s*1\b/.test(u) || /CAT1\b/.test(u);
+  if (has3B && has3A) return '3B→3A';
+  if (has3B) return '3B';
+  if (has3A) return '3A';
+  if (hasII) return 'II';
+  if (hasI)  return 'I';
+  return '';
+}
+
+function decorateTag(tag, title){
+  if (tag === 'ILS CAT'){
+    const d = ilsDetailFromTitle(title);
+    return d ? `ILS CAT${d}` : 'ILS CAT';
+  }
+  return tag;
+}
+
 // ---------- FPL parsing ----------
 function cleanToken(x){
   return String(x||'').trim().toUpperCase().replace(/[;]+$/,'').replace(/[,]+$/,'').replace(/\.$/,'');
@@ -641,8 +664,17 @@ function buildTailsFromCsv(records){
       entry.relevantItems.push(item);
 
       const ptags = tags.size ? tags : deriveTagsFromText(title);
-      const primaryTag = ptags.size ? [...ptags][0] : title;
-      entry.tagCounts.set(primaryTag, (entry.tagCounts.get(primaryTag)||0) + 1);
+      const eff = new Set();
+      if (ptags.size){
+        for (const tg of ptags){
+          eff.add(decorateTag(tg, title));
+        }
+      } else {
+        eff.add(title);
+      }
+      for (const tg of eff){
+        entry.tagCounts.set(tg, (entry.tagCounts.get(tg)||0) + 1);
+      }
     } else {
       entry.ruleMap.get(ruleKey).occurrences += 1;
     }
