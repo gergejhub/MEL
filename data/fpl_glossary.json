@@ -1,0 +1,101 @@
+{
+  "X": {
+    "name": "Item 10a: X",
+    "desc": "Mode S transponder capability code (X). Remove if Mode S/TCAS-related capability is not available per MEL / company FPL policy.",
+    "links": [
+      "https://www.eurocontrol.int/publication/ifps-users-manual"
+    ]
+  },
+  "TCAS": {
+    "name": "Item 18: TCAS",
+    "desc": "Indicates TCAS capability filing in Item 18. Remove when TCAS is inoperative per MEL/OPS policy.",
+    "links": [
+      "https://www.eurocontrol.int/publication/ifps-users-manual"
+    ]
+  },
+  "DAT/CPDLCX": {
+    "name": "Item 18: DAT/CPDLCX",
+    "desc": "CPDLC/data-link not available indicator (CPDLCX). Use per company procedure when CPDLC/ATC datalink is inoperative.",
+    "links": [
+      "https://www.eurocontrol.int/publication/ifps-users-manual",
+      "https://learningzone.eurocontrol.int/ilp/customs/FPL/"
+    ]
+  },
+  "B3": {
+    "name": "PBN B3",
+    "desc": "RNAV 5 DME/DME capability.",
+    "links": [
+      "https://support.foreflight.com/hc/en-us/articles/360049193173-ICAO-Equipment-and-PBN-Code-Setup-Guide"
+    ]
+  },
+  "B4": {
+    "name": "PBN B4",
+    "desc": "RNAV 5 VOR/DME capability.",
+    "links": [
+      "https://support.foreflight.com/hc/en-us/articles/360049193173-ICAO-Equipment-and-PBN-Code-Setup-Guide"
+    ]
+  },
+  "B5": {
+    "name": "PBN B5",
+    "desc": "RNAV 5 INS/IRS capability.",
+    "links": [
+      "https://support.foreflight.com/hc/en-us/articles/360049193173-ICAO-Equipment-and-PBN-Code-Setup-Guide"
+    ]
+  },
+  "C4": {
+    "name": "PBN C4",
+    "desc": "RNAV 2 DME/DME/IRU capability.",
+    "links": [
+      "https://support.foreflight.com/hc/en-us/articles/360049193173-ICAO-Equipment-and-PBN-Code-Setup-Guide"
+    ]
+  },
+  "D4": {
+    "name": "PBN D4",
+    "desc": "RNAV 1 DME/DME/IRU capability.",
+    "links": [
+      "https://pbnportal.eu/dam/jcr%3A92be5929-3ad7-4525-b74a-c25d4d96e123/Filing%20the%20Flight%20Plan.pdf"
+    ]
+  },
+  "L1": {
+    "name": "PBN L1",
+    "desc": "RNP 4 capability.",
+    "links": [
+      "https://pbnportal.eu/dam/jcr%3A92be5929-3ad7-4525-b74a-c25d4d96e123/Filing%20the%20Flight%20Plan.pdf"
+    ]
+  },
+  "S2": {
+    "name": "PBN S2",
+    "desc": "RNP APCH with BARO-VNAV.",
+    "links": [
+      "https://pbnportal.eu/dam/jcr%3A92be5929-3ad7-4525-b74a-c25d4d96e123/Filing%20the%20Flight%20Plan.pdf"
+    ]
+  },
+  "O2": {
+    "name": "PBN O2",
+    "desc": "RNP 1 GNSS capability.",
+    "links": [
+      "https://pbnportal.eu/dam/jcr%3A92be5929-3ad7-4525-b74a-c25d4d96e123/Filing%20the%20Flight%20Plan.pdf"
+    ]
+  },
+  "J1": {
+    "name": "Item 10a: J1",
+    "desc": "CPDLC ATN VDL Mode 2 capability code. Remove if CPDLC is inoperative per procedure.",
+    "links": [
+      "https://www.eurocontrol.int/publication/ifps-users-manual"
+    ]
+  },
+  "J4": {
+    "name": "Item 10a: J4",
+    "desc": "CPDLC FANS 1/A HFDL capability code. Remove if CPDLC is inoperative per procedure.",
+    "links": [
+      "https://www.eurocontrol.int/publication/ifps-users-manual"
+    ]
+  },
+  "G": {
+    "name": "Item 10a: G",
+    "desc": "GNSS equipment code. Remove if GNSS not available per MEL/OPS policy.",
+    "links": [
+      "https://www.eurocontrol.int/publication/ifps-users-manual"
+    ]
+  }
+}

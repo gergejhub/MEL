@@ -9,8 +9,19 @@ const state = {
   tails: new Map(),      // tail -> { items: [...], relevantItems: [...], tags: Set, score: number }
   selectedTail: null,
   pdfFile: null,
+  pdfSha256: null,
+  melPdfIndex: null,
+  glossary: null,
   lastSnapshotKey: 'mel_dispatch_last_snapshot_v1'
 };
+
+
+async function sha256File(file){
+  const buf = await file.arrayBuffer();
+  const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+  const hashArr = Array.from(new Uint8Array(hashBuf));
+  return hashArr.map(b=>b.toString(16).padStart(2,'0')).join('');
+}
 
 // -------- CSV parsing (handles quotes) --------
 function parseCSV(text){
@@ -184,9 +195,26 @@ function ilsDetailFromTitle(title){
   return '';
 }
 
-function decorateTag(tag, title){
+function decorateTag(tag, title, melRef){
   if (tag === 'ILS CAT'){
-    const d = ilsDetailFromTitle(title);
+    let d = ilsDetailFromTitle(title);
+    // If we have MEL PDF index and a MEL reference, use that for CAT detail (more reliable)
+    const ref = String(melRef||'').toUpperCase().trim();
+    const cs = ref && state.melPdfIndex?.cat_summary?.[ref];
+    if (cs && cs.cats && cs.cats.length){
+      const cats = cs.cats.map(x=>String(x).replace('CAT','CAT '));
+      // prefer CAT3B/CAT3A patterns
+      const has3B = cats.some(x=>x.includes('3B'));
+      const has3A = cats.some(x=>x.includes('3A'));
+      if (has3B && has3A) d='3B→3A';
+      else if (has3B) d='3B';
+      else if (has3A) d='3A';
+      else if (cats.some(x=>x.includes('IIIB'))) d='IIIB';
+      else if (cats.some(x=>x.includes('IIIA'))) d='IIIA';
+      else if (cats.some(x=>x.includes('III'))) d='III';
+      else if (cats.some(x=>x.includes('II'))) d='II';
+      else if (cats.some(x=>x.match(/\bCAT I\b/))) d='I';
+    }
     return d ? `ILS CAT${d}` : 'ILS CAT';
   }
   return tag;
@@ -335,6 +363,7 @@ function clearAll(){
   $('fplBox').innerHTML = '<span class="muted">—</span>';
   $('lidoBox').innerHTML = '';
   $('opsBox').textContent = '—';
+    $('glossBox').innerHTML = '<div class="empty">—</div>';
   setFleetMeta('Tölts fel egy AMOS WO Summary CSV‑t.');
   setSelMeta('Válassz egy lajstromot bal oldalt.');
   $('handoverBtn').disabled = true;
@@ -481,6 +510,7 @@ function renderTodos(t){
     $('fplBox').innerHTML = '<span class="muted">—</span>';
     $('lidoBox').innerHTML = '';
     $('opsBox').textContent = '—';
+    $('glossBox').innerHTML = '<div class="empty">—</div>';
     return;
   }
   $('todoTitle').textContent = `Teendők – ${t.tail}`;
@@ -601,6 +631,51 @@ function highlightInstr(text){
     .replace(/^(Insert:[^\n]*|Insert\b[^\n]*|Add:[^\n]*|Overwrite:[^\n]*)/gmi, '<span class="ins">$1</span>');
 }
 
+
+function collectGlossaryKeysFromFpl(fpl){
+  const keys = new Set();
+  const addSet = (s)=>{ for (const x of s){ if (!x) continue; keys.add(String(x).toUpperCase()); } };
+  for (const k of ['item10a','item10b','item18']){
+    addSet(fpl[k].add); addSet(fpl[k].remove);
+  }
+  // Expand PBN: tokens
+  const expanded = new Set();
+  for (const k of [...keys]){
+    if (k.startsWith('PBN:')){
+      const rest = k.slice(4);
+      rest.split(/[,\s]+/).forEach(x=>{ if (x) expanded.add(x.trim().toUpperCase()); });
+      expanded.add('PBN');
+    }
+    if (k.startsWith('DAT/')) expanded.add(k.toUpperCase());
+  }
+  for (const x of expanded) keys.add(x);
+  // Normalize common keys
+  if (keys.has('CPDLCX') || keys.has('DAT/CPDLCX')) keys.add('DAT/CPDLCX');
+  return [...keys];
+}
+
+function renderGlossaryFromFpl(fpl){
+  const box = $('glossBox');
+  const g = state.glossary;
+  if (!box) return;
+  if (!g){
+    box.innerHTML = '<div class="empty">Glossary nem elérhető.</div>';
+    return;
+  }
+  const keys = collectGlossaryKeysFromFpl(fpl).filter(k=>g[k]);
+  if (!keys.length){
+    box.innerHTML = '<div class="empty">—</div>';
+    return;
+  }
+  keys.sort();
+  box.innerHTML = keys.map(k=>{
+    const it = g[k];
+    const links = (it.links||[]).slice(0,3).map(u=>`<a href="${escapeHtml(u)}" target="_blank" rel="noreferrer">forrás</a>`).join('');
+    return `<div class="g"><div class="code">${escapeHtml(k)}</div><div class="txt"><div class="name">${escapeHtml(it.name||k)}</div><div class="desc">${escapeHtml(it.desc||'')}</div><div class="links">${links}</div></div></div>`;
+  }).join('');
+}
+
+
 function formatFplHtml(fpl){
   const fmt = (set, cls) => {
     if (!set.size) return '<span class="muted">—</span>';
@@ -648,6 +723,7 @@ function buildTailsFromCsv(records){
     if (isExcluded(hay)) continue;
 
     const codes = extractMelCodes(hay);
+    const melRef = (codes && codes.length) ? codes[0] : '';
     const rules = matchRules(hay, codes);
     let rule = null;
 
@@ -694,7 +770,7 @@ function buildTailsFromCsv(records){
       const ruleKey = woKey ? `${baseRuleKey}__WO:${woKey}` : baseRuleKey;
 
       if (!entry.ruleMap.has(ruleKey)){
-        const item = { tail, title, rule, reason, sourceSummary: src, occurrences: 1, tags: new Set(tags) };
+        const item = { tail, title, rule, reason, sourceSummary: src, occurrences: 1, tags: new Set(tags), melRef };
         entry.ruleMap.set(ruleKey, item);
         entry.relevantItems.push(item);
 
@@ -702,7 +778,7 @@ function buildTailsFromCsv(records){
         const eff = new Set();
         if (ptags.size){
           for (const tg of ptags){
-            eff.add(decorateTag(tg, title));
+            eff.add(decorateTag(tg, title, melRef));
           }
         } else {
           eff.add(title);
@@ -795,6 +871,24 @@ async function init(){
     state.rules = [];
   }
 
+
+  // load MEL PDF index + glossary (offline, generated from MEL.pdf)
+  try{
+    const r = await fetch('data/mel_pdf_index.json', {cache:'no-store'});
+    state.melPdfIndex = await r.json();
+  }catch(e){
+    console.warn('mel_pdf_index.json load failed', e);
+    state.melPdfIndex = null;
+  }
+  try{
+    const r = await fetch('data/fpl_glossary.json', {cache:'no-store'});
+    state.glossary = await r.json();
+  }catch(e){
+    console.warn('fpl_glossary.json load failed', e);
+    state.glossary = null;
+  }
+
+
   // bind
   $('pasteCsvBtn').addEventListener('click', openModal);
   $('closePaste').addEventListener('click', closeModal);
@@ -817,11 +911,14 @@ async function init(){
     const f = ev.target.files?.[0];
     if (!f) return;
     state.pdfFile = f;
-    // We don't parse PDF here (no pdf.js). This is just to keep workflow consistent & allow user to open it.
-    // We'll just update meta.
     const mb = (f.size/1024/1024).toFixed(1);
-    const old = $('fleetMeta').textContent;
-    $('fleetMeta').textContent = old + ` • MEL PDF: ${f.name} (${mb} MB)`;
+    const fileSha = await sha256File(f);
+    state.pdfSha256 = fileSha;
+    const idxSha = state.melPdfIndex?.pdf_sha256;
+    const ok = idxSha && (idxSha === fileSha);
+    const note = ok ? 'OK (index egyezik)' : (idxSha ? 'FIGYELEM: index eltér (új MEL?)' : 'index nincs');
+    const old = $('fleetMeta').textContent.split(' • MEL PDF:')[0];
+    $('fleetMeta').textContent = `${old} • MEL PDF: ${f.name} (${mb} MB) • SHA256: ${fileSha.slice(0,8)}… • ${note}`;
     ev.target.value='';
   });
 
