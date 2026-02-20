@@ -771,15 +771,48 @@ function extractMelRefsFromText(t){
   return [...hits];
 }
 
-function isDispatchRelevantText(t){
-  const s = String(t||"").toUpperCase();
-  const keys = [
-    "TCAS","CPDLC","DATALINK","ATC DATALINK","ADS-B","ADSB","RVSM","RNP","RNAV","PBN",
-    "NAV DB","NAV DATABASE","WX RADAR","WEATHER RADAR","NO ICING","CAT II","CAT III",
-    "NAT HLA","HLA","MCDU","FMS","RA INOP","RADIO ALTIMETER","EGPWS","GPWS","ADF INOP",
-    "ATSU","SATCOM","HF","SELCAL"
+function classifyDispatchRelevance(desc, melRefs, label){
+  const line = [desc||"", label||"", (melRefs||[]).join(" ")].join(" ");
+  // 1) strongest: matches action matrix (Excel-derived), by MEL ref or trigger keywords
+  const matches = matchLineToActions(line);
+  if(matches && matches.length){
+    const top = matches[0];
+    const why = top.limitation ? `MATCH: ${top.limitation}` : "MATCH: action matrix";
+    return {relevant:true, reason: why, matches};
+  }
+
+  // 2) strict keyword heuristic for genuinely dispatch-impact items (fallback only)
+  const s = String(line||"").toUpperCase();
+
+  const include = [
+    "TCAS","CPDLC","ATC DATALINK","DATALINK",
+    "ADS-B","ADSB","ADSC",
+    "RVSM",
+    "NAT HLA","HLA",
+    "RNP","RNAV","PBN",
+    "WX RADAR","WEATHER RADAR",
+    "NO ICING",
+    "CAT II","CAT III",
+    "NAV DB","NAV DATABASE",
+    "MCDU","FMS",
+    "RA INOP","RADIO ALTIMETER",
+    "EGPWS","GPWS",
+    "ATSU"
   ];
-  return keys.some(k=>s.includes(k));
+
+  const exclude = [
+    "LAVATORY","TOILET","WASTE","SEAT","IFE","GALLEY","COFFEE","WATER",
+    "PAINT","CARPET","CUSHION","LIGHTING","CABIN","ODOR","ODOUR","TRIM",
+    "WINDOW","DOOR","COVER","PANEL","SCREW","COSMETIC"
+  ];
+
+  if(exclude.some(k=>s.includes(k))) return {relevant:false, reason:"EXCLUDE: cabin/ground item", matches:[]};
+
+  for(const k of include){
+    if(s.includes(k)) return {relevant:true, reason:`KEYWORD: ${k}`, matches:[]};
+  }
+
+  return {relevant:false, reason:"", matches:[]};
 }
 
 function guessLimitationLabel(row){
@@ -812,6 +845,8 @@ function buildAmsGroups(rows){
     const ac = r["A/C"] || r["Aircraft"] || "—";
     const desc = r["Workorder-description and/or complaint"] || r["Workorder description and/or complaint"] || "";
     const melRefs = extractMelRefsFromText(desc);
+    const itemLabel = guessLimitationLabel(r);
+    const rel = classifyDispatchRelevance(desc, melRefs, itemLabel);
 
     const item = {
       ac,
@@ -821,8 +856,10 @@ function buildAmsGroups(rows){
       due: r["Due-/C.-Date"] || r["Due Date"] || "",
       melRefs,
       desc,
-      label: guessLimitationLabel(r),
-      relevant: isDispatchRelevantText(desc) || melRefs.length>0
+      label: itemLabel,
+      relevant: rel.relevant,
+      relevantReason: rel.reason,
+      actionMatches: rel.matches || []
     };
 
     if(!groups.has(ac)) groups.set(ac, []);
