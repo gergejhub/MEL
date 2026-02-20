@@ -656,7 +656,10 @@ function buildTailsFromCsv(records){
 
     const src = `W/O ${wo} • ATA ${ata || '—'} • Due ${due || '—'}`;
     const title = rule ? rule.title : (tags.size ? [...tags][0] + ' (fallback)' : 'Dispatch relevant');
-    const ruleKey = rule ? String(rule.id || rule.title || title) : title;
+    const baseRuleKey = rule ? String(rule.id || rule.title || title) : title;
+// Count distinct dispatch-relevant MEL items by WO when available (AMOS export uses W/O as stable key)
+const woKey = (wo || '').trim();
+const ruleKey = woKey ? `${baseRuleKey}__WO:${woKey}` : baseRuleKey;
 
     if (!entry.ruleMap.has(ruleKey)){
       const item = { tail, title, rule, reason, sourceSummary: src, occurrences: 1, tags: new Set(tags) };
