@@ -200,7 +200,8 @@ function decorateTag(tag, title, melRef){
     let d = ilsDetailFromTitle(title);
     // If we have MEL PDF index and a MEL reference, use that for CAT detail (more reliable)
     const ref = String(melRef||'').toUpperCase().trim();
-    const cs = ref && state.melPdfIndex?.cat_summary?.[ref];
+    const allowPdf = /ILS|CAT|AUTOLAND|LANDING/.test(u);
+    const cs = allowPdf && ref && state.melPdfIndex?.cat_summary?.[ref];
     if (cs && cs.cats && cs.cats.length){
       const cats = cs.cats.map(x=>String(x).replace('CAT','CAT '));
       // prefer CAT3B/CAT3A patterns
@@ -553,6 +554,7 @@ function renderTodos(t){
   }
 
   $('fplBox').innerHTML = formatFplHtml(fplAgg);
+  renderGlossaryFromFpl(fplAgg);
   $('lidoBox').innerHTML = lidoSteps.length
     ? lidoSteps.map((s,i)=>`<div class="li"><div class="li-n">${i+1}.</div><pre class="li-t">${highlightInstr(s)}</pre></div>`).join('')
     : '<div class="empty">—</div>';
