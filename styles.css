@@ -165,3 +165,19 @@ h2{margin:0 0 10px 0;font-size:14px;letter-spacing:.25px}
 .acCounts{ font-size:12px; opacity:0.85; }
 .smallCodes{ display:flex; gap:6px; flex-wrap:wrap; }
 .smallCodes code{ font-size:11px; padding:2px 6px; border-radius:999px; background: rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.10); }
+
+/* ====== OCC-friendly v2 layout (requested) ====== */
+.layout2{display:grid;grid-template-columns: 0.95fr 1.05fr;gap:14px;padding:14px;max-width:1600px;margin:0 auto}
+.panel.left{min-width:360px}
+.panel.right{min-width:420px}
+
+.compactSearch .results{max-height:220px;overflow:auto}
+.advanced{margin-top:10px}
+.advanced > summary{cursor:pointer;user-select:none;color:var(--muted)}
+
+.delta{margin-top:10px;padding:10px;border:1px dashed rgba(148,163,184,.35);border-radius:10px;background:rgba(15,23,42,.25);color:#e2e8f0;white-space:pre-wrap;line-height:1.35}
+
+@media (max-width: 1080px){
+  .layout2{grid-template-columns:1fr}
+  .panel.left,.panel.right{min-width:unset}
+}

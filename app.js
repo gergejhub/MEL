@@ -836,9 +836,11 @@ function buildAmsGroups(rows){
 function renderAmsTable(){
   const host = el("amosCsvTable");
   const rep = el("amosCsvReport");
+  // v2 layout: table may not exist; keep it optional.
+  if(!rep) return;
   if(!amosGroups.length){
     rep.textContent="—";
-    host.textContent="—";
+    if(host) host.textContent="—";
     return;
   }
   const totalAcs = amosGroups.length;
@@ -860,6 +862,7 @@ function renderAmsTable(){
       }).join("<br>") || "—"}</td>
     </tr>`);
   }
+  if(!host) return;
   host.innerHTML = `<table>
     <thead><tr><th>A/C</th><th>Open db</th><th>Rel. db</th><th>Top releváns tételek</th></tr></thead>
     <tbody>${rowsHtml.join("")}</tbody>
@@ -1012,6 +1015,14 @@ async function importAmsCsv(){
     amosGroups = buildAmsGroups(amosRows);
     amosRelevant = amosGroups.flatMap(g=>g.items.filter(it=>it.relevant));
     renderAmsTable();
+
+    // Delta mode: compare with previous snapshot (localStorage)
+    const curSnap = buildCsvSnapshot();
+    let prevSnap = null;
+    try{ prevSnap = JSON.parse(localStorage.getItem(LS_SNAPSHOT_KEY)||"null"); }catch{ prevSnap=null; }
+    renderDelta(prevSnap, curSnap);
+    try{ localStorage.setItem(LS_SNAPSHOT_KEY, JSON.stringify(curSnap)); }catch{}
+
     buildAmsTailProfiles();
     renderRelevantAcList();
   }catch(err){
@@ -1045,9 +1056,92 @@ function clearCsvUi(){
   if(el("amosCsvFile")) el("amosCsvFile").value="";
   amosRows=[]; amosGroups=[]; amosRelevant=[]; amosTailProfiles=[]; selectedAc=null;
   const hdr = document.getElementById('summaryHeader'); if(hdr) hdr.textContent='Összegzett teendők';
+  if(el("deltaReport")) el("deltaReport").textContent = "—";
   renderAmsTable();
   renderRelevantAcList();
 }
+
+// -----------------------
+// Delta mode + handover export
+// -----------------------
+const LS_SNAPSHOT_KEY = "melops_last_csv_snapshot_v1";
+
+function buildCsvSnapshot(){
+  const snap = {};
+  for(const g of (amosGroups||[])){
+    const items = (g.items||[]).map(it=>{
+      const mel = (it.melRefs && it.melRefs[0]) ? it.melRefs[0] : "";
+      const ata = it.ata || "";
+      const desc = (it.desc||"").replace(/\s+/g," ").trim().slice(0,140);
+      return `${mel}|${ata}|${desc}`;
+    }).sort();
+    snap[g.ac] = items;
+  }
+  return snap;
+}
+
+function diffSnapshots(prev, cur){
+  prev = prev || {};
+  cur = cur || {};
+  const prevTails = new Set(Object.keys(prev));
+  const curTails = new Set(Object.keys(cur));
+  const added = [];
+  const removed = [];
+  const changed = [];
+  for(const t of curTails){ if(!prevTails.has(t)) added.push(t); }
+  for(const t of prevTails){ if(!curTails.has(t)) removed.push(t); }
+  for(const t of curTails){
+    if(prevTails.has(t)){
+      const a = (prev[t]||[]).join("\n");
+      const b = (cur[t]||[]).join("\n");
+      if(a!==b) changed.push(t);
+    }
+  }
+  added.sort(); removed.sort(); changed.sort();
+  return {added, removed, changed};
+}
+
+function renderDelta(prev, cur){
+  const host = el("deltaReport");
+  if(!host) return;
+  if(!cur || !Object.keys(cur).length){
+    host.textContent = "—";
+    return;
+  }
+  if(!prev || !Object.keys(prev).length){
+    host.textContent = "Delta mód: nincs előző snapshot (első import).";
+    return;
+  }
+  const d = diffSnapshots(prev, cur);
+  const lines = [];
+  lines.push(`Delta mód (előző reporthoz képest):`);
+  lines.push(`NEW: ${d.added.length} | REMOVED: ${d.removed.length} | CHANGED: ${d.changed.length}`);
+  if(d.added.length) lines.push(`NEW A/C: ${d.added.join(", ")}`);
+  if(d.removed.length) lines.push(`REMOVED A/C: ${d.removed.join(", ")}`);
+  if(d.changed.length) lines.push(`CHANGED A/C: ${d.changed.join(", ")}`);
+  host.textContent = lines.join("\n");
+}
+
+function buildHandoverText(){
+  if(!amosTailProfiles || !amosTailProfiles.length){
+    return "Nincs CSV import / nincs dispatcher-releváns A/C.";
+  }
+  const lines = [];
+  lines.push(`DISPATCH-RELEVANT MEL SUMMARY (CSV snapshot)`);
+  lines.push(`A/C affected: ${amosTailProfiles.length}`);
+  lines.push("");
+  for(const p of amosTailProfiles){
+    const tags = (p.keyTags||[]).slice(0,8).join(", ") || "—";
+    const top = (p.suggestions||[]).slice(0,3).map(s=>s.limitation).join(" | ");
+    lines.push(`${p.ac} — rel ${p.relCount} / open ${p.openCount} — ${tags}`);
+    if(top) lines.push(`  Actions: ${top}`);
+    if(p.melRefs && p.melRefs.length) lines.push(`  MEL refs: ${p.melRefs.slice(0,5).join(", ")}${p.melRefs.length>5?"…":""}`);
+  }
+  lines.push("");
+  lines.push("NOTE: Verify MEL/CRAR/OM-C as applicable. Generated for dispatcher workflow only.");
+  return lines.join("\n");
+}
+
 function bind(){
   el("btnSearch").addEventListener("click", doSearch);
   el("q").addEventListener("keydown", (e)=>{ if(e.key==="Enter") doSearch(); });
@@ -1107,6 +1201,18 @@ el("btnClearActive").addEventListener("click", clearActive);
     }
   });
 
+  // Handover export
+  if(el("btnCopyHandover")) el("btnCopyHandover").addEventListener("click", async ()=>{
+    const txt = buildHandoverText();
+    try{
+      await navigator.clipboard.writeText(txt);
+      el("btnCopyHandover").textContent = "Másolva ✓";
+      setTimeout(()=> el("btnCopyHandover").textContent = "Handover export", 900);
+    }catch{
+      alert("Nem sikerült a vágólapra másolni. Jelöld ki kézzel a szöveget.");
+    }
+  });
+
   // AMOS CSV import
   if(el("btnImportCsv")) el("btnImportCsv").addEventListener("click", importAmsCsv);
   if(el("btnAddRelevantFromCsv")) el("btnAddRelevantFromCsv").addEventListener("click", addRelevantFromCsvToActive);
@@ -1118,9 +1224,4 @@ el("btnClearActive").addEventListener("click", clearActive);
   // Bind UI first so basic buttons work even if DB fetch fails.
   bind();
   const ok = await loadActions();
-  // Preload a few common ones for quick demo (only if DB available)
-  if(ok){
-    addActive("TCAS INOP", ACTIONS.find(a=>/TCAS/i.test(a.limitation))?.id || null);
-    addActive("CPDLC INOP", ACTIONS.find(a=>/CPDLC/i.test(a.limitation))?.id || null);
-  }
 })();
