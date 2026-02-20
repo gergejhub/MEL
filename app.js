@@ -84,6 +84,24 @@ function matchRule(haystack, codes){
   return null;
 }
 
+
+function findRuleByTag(tag){
+  const t = norm(tag);
+  let best = null;
+  for (const r of state.rules){
+    const title = norm(r.title||'');
+    if (!title) continue;
+    if (title === t || title.includes(t)){ best = r; break; }
+  }
+  if (best) return best;
+  for (const r of state.rules){
+    for (const kw of (r.match_keywords||[])){
+      if (norm(kw) === t) return r;
+    }
+  }
+  return null;
+}
+
 // Strict fallback keywords (dispatch-impact only)
 const FALLBACK = [
   {tag:'TCAS', re:/\bTCAS\b/i},
@@ -298,7 +316,8 @@ function renderTailList(){
     if (!t.tags.size){
       const s = document.createElement('span');
       s.className = 'tag muted';
-      s.textContent = 'match: actions.json';
+      const why = (t.relevantItems[0] && t.relevantItems[0].reason) ? t.relevantItems[0].reason : 'MATCH';
+      s.textContent = why.replace(/^MATCH:\s*/,'match: ');
       tags.appendChild(s);
     }
 
@@ -371,7 +390,7 @@ function renderTodos(t){
       for (const x of fpl[k].remove) fplAgg[k].remove.add(x);
     }
     if (it.rule.lido){
-      const step = it.rule.lido.replace(/\s+/g,' ').trim();
+      const step = formatLidoForDisplay(it.rule.lido);
       if (step && !seenStep.has(step)){ seenStep.add(step); lidoSteps.push(step); }
     }
     if (it.rule.other){
@@ -387,8 +406,18 @@ function renderTodos(t){
   }
 
   $('fplBox').textContent = formatFpl(fplAgg);
-  $('lidoBox').innerHTML = lidoSteps.length ? lidoSteps.map((s,i)=>`<div class="li"><b>${i+1}.</b> ${escapeHtml(s)}</div>`).join('') : '<div class="empty">—</div>';
+  $('lidoBox').innerHTML = lidoSteps.length
+    ? lidoSteps.map((s,i)=>`<div class="li"><div class="li-n">${i+1}.</div><pre class="li-t">${escapeHtml(s)}</pre></div>`).join('')
+    : '<div class="empty">—</div>';
   $('opsBox').textContent = opsNotes.length ? opsNotes.join('\n\n') : '—';
+}
+
+
+function formatLidoForDisplay(raw){
+  const t = String(raw||'').replace(/\s+/g,' ').trim();
+  if (!t) return '';
+  const clauses = t.split(/\b(?=Remove:|Insert:|Insert\b|Add:|Overwrite:|Please\b)/i).map(s=>s.trim()).filter(Boolean);
+  return clauses.map(c => c.replace(/\s*,\s*/g, ', ').replace(/\s*:\s*/g, ': ')).join('\n');
 }
 
 function escapeHtml(s){
@@ -435,9 +464,19 @@ function buildTailsFromCsv(records){
       // strict fallback (must hit dispatch-impact keywords)
       const ftags = deriveTagsFromText(hay);
       if (ftags.size){
-        relevant = true;
-        reason = `KEYWORD: ${[...ftags][0]}`;
-        tags = ftags;
+        const primary = [...ftags][0];
+        const mapped = findRuleByTag(primary);
+        if (mapped){
+          rule = mapped;
+          relevant = true;
+          reason = `MATCH: ${mapped.title}`;
+          tags = deriveTagsFromText(mapped.title + ' ' + mapped.other + ' ' + mapped.lido);
+          tags.add(primary);
+        } else {
+          relevant = true;
+          reason = `KEYWORD: ${primary}`;
+          tags = ftags;
+        }
       }
     }
 
