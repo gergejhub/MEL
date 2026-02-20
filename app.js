@@ -18,10 +18,49 @@ function norm(s){ return (s||"").toString().trim(); }
 function normLower(s){ return norm(s).toLowerCase(); }
 
 async function loadActions(){
-  const res = await fetch("data/mel_actions.json", {cache:"no-store"});
-  const js = await res.json();
-  ACTIONS = js.actions || [];
-  buildActionIndex();
+  // Load the structured dispatcher action DB.
+  // IMPORTANT: a missing/blocked JSON fetch used to prevent ALL UI buttons from working.
+  // We now fail gracefully.
+  const candidates = [
+    "data/mel_actions.json",
+    "./data/mel_actions.json",
+  ];
+  let lastErr = null;
+  for(const url of candidates){
+    try{
+      const res = await fetch(url, {cache:"no-store"});
+      if(!res.ok) throw new Error(`actions_fetch_${res.status}_${url}`);
+      const js = await res.json();
+      ACTIONS = js.actions || [];
+      buildActionIndex();
+      const s = document.getElementById("dbStatus");
+      if(s) s.textContent = `DB: OK (${ACTIONS.length})`;
+      return true;
+    }catch(e){
+      lastErr = e;
+    }
+  }
+
+  // Graceful failure: keep the app usable (manual tags, CSV parsing, etc.)
+  ACTIONS = [];
+  ACTION_INDEX = {map:new Map()};
+  const s = document.getElementById("dbStatus");
+  if(s) s.textContent = "DB: HIBA";
+  console.error("Failed to load data/mel_actions.json", lastErr);
+  const r = document.getElementById("results");
+  if(r){
+    r.innerHTML = `
+      <div class="card" style="border:1px solid rgba(255,80,80,.45);">
+        <div class="cardHeader"><div class="cardTitle">⚠ Nem töltődött be a teendő-adatbázis</div></div>
+        <div class="muted" style="line-height:1.35;">
+          A <b>data/mel_actions.json</b> nem érhető el (hiányzik a repóból, rossz branch, vagy 404 GitHub Pages alatt).
+          Ettől még a kézi címkék, a CSV import és a PDF betöltés működhet – csak az "Excel-alapú" találatok nem.
+          <br><br>
+          Gyors check: nyisd meg a böngészőben ezt: <b>/data/mel_actions.json</b> – ha 404, akkor nincs fent a fájl.
+        </div>
+      </div>`;
+  }
+  return false;
 }
 
 function escapeHtml(s){
@@ -941,9 +980,12 @@ el("btnClearActive").addEventListener("click", clearActive);
 }
 
 (async function init(){
-  await loadActions();
+  // Bind UI first so basic buttons work even if DB fetch fails.
   bind();
-  // Preload a few common ones for quick demo
-  addActive("TCAS INOP", ACTIONS.find(a=>/TCAS/i.test(a.limitation))?.id || null);
-  addActive("CPDLC INOP", ACTIONS.find(a=>/CPDLC/i.test(a.limitation))?.id || null);
+  const ok = await loadActions();
+  // Preload a few common ones for quick demo (only if DB available)
+  if(ok){
+    addActive("TCAS INOP", ACTIONS.find(a=>/TCAS/i.test(a.limitation))?.id || null);
+    addActive("CPDLC INOP", ACTIONS.find(a=>/CPDLC/i.test(a.limitation))?.id || null);
+  }
 })();
