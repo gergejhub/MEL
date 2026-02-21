@@ -1,45 +1,36 @@
-<!doctype html>
-<html lang="hu">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>MEL Dispatch Assistant (Clean v3)</title>
-  <link rel="stylesheet" href="styles.css"/>
-</head>
-<body>
+<!doctype html><html lang="hu"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MEL Dispatch Assistant (Clean v3.1)</title>
+<link rel="stylesheet" href="styles.css"/></head><body>
 <header class="topbar">
-  <div class="brand">
-    <span class="dot"></span>
-    <div>
-      <div class="title">MEL Dispatch Assistant</div>
-      <div class="subtitle">Clean dispatch-nézet • CSV → érintett lajstromok → teendők • determinisztikus matching</div>
-    </div>
-  </div>
+  <div class="brand"><span class="dot"></span><div>
+    <div class="title">MEL Dispatch Assistant</div>
+    <div class="subtitle">Clean • determinisztikus matching • feltöltés-debug</div>
+  </div></div>
   <div class="actions">
-    <label class="btn">
-      CSV feltöltés
-      <input id="csvFile" type="file" accept=".csv,text/csv" hidden>
-    </label>
+    <button id="btnCsvPick" class="btn">CSV feltöltés</button>
     <button id="btnPaste" class="btn btn-ghost">CSV beillesztés</button>
-    <label class="btn btn-ghost">
-      MEL PDF feltöltés (ellenőrzés)
-      <input id="pdfFile" type="file" accept="application/pdf" hidden>
-    </label>
+    <button id="btnPdfPick" class="btn btn-ghost">MEL PDF (SHA)</button>
     <button id="btnHandover" class="btn btn-ghost">Handover export</button>
     <button id="btnClear" class="btn btn-danger">Törlés</button>
   </div>
 </header>
+
+<input id="csvFile" type="file" accept=".csv,text/csv" class="hidden"/>
+<input id="pdfFile" type="file" accept="application/pdf" class="hidden"/>
 
 <section id="pastePanel" class="panel hidden">
   <div class="panelHead">
     <div class="panelTitle">CSV beillesztés</div>
     <button id="btnPasteClose" class="btn btn-ghost">Bezárás</button>
   </div>
-  <textarea id="csvPaste" class="textarea" placeholder="Illeszd be a teljes CSV tartalmát (header-rel együtt)…"></textarea>
+  <textarea id="csvPaste" class="textarea" placeholder="Illeszd be a teljes CSV-t header-rel együtt…"></textarea>
   <div class="panelActions">
     <button id="btnImportPaste" class="btn">Import</button>
   </div>
 </section>
+
+<section id="toast" class="toast hidden"></section>
 
 <main class="grid">
   <aside class="card">
@@ -47,6 +38,7 @@
       <div>
         <div class="cardTitle">Dispatch-releváns repülőgépek</div>
         <div id="stats" class="cardSub">—</div>
+        <div id="lastAction" class="cardSub">Ready.</div>
       </div>
       <div id="health" class="pill">DB: …</div>
     </div>
@@ -57,48 +49,27 @@
     <div class="cardHead">
       <div>
         <div id="selTitle" class="cardTitle">Teendők</div>
-        <div class="cardSub">Mindig csak a kiválasztott lajstrom teendői látszanak.</div>
+        <div class="cardSub">Csak a kiválasztott lajstrom.</div>
       </div>
       <button id="btnCopy" class="btn btn-ghost">Másolás</button>
     </div>
-
     <div class="twoCol">
-      <div class="box">
-        <div class="boxTitle">ICAO FPL változások</div>
-        <div id="fplBox" class="mono muted">—</div>
-      </div>
-      <div class="box">
-        <div class="boxTitle">LIDO 4D / Dispatch teendők</div>
-        <div id="lidoBox" class="mono muted">—</div>
-      </div>
+      <div class="box"><div class="boxTitle">ICAO FPL</div><div id="fplBox" class="mono muted">—</div></div>
+      <div class="box"><div class="boxTitle">LIDO 4D</div><div id="lidoBox" class="mono muted">—</div></div>
     </div>
-
-    <div class="box">
-      <div class="boxTitle">Operációs korlátok / megjegyzések</div>
-      <div id="opsBox" class="muted">—</div>
-    </div>
-
-    <div class="box">
-      <div class="boxTitle">Kódok magyarázata (FPL)</div>
-      <div id="glossBox" class="muted">—</div>
-    </div>
+    <div class="box"><div class="boxTitle">Operációs megjegyzések</div><div id="opsBox" class="muted">—</div></div>
+    <div class="box"><div class="boxTitle">Kódok magyarázata</div><div id="glossBox" class="muted">—</div></div>
   </section>
 
   <aside class="card">
-    <div class="cardHead">
-      <div>
-        <div class="cardTitle">Kiválasztott lajstrom – releváns MEL tételek</div>
-        <div id="selCount" class="cardSub">—</div>
-      </div>
-    </div>
+    <div class="cardHead"><div>
+      <div class="cardTitle">Kiválasztott lajstrom – MEL tételek</div>
+      <div id="selCount" class="cardSub">—</div>
+    </div></div>
     <div id="itemList" class="list empty">Válassz egy lajstromot.</div>
   </aside>
 </main>
 
-<footer class="footer">
-  <span class="muted">Források: belső action-mátrix (Excel) + ICAO/FPL kódok: EUROCONTROL IFPS Manual & Learning Zone (hivatkozva).</span>
-</footer>
-
+<footer class="footer"><span class="muted">Ha feltöltéskor “semmi nem történik”, a bal oldali “Last action” kiírja, hol akadt el.</span></footer>
 <script src="app.js"></script>
-</body>
-</html>
+</body></html>

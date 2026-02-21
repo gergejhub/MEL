@@ -2,13 +2,10 @@
   {
     "id": "A2",
     "limitation": "FL Limitation",
-    "tag": "MAX FL",
+    "tag": "OTHER",
     "mel_refs": [],
-    "keywords": [
-      "FL",
-      "MAX FL"
-    ],
-    "lido": "Please overwrite the MAX FL on Aircraft Operator  page Speed and Performance Tab(MAX Alternate and MaxCruise)",
+    "keywords": [],
+    "lido": "Please overwrite the MAX FL on Aircraft Operator page Speed and Performance Tab(MAX Alternate and MaxCruise)",
     "other": "Revalidte the FPL!",
     "source": {
       "excel_row": 2
@@ -40,7 +37,7 @@
       "DAT/CPDLCX",
       "DATALINK"
     ],
-    "lido": "Remove: from item10a:J1,J4                                                            Insert 10a: Z,                                                                                                   Insert item 18 DAT/CPDLCX",
+    "lido": "Remove: from item10a:J1,J4 Insert 10a: Z, Insert item 18 DAT/CPDLCX",
     "other": "Check CRAR amd OM C Airport Briefing",
     "source": {
       "excel_row": 4
@@ -69,10 +66,9 @@
       "ADS-B",
       "ADSB",
       "EUADSBX",
-      "SUR/EUADSB",
       "SUR/EUADSBX"
     ],
-    "lido": "Remove: from item10b:L and B1,                                          Insert: H to item  10b                                                                 Insert: SUR/EUADSBX  item 18",
+    "lido": "Remove: from item10b:L and B1, Insert: H to item 10b Insert: SUR/EUADSBX item 18",
     "other": "SINGLE EUROPEAN SKY (SES): \nThe 27 EU Member States ( Austria, Belgium, Bulgaria, Croatia, Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Ireland, Italy, \nLatvia, Lithuania, Luxembourg, Malta, Netherlands, Poland, Portugal, Romania, Slovakia, Slovenia, Spain, Sweden) plus Norway and Switzerland (29 States in total).\n\nWe can operate with ADS-B OUT inoperative within SES for 3 days.\nRestrictions for countries outside of SES should be checked in CRAR!",
     "source": {
       "excel_row": 6
@@ -81,11 +77,10 @@
   {
     "id": "A7",
     "limitation": "ADS-C INOP",
-    "tag": "ADS-C",
+    "tag": "OTHER",
     "mel_refs": [],
     "keywords": [
-      "ADS-C",
-      "ADSC"
+      "ADS-C"
     ],
     "lido": "Remove: from item10b:G1",
     "other": "",
@@ -117,7 +112,7 @@
     "keywords": [
       "VOR"
     ],
-    "lido": "Remove: from item 10a:S, select n(Non-Standard Equipment)                                                                                             Insert L (ILS) and V (VHF RTF)                                                      Remove: from item 18 B1                                               Insert:B2,B3,B5",
+    "lido": "Remove: from item 10a:S, select n(Non-Standard Equipment) Insert L (ILS) and V (VHF RTF) Remove: from item 18 B1 Insert:B2,B3,B5",
     "other": "Check CRAR amd OM C Airport Briefing",
     "source": {
       "excel_row": 9
@@ -130,7 +125,6 @@
     "mel_refs": [],
     "keywords": [
       "RADAR",
-      "WEATHER",
       "WX",
       "WXR"
     ],
@@ -143,7 +137,7 @@
   {
     "id": "A11",
     "limitation": "No Iceing Condition",
-    "tag": "ICEING",
+    "tag": "OTHER",
     "mel_refs": [],
     "keywords": [
       "ICEING"
@@ -157,7 +151,7 @@
   {
     "id": "A12",
     "limitation": "No RVSM operation",
-    "tag": "RVSM",
+    "tag": "OTHER",
     "mel_refs": [],
     "keywords": [
       "OPERATION",
@@ -175,11 +169,13 @@
     "tag": "ILS CAT",
     "mel_refs": [],
     "keywords": [
+      "AUTOLAND",
       "CAT",
       "CAT3B",
-      "ILS"
+      "ILS",
+      "LANDING"
     ],
-    "lido": "Please overwrite the Landing Capability on Aircraft Operator  page Equipment Tab (Standard Approach Equipment) according to MEL.                                       Overwrite: AIRCRAFT/DATA FOR ICAO FPL: RVR in item 18 For CAT I: 550m CAT II: 300m CAT IIIA:200m CAT III B : 75m",
+    "lido": "Please overwrite the Landing Capability on Aircraft Operator page Equipment Tab (Standard Approach Equipment) according to MEL. Overwrite: AIRCRAFT/DATA FOR ICAO FPL: RVR in item 18 For CAT I: 550m CAT II: 300m CAT IIIA:200m CAT III B : 75m",
     "other": "Check Minima for DEP/DES/ALT airports",
     "source": {
       "excel_row": 13
@@ -193,8 +189,7 @@
     "keywords": [
       "APCH",
       "APPCH",
-      "RNP",
-      "RNP APCH"
+      "RNP"
     ],
     "lido": "Remove: from item 18 PBN:S2",
     "other": "Check Minima for DEP/DES/ALT airports",
@@ -205,10 +200,9 @@
   {
     "id": "A15",
     "limitation": "(E)GPWS INOP",
-    "tag": "EGPWS",
+    "tag": "OTHER",
     "mel_refs": [],
     "keywords": [
-      "EGPWS",
       "GPWS"
     ],
     "lido": "",
@@ -220,7 +214,7 @@
   {
     "id": "A16",
     "limitation": "Center Tank Transfer Valve 28-26-01",
-    "tag": "CENTER TANK",
+    "tag": "OTHER",
     "mel_refs": [
       "28-26-01"
     ],
@@ -245,12 +239,14 @@
       "22-82-01/02"
     ],
     "keywords": [
+      "22-82-01",
       "22-82-01/02",
+      "22-82-02",
       "FMGC",
       "FMS",
       "MCDU"
     ],
-    "lido": "Remove: from item 10a:X,                                                 Remove:item 18 PBN: A1, C1,L1,",
+    "lido": "Remove: from item 10a:X, Remove:item 18 PBN: A1, C1,L1,",
     "other": "Check VOR/DME/NDB coverage ",
     "source": {
       "excel_row": 17
