@@ -1,46 +1,62 @@
 {
-  "PBN": {
-    "desc": "PBN/\u2026: Performance Based Navigation k\u00e9pess\u00e9gek (RNAV/RNP). GNSS kies\u00e9sn\u00e9l a PBN k\u00f3dokat m\u00f3dos\u00edtani kell a MEL/OM szerint.",
-    "ref": "EUROCONTROL IFPS User Manual / PBN Portal"
+  "TCAS": {
+    "title": "TCAS",
+    "why": "A TCAS/ACAS capability-t az ICAO FPL-ben (Item 10a/18) jelölöd; INOP esetén a capability-t törölni kell, és bizonyos légtér/OPS korlátozások léphetnek életbe.",
+    "see": "EUROCONTROL IFPS User Manual / Learning Zone"
   },
   "DAT/CPDLCX": {
-    "desc": "DAT/CPDLCX: datalink/CPDLC nem \u00e1ll rendelkez\u00e9sre; IFPS filingben Item18-ben jelzend\u0151 a MEL/elj\u00e1r\u00e1s szerint.",
-    "ref": "EUROCONTROL IFPS User Manual"
+    "title": "DAT/CPDLCX",
+    "why": "Item 18-ban jelzi, hogy CPDLC nem áll rendelkezésre (datalink capability/availability változás).",
+    "see": "EUROCONTROL IFPS User Manual / Learning Zone"
   },
-  "J1": {
-    "desc": "Item10a J1: CPDLC ATN VDL Mode 2 (p\u00e9lda, f\u00fcgg a rendszered implement\u00e1ci\u00f3j\u00e1t\u00f3l). Ha CPDLC INOP: remove.",
-    "ref": "EUROCONTROL IFPS User Manual"
-  },
-  "J4": {
-    "desc": "Item10a J4: CPDLC FANS 1/A (p\u00e9lda). Ha CPDLC INOP: remove.",
-    "ref": "EUROCONTROL IFPS User Manual"
-  },
-  "X": {
-    "desc": "Item10a X: TCAS (ACAS). TCAS INOP eset\u00e9n remove + Item18 TCAS jel\u00f6l\u00e9sek t\u00f6rl\u00e9se.",
-    "ref": "ICAO FPL/IFPS"
-  },
-  "TCAS": {
-    "desc": "Item18 TCAS: TCAS capability jel\u00f6l\u00e9s. TCAS INOP eset\u00e9n t\u00f6rlend\u0151, \u00e9s NAT/ClassE korl\u00e1tok lehetnek MEL szerint.",
-    "ref": "Operator MEL / IFPS"
+  "PBN/": {
+    "title": "PBN/…",
+    "why": "Item 18 PBN/ mező: PBN képességek (RNAV/RNP) deklarálása. MEL miatt egyes capability-ket törölni/átírni kell.",
+    "see": "EUROCONTROL IFPS User Manual / Learning Zone"
   },
   "B3": {
-    "desc": "PBN B3: RNAV 5 DME/DME",
-    "ref": "PBN Portal"
+    "title": "B3",
+    "why": "RNAV 5 (DME/DME).",
+    "see": "EUROCONTROL IFPS / PBN filing guidance"
   },
   "B4": {
-    "desc": "PBN B4: RNAV 5 VOR/DME",
-    "ref": "PBN Portal"
+    "title": "B4",
+    "why": "RNAV 5 (VOR/DME).",
+    "see": "EUROCONTROL IFPS / PBN filing guidance"
   },
   "B5": {
-    "desc": "PBN B5: RNAV 5 INS/IRS",
-    "ref": "PBN Portal"
+    "title": "B5",
+    "why": "RNAV 5 (INS/IRS).",
+    "see": "EUROCONTROL IFPS / PBN filing guidance"
   },
   "C4": {
-    "desc": "PBN C4: RNAV 2 DME/DME/IRU",
-    "ref": "PBN Portal"
+    "title": "C4",
+    "why": "RNAV 2 (DME/DME/IRU).",
+    "see": "EUROCONTROL IFPS / PBN filing guidance"
   },
   "D4": {
-    "desc": "PBN D4: RNAV 1 DME/DME/IRU",
-    "ref": "PBN Portal"
+    "title": "D4",
+    "why": "RNAV 1 (DME/DME/IRU).",
+    "see": "EUROCONTROL IFPS / PBN filing guidance"
+  },
+  "J1": {
+    "title": "J1",
+    "why": "CPDLC (ATN) capability jelölése Item 10a-ban (ha alkalmazott). INOP esetén törlendő.",
+    "see": "EUROCONTROL IFPS User Manual"
+  },
+  "J4": {
+    "title": "J4",
+    "why": "CPDLC (FANS 1/A vagy egyéb) capability jelölése (operator specifikus). INOP esetén törlendő.",
+    "see": "EUROCONTROL IFPS User Manual"
+  },
+  "Z": {
+    "title": "Z",
+    "why": "Item 10a: “Other equipment carried / see remarks”. CPDLC INOP esetén gyakran Z + Item18 DAT/… jelölés.",
+    "see": "EUROCONTROL IFPS User Manual"
+  },
+  "SUR/EUADSBX": {
+    "title": "SUR/EUADSBX",
+    "why": "Item 18 SUR/ megjegyzés: EU ADS-B exemption / special filing (operator policy szerint).",
+    "see": "EUROCONTROL IFPS User Manual / Learning Zone"
   }
 }

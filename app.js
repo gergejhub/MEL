@@ -1,500 +1,470 @@
 
-(() => {
-  'use strict';
+let ACTIONS = [];
+let GLOSS = {};
+let state = {
+  rows: [],
+  tails: [],
+  selectedTail: null,
+  selectedFindings: [],
+  pdfShaOk: null,
+};
 
-  const state = {
-    actions: [],
-    glossary: {},
-    pdfIndex: null,
-    csvRows: [],
-    tails: new Map(), // tail -> {tail, items:[{wo, desc, action, refCats:[]}]}
-    selectedTail: null,
-    lastImportSig: null,
-    delta: {new:0, removed:0, changed:0}
+const $ = (id)=>document.getElementById(id);
+
+function baseUrl(path){
+  return new URL(path, window.location.href).toString();
+}
+
+async function loadData(){
+  const health = $("health");
+  try{
+    const [a,g] = await Promise.all([
+      fetch(baseUrl("data/actions.json")).then(r=>r.json()),
+      fetch(baseUrl("data/fpl_glossary.json")).then(r=>r.json()),
+    ]);
+    ACTIONS = a;
+    GLOSS = g;
+    health.textContent = `DB: ${ACTIONS.length} rules`;
+    health.style.borderColor = "rgba(34,197,94,.35)";
+    health.style.color = "#bbf7d0";
+  }catch(e){
+    console.error(e);
+    health.textContent = "DB: HIBA (actions.json?)";
+    health.style.borderColor = "rgba(239,68,68,.55)";
+    health.style.color = "#fecaca";
+  }
+}
+
+function togglePaste(show){
+  $("pastePanel").classList.toggle("hidden", !show);
+}
+
+function parseCsv(text){
+  // very simple CSV parser handling quoted commas
+  const lines = text.replace(/\r/g,"").split("\n").filter(l=>l.trim().length>0);
+  if(lines.length<2) return [];
+  const header = splitCsvLine(lines[0]).map(h=>h.trim());
+  const idx = (name)=> header.findIndex(h=>h.toLowerCase().includes(name));
+  const iTail = idx("aircraft");
+  const iWO   = idx("w/o")>=0 ? idx("w/o") : idx("wo");
+  const iATA  = idx("ata");
+  const iDesc = header.findIndex(h=>h.toLowerCase().includes("workorder") || h.toLowerCase().includes("description") || h.toLowerCase().includes("reason"));
+  const rows=[];
+  for(let k=1;k<lines.length;k++){
+    const cols = splitCsvLine(lines[k]);
+    const tail = (cols[iTail]||"").trim();
+    if(!tail) continue;
+    rows.push({
+      tail,
+      wo: (cols[iWO]||"").trim(),
+      ata: (cols[iATA]||"").trim(),
+      desc: (cols[iDesc]||"").trim(),
+      raw: lines[k]
+    });
+  }
+  return rows;
+}
+
+function splitCsvLine(line){
+  const out=[]; let cur=""; let inQ=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch === '"'){
+      if(inQ && line[i+1] === '"'){ cur+='"'; i++; }
+      else inQ=!inQ;
+    }else if(ch===',' && !inQ){
+      out.push(cur); cur="";
+    }else cur+=ch;
+  }
+  out.push(cur);
+  return out;
+}
+
+function norm(s){ return (s||"").toUpperCase(); }
+
+function wordHit(hay, kw){
+  const k = kw.toUpperCase();
+  if(k.includes(" ")) return hay.includes(k);
+  return new RegExp(`\\b${escapeRe(k)}\\b`).test(hay);
+}
+function escapeRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+
+function extractMelRefs(hay){
+  const m = hay.match(/\b\d{2}-\d{2}-\d{2}(?:\/\d{2})?(?:-[A-Z])?\b/g);
+  return m ? Array.from(new Set(m)) : [];
+}
+
+function matchActions(row){
+  const hay = norm(`${row.tail} ${row.ata} ${row.desc} ${row.raw}`);
+  const refs = extractMelRefs(hay);
+  const findings=[];
+  for(const act of ACTIONS){
+    // strict: ref match OR strong keyword match
+    let score=0;
+    // ref match gives high confidence
+    for(const r of act.mel_refs||[]){
+      if(refs.includes(r.toUpperCase())) score += 5;
+    }
+    // keywords
+    let hits=0;
+    for(const kw of act.keywords||[]){
+      if(!kw || kw.length<3) continue;
+      if(wordHit(hay, kw)) hits++;
+    }
+    // require at least 1 hit for non-ref rules; and avoid generic explosion
+    if(score==0){
+      if(hits==0) continue;
+      // for very generic categories require 2 hits
+      const generic = ["MAX FL","FL LIMITATION"].some(x=>act.limitation.toUpperCase().includes(x));
+      if(generic && hits<2) continue;
+      // for ILS CAT require ILS or AUTOLAND or LANDING or CAT in row
+      if(act.tag==="ILS CAT" && !/(ILS|AUTOLAND|LANDING|CAT)/.test(hay)) continue;
+      score += Math.min(3, hits);
+    }
+    if(score>=2){
+      findings.push(buildFinding(row, act));
+    }
+  }
+  // de-dup by (wo, actionId)
+  const seen=new Set();
+  const out=[];
+  for(const f of findings){
+    const key = `${f.wo||f.fallbackKey}|${f.action.id}`;
+    if(seen.has(key)) continue;
+    seen.add(key);
+    out.push(f);
+  }
+  return out;
+}
+
+function buildFinding(row, act){
+  return {
+    tail: row.tail,
+    wo: row.wo,
+    ata: row.ata,
+    desc: row.desc,
+    action: act,
+    fallbackKey: `${row.tail}|${row.ata}|${row.desc}`.slice(0,120)
   };
+}
 
-  const el = (id) => document.getElementById(id);
-  const tailsList = () => el('tailsList');
-
-  function setStatus(msg){ el('statusLine').textContent = msg; }
-
-  async function loadJson(path){
-    const url = new URL(path, window.location.href);
-    const res = await fetch(url);
-    if(!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
-    return await res.json();
+function buildTails(rows){
+  const byTail=new Map();
+  let imported=0, findingsTotal=0;
+  for(const r of rows){
+    imported++;
+    const fs = matchActions(r);
+    if(fs.length===0) continue;
+    findingsTotal += fs.length;
+    if(!byTail.has(r.tail)) byTail.set(r.tail, []);
+    byTail.get(r.tail).push(...fs);
   }
-
-  async function init(){
-    bindUI();
-    try{
-      const [a,g,p] = await Promise.all([
-        loadJson('data/actions.json'),
-        loadJson('data/fpl_glossary.json'),
-        loadJson('data/mel_pdf_index.json')
-      ]);
-      state.actions = a.actions || [];
-      state.glossary = g || {};
-      state.pdfIndex = p || null;
-      setStatus(`Rules: ${a.version || 'n/a'} • PDF index: ${p?.sha256 ? 'loaded' : 'missing'}`);
-    } catch(err){
-      console.error(err);
-      setStatus(`HIBA: nem sikerült betölteni a data/*.json fájlokat. Console: ${err.message}`);
+  const tails=[];
+  for(const [tail, fs] of byTail.entries()){
+    // unique findings by (wo, action)
+    const unique=[];
+    const seen=new Set();
+    for(const f of fs){
+      const key=`${f.wo||f.fallbackKey}|${f.action.id}`;
+      if(seen.has(key)) continue;
+      seen.add(key);
+      unique.push(f);
     }
-    render();
-  }
-
-  function bindUI(){
-    el('csvFile').addEventListener('change', async (ev) => {
-      const f = ev.target.files?.[0];
-      if(!f) return;
-      const txt = await f.text();
-      importCsvText(txt, f.name);
-    });
-    el('pdfFile').addEventListener('change', async (ev) => {
-      const f = ev.target.files?.[0];
-      if(!f) return;
-      await checkPdfSha(f);
-    });
-    el('clearBtn').addEventListener('click', () => {
-      state.csvRows=[]; state.tails.clear(); state.selectedTail=null;
-      render();
-      setStatus('CSV törölve.');
-    });
-    el('csvPasteBtn').addEventListener('click', () => {
-      el('pastePanel').hidden = false;
-      el('csvPasteArea').value='';
-      el('csvPasteArea').focus();
-    });
-    el('pasteCloseBtn').addEventListener('click', () => el('pastePanel').hidden = true);
-    el('pasteImportBtn').addEventListener('click', () => {
-      const txt = el('csvPasteArea').value || '';
-      el('pastePanel').hidden = true;
-      importCsvText(txt, 'pasted.csv');
-    });
-    el('copyBtn').addEventListener('click', () => {
-      const txt = buildCopyTextForSelected();
-      navigator.clipboard.writeText(txt);
-    });
-    el('handoverBtn').addEventListener('click', () => {
-      const txt = buildHandoverExport();
-      navigator.clipboard.writeText(txt);
-    });
-  }
-
-  async function checkPdfSha(file){
-    const buf = await file.arrayBuffer();
-    const hashBuf = await crypto.subtle.digest('SHA-256', buf);
-    const hashArr = Array.from(new Uint8Array(hashBuf));
-    const sha = hashArr.map(b=>b.toString(16).padStart(2,'0')).join('');
-    const ok = state.pdfIndex?.sha256 && sha === state.pdfIndex.sha256;
-    const msg = ok ? `OK (index egyezik)` : `FIGYELEM: a feltöltött MEL PDF SHA eltér az indexeltől. Futtasd: tools/build_mel_index.py`;
-    setStatus(`MEL PDF: ${file.name} • SHA256: ${sha.slice(0,8)}… • ${msg}`);
-  }
-
-  function detectDelimiter(line){
-    const commas=(line.match(/,/g)||[]).length;
-    const semis=(line.match(/;/g)||[]).length;
-    return semis>commas ? ';' : ',';
-  }
-
-  function parseCsv(text){
-    const lines = text.split(/\r?\n/).filter(l=>l.trim().length>0);
-    if(lines.length<2) return [];
-    const delim = detectDelimiter(lines[0]);
-    const header = splitCsvLine(lines[0], delim).map(h=>h.trim());
-    const rows=[];
-    for(let i=1;i<lines.length;i++){
-      const cols = splitCsvLine(lines[i], delim);
-      const obj={};
-      header.forEach((h,idx)=> obj[h]= (cols[idx]||'').trim());
-      rows.push(obj);
+    // tags summary
+    const tagCounts=new Map();
+    for(const f of unique){
+      const tag = deriveTagLabel(f.action, f);
+      tagCounts.set(tag, (tagCounts.get(tag)||0)+1);
     }
-    return rows;
+    tails.push({tail, findings: unique, melCount: unique.length, tagCounts});
   }
+  tails.sort((a,b)=> b.melCount - a.melCount || a.tail.localeCompare(b.tail));
+  return {tails, imported, findingsTotal};
+}
 
-  function splitCsvLine(line, delim){
-    // minimal CSV parser with quotes
-    const out=[]; let cur=''; let inQ=false;
-    for(let i=0;i<line.length;i++){
-      const ch=line[i];
-      if(ch === '"'){ inQ = !inQ; continue; }
-      if(ch===delim && !inQ){ out.push(cur); cur=''; continue; }
-      cur+=ch;
-    }
-    out.push(cur);
-    return out;
+function deriveTagLabel(action, finding){
+  // show more detail for ILS CAT from action text
+  const up = action.limitation.toUpperCase();
+  if(action.tag==="ILS CAT"){
+    const m = up.match(/CAT\s*3B.*CAT\s*3A|CAT\s*IIIB.*IIIA|CAT\s*II|CAT\s*III[A|B]?|CAT\s*I/);
+    if(m) return "ILS " + m[0].replace(/\s+/g,"");
+    if(/CAT3B/.test(up) && /3A/.test(up)) return "ILS CAT3B→3A";
+    return "ILS CAT";
   }
+  return action.tag || action.limitation;
+}
 
-  function normalize(s){ return (s||'').toUpperCase(); }
+function parseFplAndLido(findings){
+  // parse from action.lido strings, aggregate add/remove by item
+  const agg = { "ITEM10A": {add: new Set(), rem: new Set()}, "ITEM10B": {add:new Set(), rem:new Set()}, "ITEM18": {add:new Set(), rem:new Set()} };
+  const lidoLines=[];
+  const opsLines=[];
+  const usedGloss=new Set();
 
-  function extractRefs(text){
-    const m = normalize(text).match(/\b\d{2}-\d{2}-\d{2}[A-Z]?\b/g);
-    return m ? Array.from(new Set(m)) : [];
-  }
-
-  function matchActions(hay){
-    const H = normalize(hay);
-    const matches=[];
-    for(const a of state.actions){
-      const tks = a.triggers || [a.title];
-      let hit=false;
-      for(const t of tks){
-        const T = normalize(t);
-        if(T.length<3) continue;
-        if(H.includes(T)){ hit=true; break; }
-      }
-      if(hit) matches.push(a);
-    }
-    // additional mapping: ATC DATALINK -> CPDLC INOP
-    if(H.includes('DATALINK') && !matches.some(m=>normalize(m.title).includes('CPDLC'))){
-      const cp = state.actions.find(m=>normalize(m.title).includes('CPDLC'));
-      if(cp) matches.push(cp);
-    }
-    return matches;
-  }
-
-  function catTagForRefs(refs){
-    if(!state.pdfIndex?.refs) return null;
-    for(const r of refs){
-      const entry = state.pdfIndex.refs[r];
-      if(entry?.cat_tokens?.length){
-        // prefer explicit CAT II/III tokens
-        const tokens = entry.cat_tokens;
-        // build compact label
-        if(tokens.includes('CAT3B') && tokens.includes('CAT3A')) return 'CAT3B→3A';
-        if(tokens.includes('CATII')) return 'CATII';
-        if(tokens.includes('CATIII')) return 'CATIII';
-        if(tokens.includes('CATI')) return 'CATI';
-        const cat3 = tokens.find(t=>t.startsWith('CAT3'));
-        if(cat3) return cat3;
-      }
-    }
-    return null;
-  }
-
-  function importCsvText(text, name){
-    try{
-      const rows = parseCsv(text);
-      state.csvRows = rows;
-      buildTailsFromRows(rows);
-      setStatus(`CSV: ${name} • importált sorok: ${rows.length} • dispatch-releváns lajstromok: ${state.tails.size}`);
-      render();
-    }catch(err){
-      console.error(err);
-      setStatus(`CSV import hiba: ${err.message}`);
-    }
-  }
-
-  function getTailField(row){
-    const keys = Object.keys(row);
-    const k = keys.find(k=>normalize(k).includes('AIRCRAFT')) || keys.find(k=>normalize(k)==='A/C') || keys.find(k=>normalize(k).includes('AC'));
-    return k || keys[0];
-  }
-  function getWoField(row){
-    const keys=Object.keys(row);
-    return keys.find(k=>normalize(k).includes('W/O')) || keys.find(k=>normalize(k).includes('WO')) || keys.find(k=>normalize(k).includes('WORK')) || null;
-  }
-  function getDescField(row){
-    const keys=Object.keys(row);
-    return keys.find(k=>normalize(k).includes('DESCR')) || keys.find(k=>normalize(k).includes('REASON')) || keys.find(k=>normalize(k).includes('TITLE')) || null;
-  }
-
-  function buildTailsFromRows(rows){
-    state.tails.clear();
-    if(!rows.length) return;
-    const tailKey = getTailField(rows[0]);
-    const woKey = getWoField(rows[0]);
-    const descKey = getDescField(rows[0]);
-
-    for(const row of rows){
-      const tail = (row[tailKey]||'').trim();
-      if(!tail) continue;
-      const wo = woKey ? (row[woKey]||'').trim() : '';
-      const desc = descKey ? (row[descKey]||'').trim() : JSON.stringify(row);
-      const hay = `${tail} ${wo} ${desc} ${Object.values(row).join(' ')}`;
-
-      const refs = extractRefs(hay);
-      const acts = matchActions(hay);
-
-      // dispatch relevant only if at least one action match
-      if(!acts.length) continue;
-
-      const t = state.tails.get(tail) || {tail, entries:[]};
-      for(const a of acts){
-        t.entries.push({
-          tail, wo, desc,
-          action: a,
-          refs,
-          cat: (normalize(a.title).includes('ILS') || normalize(a.title).includes('CAT')) ? catTagForRefs(refs) : null
-        });
-      }
-      state.tails.set(tail, t);
-    }
-
-    // sort entries per tail unique by (wo|action.id|desc)
-    for(const t of state.tails.values()){
-      const seen=new Set();
-      const uniq=[];
-      for(const e of t.entries){
-        const key = `${e.wo}|${e.action.id}|${e.desc}`;
-        if(seen.has(key)) continue;
-        seen.add(key); uniq.push(e);
-      }
-      t.entries = uniq;
-    }
-  }
-
-  function render(){
-    renderTails();
-    renderSelected();
-  }
-
-  function renderTails(){
-    const list = tailsList();
-    list.innerHTML='';
-    const tails = Array.from(state.tails.values()).sort((a,b)=>b.entries.length - a.entries.length || a.tail.localeCompare(b.tail));
-    if(!tails.length){
-      list.innerHTML = `<div class="meta" style="padding:10px">Nincs adat.</div>`;
-      return;
-    }
-    for(const t of tails){
-      const div=document.createElement('div');
-      div.className='item' + (state.selectedTail===t.tail ? ' active':'');
-      const count=t.entries.length;
-      const tags = buildTagsForTail(t);
-      div.innerHTML = `
-        <div class="row">
-          <div class="tail">${t.tail}</div>
-          <div class="badge ${count>1?'warn':''}">${count} MEL</div>
-        </div>
-        <div class="meta">Dispatch releváns tételek: ${count}</div>
-        <div class="chips">${tags.map(x=>`<span class="chip">${x}</span>`).join('')}</div>
-      `;
-      div.addEventListener('click', ()=>{ state.selectedTail=t.tail; render(); });
-      list.appendChild(div);
-    }
-  }
-
-  function buildTagsForTail(t){
-    const map=new Map(); // label->count
-    for(const e of t.entries){
-      let tag = e.action.tag || 'MEL';
-      if(tag==='ILS' && e.cat) tag = `ILS ${e.cat}`;
-      map.set(tag, (map.get(tag)||0)+1);
-    }
-    const tags = Array.from(map.entries()).sort((a,b)=>b[1]-a[1]).map(([k,v])=> v>1 ? `${k} ×${v}`: k);
-    return tags.slice(0,4);
-  }
-
-  function renderSelected(){
-    const selItems = el('selItems');
-    const selMeta = el('selMeta');
-    const rightTitle = el('rightTitle');
-    const fplBox = el('fplBox');
-    const lidoBox = el('lidoBox');
-    const opsBox = el('opsBox');
-    const glossaryBox = el('glossaryBox');
-
-    selItems.innerHTML=''; fplBox.textContent=''; lidoBox.textContent=''; opsBox.textContent=''; glossaryBox.innerHTML='';
-    if(!state.selectedTail){
-      rightTitle.textContent='Teendők (dispatch)';
-      selMeta.textContent='Válassz egy lajstromot bal oldalt.';
-      return;
-    }
-    const t = state.tails.get(state.selectedTail);
-    rightTitle.textContent = `Teendők – ${state.selectedTail}`;
-    selMeta.textContent = `Aktív dispatch-releváns tételek: ${t.entries.length}`;
-
-    // list entries
-    for(const e of t.entries){
-      const d=document.createElement('div');
-      d.className='item';
-      const tag = e.action.tag==='ILS' && e.cat ? `ILS ${e.cat}` : e.action.tag;
-      d.innerHTML = `
-        <div class="row">
-          <div style="font-weight:900">${escapeHtml(e.action.title)}</div>
-          <div class="pill">${escapeHtml(tag)}</div>
-        </div>
-        <div class="meta">${escapeHtml(e.wo ? `W/O ${e.wo} • `:'' )}${escapeHtml(e.desc).slice(0,140)}</div>
-      `;
-      selItems.appendChild(d);
-    }
-
-    // aggregate actions
-    const agg = aggregateActions(t.entries.map(e=>e.action));
-    fplBox.innerHTML = renderFplAgg(agg.fpl);
-    lidoBox.innerHTML = renderLidoLines(agg.lidoLines);
-    opsBox.textContent = agg.ops.join('\n') || '—';
-    glossaryBox.innerHTML = renderGlossary(agg.fpl);
-  }
-
-  function aggregateActions(actions){
-    // parse lido lines and fpl changes
-    const fpl = {item10a:{add:new Set(), rem:new Set()}, item10b:{add:new Set(), rem:new Set()}, item18:{add:new Set(), rem:new Set()}};
-    const lidoLines=[];
-    const ops=[];
-    for(const a of actions){
-      if(a.other && a.other.trim() && !ops.includes(a.other.trim())) ops.push(a.other.trim());
-      if(a.lido && a.lido.trim()){
-        const lines = a.lido.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-        for(const ln of lines){
-          const parsed = parseLidoClause(ln);
-          if(parsed){
-            lidoLines.push(parsed);
-            applyToFpl(fpl, parsed);
-          } else {
-            // keep as note
-            lidoLines.push({kind:'NOTE', text:ln});
+  for(const f of findings){
+    const act=f.action;
+    if(act.other && act.other.trim()) opsLines.push(act.other.trim());
+    const lido = (act.lido||"").trim();
+    if(lido){
+      const parsed = parseLidoText(lido);
+      for(const step of parsed.steps){
+        lidoLines.push(step.rendered);
+        // apply to agg if recognized
+        if(step.item && agg[step.item]){
+          const tgt = step.kind==="ADD" ? agg[step.item].add : agg[step.item].rem;
+          for(const code of step.codes) tgt.add(code);
+          for(const code of step.codes){
+            if(code.startsWith("PBN")) usedGloss.add("PBN/");
+            if(GLOSS[code]) usedGloss.add(code);
+            if(code.includes("CPDLC")) usedGloss.add("DAT/CPDLCX");
+            if(code==="TCAS") usedGloss.add("TCAS");
+            if(/^[BCDGJ]\d$/.test(code)) usedGloss.add(code);
+            if(code==="Z") usedGloss.add("Z");
+            if(code==="J1"||code==="J4") usedGloss.add(code);
           }
         }
       }
     }
-    // dedupe lidoLines by kind+item+codes
-    const seen=new Set(); const uniq=[];
-    for(const l of lidoLines){
-      const key = `${l.kind}|${l.item||''}|${(l.codes||[]).join(',')}|${l.text||''}`;
-      if(seen.has(key)) continue;
-      seen.add(key); uniq.push(l);
-    }
-    return {fpl, lidoLines: uniq, ops};
   }
 
-  function parseLidoClause(line){
-    const up = line.toUpperCase();
-    // examples:
-    // Remove: from item 10a:X
-    // Insert item 18 DAT/CPDLCX
-    const m = up.match(/^(REMOVE|INSERT|ADD|OVERWRITE)\s*:\s*(.*)$/);
-    if(!m) return null;
-    const kind = m[1];
-    const rest = m[2];
-    // item 10a / item10a / item 18
-    const im = rest.match(/ITEM\s*([0-9]{2})([AB])?/);
-    let item = null;
-    if(im){
-      item = `ITEM${im[1]}${im[2]||''}`.toUpperCase();
-    } else if(rest.includes('ITEM10A')) item='ITEM10A';
-    else if(rest.includes('ITEM10B')) item='ITEM10B';
-    else if(rest.includes('ITEM18')) item='ITEM18';
-
-    // codes after -> or colon
-    let codesPart = rest;
-    codesPart = codesPart.replace(/FROM\s+/,'').replace(/ITEM\s*[0-9]{2}[AB]?\s*/,'').replace(/ITEM10A|ITEM10B|ITEM18/,'');
-    codesPart = codesPart.replace(/→/g,' ').replace(/:/g,' ');
-    const codes = (codesPart.match(/[A-Z0-9\/]+(?:\:[A-Z0-9,]+)?/g)||[])
-      .map(s=>s.replace(/,$/,'').trim())
-      .filter(s=>s && !['FROM','ITEM','REMOVE','INSERT','ADD','OVERWRITE'].includes(s));
-    return {kind, item, codes, text: line};
+  // build FPL box text
+  const fplParts=[];
+  for(const item of ["ITEM10A","ITEM10B","ITEM18"]){
+    const a=[...agg[item].add].sort();
+    const r=[...agg[item].rem].sort();
+    fplParts.push(`${item}:  ADD ${a.length?a.join(", "):"—"}\n       REM ${r.length?r.join(", "):"—"}`);
   }
+  return {fplText: fplParts.join("\n\n"), lidoText: lidoLines.length? lidoLines.join("\n"):"—", opsText: opsLines.length? uniqLines(opsLines).join("\n\n"):"—", usedGloss:[...usedGloss] };
+}
 
-  function applyToFpl(fpl, clause){
-    const kind = clause.kind;
-    const item = clause.item;
-    if(!item || !clause.codes?.length) return;
-    const target = item==='ITEM10A'? fpl.item10a : item==='ITEM10B'? fpl.item10b : item==='ITEM18'? fpl.item18 : null;
-    if(!target) return;
-    if(kind==='REMOVE'){
-      clause.codes.forEach(c=>target.rem.add(cleanCode(c)));
-    } else if(kind==='INSERT' || kind==='ADD' || kind==='OVERWRITE'){
-      clause.codes.forEach(c=>target.add.add(cleanCode(c)));
-    }
+function uniqLines(lines){
+  const seen=new Set(); const out=[];
+  for(const l of lines){
+    const key=l.trim();
+    if(!key || seen.has(key)) continue;
+    seen.add(key); out.push(key);
   }
+  return out;
+}
 
-  function cleanCode(c){
-    // remove junk tokens
-    return c.replace(/^PBN\:?$/,'PBN').replace(/^\s+|\s+$/g,'');
+function parseLidoText(t){
+  // Turn freeform into structured steps: REMOVE/ADD + ITEM + codes
+  const raw = t.replace(/\s+/g," ").trim();
+  // split by keywords
+  const chunks = raw.split(/(?=(?:Remove:|REMOVE:|Insert|INSERT|Overwrite:|OVERWRITE:|Add:|ADD:))/);
+  const steps=[];
+  for(let ch of chunks){
+    ch = ch.trim();
+    if(!ch) continue;
+    let kind=null;
+    if(/^remove:/i.test(ch)) kind="REM";
+    else if(/^insert/i.test(ch) || /^add:/i.test(ch)) kind="ADD";
+    else if(/^overwrite:/i.test(ch)) { kind="ADD"; }
+    else continue;
+    // item detection
+    const itemMatch = ch.match(/item\s*(10a|10b|18)\b/i);
+    const item = itemMatch ? `ITEM${itemMatch[1].toUpperCase()}` : null;
+    // codes list: after item ... take tokens like X, J1, J4, TCAS, DAT/CPDLCX, PBN:A1
+    const codes=[];
+    // PBN:
+    const pbnMatch = ch.match(/PBN\s*:\s*([A-Z0-9,\/ ]+)/i);
+    if(pbnMatch){
+      const parts=pbnMatch[1].split(/[, ]+/).filter(Boolean);
+      for(const p of parts) codes.push(`PBN:${p}`);
+    }
+    // general tokens
+    const tok = ch.replace(/PBN\s*:\s*[A-Z0-9,\/ ]+/ig," ");
+    for(const m of tok.matchAll(/\b([A-Z]\d|TCAS|DAT\/CPDLCX|EUADSBX|SUR\/EUADSBX|X|Z|L|F|G|S|H|B1|G1)\b/g)){
+      codes.push(m[1].toUpperCase());
+    }
+    const codesUniq=[...new Set(codes)];
+    const rendered = (kind==="ADD")
+      ? `ADD:    ${item||"—"} → ${codesUniq.length?codesUniq.join(", "):"—"}`
+      : `REMOVE: ${item||"—"} → ${codesUniq.length?codesUniq.join(", "):"—"}`;
+    steps.push({kind: kind==="ADD"?"ADD":"REM", item, codes: codesUniq, rendered});
   }
+  return {steps};
+}
 
-  function renderFplAgg(fpl){
-    function row(label, addSet, remSet){
-      const add=[...addSet].filter(Boolean).join(', ') || '—';
-      const rem=[...remSet].filter(Boolean).join(', ') || '—';
-      return `<div class="kv"><div class="k">${label}</div><div><span class="hlAdd">ADD</span> ${escapeHtml(add)}</div><div><span class="hlRem">REMOVE</span> ${escapeHtml(rem)}</div></div>`;
-    }
-    return row('ITEM10A', fpl.item10a.add, fpl.item10a.rem) +
-           row('ITEM10B', fpl.item10b.add, fpl.item10b.rem) +
-           row('ITEM18',  fpl.item18.add,  fpl.item18.rem);
+function renderTails(){
+  const list=$("tailList");
+  if(state.tails.length===0){
+    list.classList.add("empty");
+    list.textContent="Nincs dispatch-releváns találat ebben a CSV-ben.";
+    return;
   }
-
-  function renderLidoLines(lines){
-    if(!lines.length) return '—';
-    const out=[];
-    let n=1;
-    for(const l of lines){
-      if(l.kind==='NOTE'){
-        out.push(`<div>${escapeHtml(l.text)}</div>`);
-        continue;
-      }
-      const codes = (l.codes||[]).join(', ');
-      const kindClass = l.kind==='REMOVE' ? 'hlRem' : 'hlAdd';
-      out.push(`<div><span class="${kindClass}">${escapeHtml(l.kind)}</span>: ${escapeHtml(l.item||'')} → ${escapeHtml(codes)}</div>`);
-    }
-    return out.join('');
+  list.classList.remove("empty");
+  list.innerHTML="";
+  for(const t of state.tails){
+    const el=document.createElement("div");
+    el.className="item"+(state.selectedTail===t.tail?" active":"");
+    el.addEventListener("click", ()=>selectTail(t.tail));
+    const tagsHtml=[...t.tagCounts.entries()]
+      .sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))
+      .map(([tag,n])=>`<span class="tag">${escapeHtml(tag)}${n>1?` ×${n}`:""}</span>`).join("");
+    el.innerHTML = `
+      <div class="row">
+        <div class="tail">${escapeHtml(t.tail)}</div>
+        <div class="badge">${t.melCount} MEL</div>
+      </div>
+      <div class="cardSub">Dispatch releváns tételek: ${t.melCount}</div>
+      <div class="tags">${tagsHtml}</div>
+    `;
+    list.appendChild(el);
   }
+}
 
-  function renderGlossary(fpl){
-    const codes = new Set();
-    for(const c of [...fpl.item10a.add, ...fpl.item10a.rem, ...fpl.item10b.add, ...fpl.item10b.rem, ...fpl.item18.add, ...fpl.item18.rem]){
-      if(!c || c==='—') continue;
-      const base = c.split(':')[0];
-      codes.add(base);
-      if(c.includes(':')) codes.add(c); // keep full too
-    }
-    // also pull PBN subcodes if present in item18 add/rem
-    const pbnCodes=[];
-    for(const c of [...fpl.item18.add, ...fpl.item18.rem]){
-      if(typeof c==='string' && c.startsWith('PBN:')){
-        c.replace('PBN:','').split(',').forEach(x=>pbnCodes.push(x.trim()));
-      }
-    }
-    pbnCodes.forEach(x=>codes.add(x));
-
-    const items=[];
-    for(const code of Array.from(codes)){
-      const entry = state.glossary[code] || state.glossary[code.split(':')[0]];
-      if(!entry) continue;
-      items.push(`<div class="g"><div class="code">${escapeHtml(code)}</div><div class="meta">${escapeHtml(entry.desc||'')}</div><div class="meta">${escapeHtml(entry.ref||'')}</div></div>`);
-    }
-    return items.length ? items.join('') : `<div class="meta">Nincs releváns kód a fenti FPL változásokból.</div>`;
+function renderSelectedItems(){
+  const box=$("itemList");
+  if(!state.selectedTail){
+    box.classList.add("empty");
+    box.textContent="Válassz egy lajstromot.";
+    $("selCount").textContent="—";
+    return;
   }
-
-  function buildCopyTextForSelected(){
-    if(!state.selectedTail) return '';
-    const t=state.tails.get(state.selectedTail);
-    const agg=aggregateActions(t.entries.map(e=>e.action));
-    const fpl = agg.fpl;
-    const lines=[];
-    lines.push(`A/C ${state.selectedTail} – Dispatch teendők`);
-    lines.push(`ITEM10A add: ${[...fpl.item10a.add].join(', ')||'-'} | remove: ${[...fpl.item10a.rem].join(', ')||'-'}`);
-    lines.push(`ITEM10B add: ${[...fpl.item10b.add].join(', ')||'-'} | remove: ${[...fpl.item10b.rem].join(', ')||'-'}`);
-    lines.push(`ITEM18  add: ${[...fpl.item18.add].join(', ')||'-'} | remove: ${[...fpl.item18.rem].join(', ')||'-'}`);
-    lines.push('LIDO:');
-    for(const l of agg.lidoLines){
-      if(l.kind==='NOTE') continue;
-      lines.push(`- ${l.kind} ${l.item||''}: ${(l.codes||[]).join(', ')}`);
-    }
-    if(agg.ops.length){
-      lines.push('OPS notes:');
-      agg.ops.forEach(o=>lines.push(`- ${o}`));
-    }
-    return lines.join('\n');
+  const t = state.tails.find(x=>x.tail===state.selectedTail);
+  const fs = t ? t.findings : [];
+  $("selCount").textContent = `Aktív dispatch-releváns tételek: ${fs.length}`;
+  box.classList.remove("empty");
+  box.innerHTML="";
+  for(const f of fs){
+    const el=document.createElement("div");
+    el.className="item";
+    el.innerHTML = `
+      <div class="row">
+        <div><b>${escapeHtml(f.action.limitation)}</b></div>
+        <div class="badge">${escapeHtml(f.action.tag||"")}</div>
+      </div>
+      <div class="cardSub">W/O ${escapeHtml(f.wo||"—")} • ATA ${escapeHtml(f.ata||"—")}</div>
+      <div class="cardSub">${escapeHtml(f.desc||"")}</div>
+    `;
+    box.appendChild(el);
   }
+}
 
-  function buildHandoverExport(){
-    const tails = Array.from(state.tails.values()).sort((a,b)=>b.entries.length-a.entries.length);
-    const lines=[];
-    lines.push(`DISPATCH MEL HANDOVER – impacted tails: ${tails.length}`);
-    for(const t of tails){
-      const tags=buildTagsForTail(t).join(' / ');
-      lines.push(`${t.tail}: ${t.entries.length} MEL • ${tags}`);
-    }
-    return lines.join('\n');
+function renderDetails(){
+  if(!state.selectedTail){
+    $("selTitle").textContent="Teendők";
+    $("fplBox").textContent="—";
+    $("lidoBox").textContent="—";
+    $("opsBox").textContent="—";
+    $("glossBox").textContent="—";
+    return;
   }
+  const t = state.tails.find(x=>x.tail===state.selectedTail);
+  const findings = t ? t.findings : [];
+  $("selTitle").textContent = `Teendők – ${state.selectedTail}`;
+  const out = parseFplAndLido(findings);
+  $("fplBox").textContent = out.fplText;
+  $("lidoBox").innerHTML = highlightLido(out.lidoText);
+  $("opsBox").textContent = out.opsText;
+  $("glossBox").innerHTML = renderGloss(out.usedGloss);
+}
 
-  function escapeHtml(s){
-    return (s||'').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+function renderGloss(keys){
+  if(!keys || keys.length===0) return `<span class="muted">Nincs FPL-kód a kiválasztott tételekben.</span>`;
+  const uniq=[...new Set(keys)];
+  const cards = uniq.map(k=>{
+    const g=GLOSS[k];
+    if(!g) return `<div class="k">${escapeHtml(k)}</div>`;
+    return `<div class="item" style="cursor:default">
+      <div class="row"><div><b>${escapeHtml(g.title)}</b></div><div class="badge">${escapeHtml(k)}</div></div>
+      <div class="cardSub">${escapeHtml(g.why)}</div>
+      <div class="cardSub muted">${escapeHtml(g.see)}</div>
+    </div>`;
+  }).join("");
+  return `<div class="kv">${cards}</div>`;
+}
+
+function highlightLido(text){
+  if(!text || text==="—") return `<span class="muted">—</span>`;
+  const lines = text.split("\n").map(l=>{
+    const up=l.toUpperCase();
+    if(up.startsWith("ADD:")) return `<div class="hiAdd">${escapeHtml(l)}</div>`;
+    if(up.startsWith("REMOVE:")) return `<div class="hiRem">${escapeHtml(l)}</div>`;
+    return `<div>${escapeHtml(l)}</div>`;
+  }).join("");
+  return lines;
+}
+
+function escapeHtml(s){
+  return (s||"").replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+}
+
+function selectTail(tail){
+  state.selectedTail = tail;
+  renderTails();
+  renderSelectedItems();
+  renderDetails();
+}
+
+function copySummary(){
+  if(!state.selectedTail) return;
+  const t = state.tails.find(x=>x.tail===state.selectedTail);
+  const out = parseFplAndLido(t.findings);
+  const txt = `MEL Dispatch – ${state.selectedTail}\n\nICAO FPL:\n${out.fplText}\n\nLIDO:\n${out.lidoText}\n\nOPS:\n${out.opsText}\n`;
+  navigator.clipboard?.writeText(txt);
+}
+
+function handoverExport(){
+  if(state.tails.length===0) return;
+  const lines=[];
+  for(const t of state.tails){
+    const tags=[...t.tagCounts.entries()].sort((a,b)=>b[1]-a[1]).map(([k,n])=>`${k}${n>1?`×${n}`:""}`).join(", ");
+    lines.push(`${t.tail} – ${t.melCount} MEL – ${tags}`);
   }
+  navigator.clipboard?.writeText(lines.join("\n"));
+}
 
-  window.addEventListener('DOMContentLoaded', init);
+async function handleCsvText(text){
+  const rows=parseCsv(text);
+  state.rows=rows;
+  const built=buildTails(rows);
+  state.tails=built.tails;
+  $("stats").textContent = `Importált sorok: ${built.imported} • Dispatch-releváns lajstromok: ${built.tails.length} • Találatok: ${built.findingsTotal}`;
+  state.selectedTail = built.tails.length ? built.tails[0].tail : null;
+  renderTails();
+  renderSelectedItems();
+  renderDetails();
+}
+
+function clearAll(){
+  state.rows=[]; state.tails=[]; state.selectedTail=null;
+  $("tailList").textContent="Tölts fel CSV-t.";
+  $("tailList").classList.add("empty");
+  $("itemList").textContent="Válassz egy lajstromot.";
+  $("itemList").classList.add("empty");
+  $("stats").textContent="—";
+  renderDetails();
+}
+
+function bind(){
+  $("btnPaste").addEventListener("click", ()=>togglePaste(true));
+  $("btnPasteClose").addEventListener("click", ()=>togglePaste(false));
+  $("btnImportPaste").addEventListener("click", async ()=>{
+    await handleCsvText($("csvPaste").value);
+    togglePaste(false);
+  });
+  $("csvFile").addEventListener("change", async (e)=>{
+    const f=e.target.files?.[0]; if(!f) return;
+    const text = await f.text();
+    await handleCsvText(text);
+  });
+  $("btnClear").addEventListener("click", clearAll);
+  $("btnCopy").addEventListener("click", copySummary);
+  $("btnHandover").addEventListener("click", handoverExport);
+  // PDF just sha check
+  $("pdfFile").addEventListener("change", async (e)=>{
+    const f=e.target.files?.[0]; if(!f) return;
+    const buf = await f.arrayBuffer();
+    const hash = await crypto.subtle.digest("SHA-256", buf);
+    const hex = [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,"0")).join("");
+    // show in stats line (no external index in this v3)
+    $("stats").textContent = ($("stats").textContent==="—"?"":$("stats").textContent+" • ") + `MEL PDF SHA256: ${hex.slice(0,12)}…`;
+  });
+}
+
+(async function init(){
+  bind();
+  await loadData();
 })();
