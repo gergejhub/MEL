@@ -1,1 +1,1 @@
-v3.7.0-dailyreport
+v3.7.1-dailyreport-pdfupload

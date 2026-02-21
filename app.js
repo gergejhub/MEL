@@ -429,6 +429,92 @@ function clearAll() {
   setLast("Törölve.");
 }
 
+
+async function loadPdfJs(){
+  // Try to load pdf.js from CDN (fallback mechanism). If blocked, return null.
+  // We avoid bundling pdf.js to keep repo small.
+  try{
+    if(window.pdfjsLib) return window.pdfjsLib;
+    await new Promise((resolve,reject)=>{
+      const s=document.createElement("script");
+      s.src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.js";
+      s.onload=resolve; s.onerror=reject;
+      document.head.appendChild(s);
+    });
+    if(!window.pdfjsLib) return null;
+    // Worker
+    try{
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.js";
+    }catch(e){}
+    return window.pdfjsLib;
+  }catch(e){
+    console.warn("pdf.js load failed", e);
+    return null;
+  }
+}
+
+function parseDailyFromLines(lines){
+  // Port of tools/parse_daily_report.py logic
+  const header="Reg No WO Open/Due Date MEL/CDL Description";
+  let start=-1;
+  for(let i=0;i<lines.length;i++){
+    if(lines[i].startsWith(header)){ start=i+1; break; }
+  }
+  if(start<0) throw new Error("Daily table header not found.");
+  const tailRe=/^(?<tail>[A-Z0-9]{1,2}-[A-Z0-9]{3})\s+(?<wo>\d{6,})\s+(?<rest>.*)$/;
+  const refRe=/\b\d{2}-\d{2}-\d{2}(?:\/\d{2})?(?:-?[A-Z])?\b/ig;
+  const rows=[];
+  let cur=null;
+  for(let i=start;i<lines.length;i++){
+    const ln=lines[i].trim();
+    if(!ln) continue;
+    const m=ln.match(tailRe);
+    if(m && m.groups){
+      if(cur) rows.push(cur);
+      const rest=m.groups.rest.trim();
+      const mm=[...rest.matchAll(refRe)];
+      const mel = mm.length? normRef(mm[0][0]) : null;
+      const restClean = rest.replace(/\bMEL\b\s*/i,"").trim();
+      cur={tail:m.groups.tail.trim(), wo:m.groups.wo.trim(), ata:"", desc:restClean, raw:ln};
+      if(mel) cur.mel_ref=mel;
+    } else {
+      if(cur){
+        cur.desc=(cur.desc+" "+ln).trim();
+        cur.raw=cur.raw+" | "+ln;
+      }
+    }
+  }
+  if(cur) rows.push(cur);
+  return rows;
+}
+
+async function extractPdfLines(file, pdfjs){
+  const buf=await file.arrayBuffer();
+  const doc=await pdfjs.getDocument({data:buf}).promise;
+  const lines=[];
+  for(let p=1;p<=doc.numPages;p++){
+    const page=await doc.getPage(p);
+    const tc=await page.getTextContent();
+    // group by y, then by x
+    const items=tc.items.map(it=>({str:it.str, x:it.transform[4], y:it.transform[5]}));
+    items.sort((a,b)=> (b.y-a.y) || (a.x-b.x));
+    let currentY=null;
+    let line=[];
+    for(const it of items){
+      if(currentY===null) currentY=it.y;
+      if(Math.abs(it.y-currentY)>2.5){
+        const s=line.map(x=>x.str).join(" ").replace(/\s+/g," ").trim();
+        if(s) lines.push(s);
+        line=[it]; currentY=it.y;
+      } else line.push(it);
+    }
+    const s=line.map(x=>x.str).join(" ").replace(/\s+/g," ").trim();
+    if(s) lines.push(s);
+  }
+  return lines;
+}
+
+
 async function sha256(file) {
   const buf=await file.arrayBuffer();
   const hash=await crypto.subtle.digest("SHA-256", buf);
@@ -465,7 +551,30 @@ function bind() {
     await handleCsvText(text);
     e.target.value="";
   });
-  $("dailyJson")?.addEventListener("change", async (e)=>{
+  $("dailyPdf")?.addEventListener("change", async (e)=>{
+  const f=e.target.files?.[0];
+  if(!f){ setLast("Daily PDF választás megszakítva."); return; }
+  setLast(`Daily PDF: ${f.name} – pdf.js betöltés…`);
+  const pdfjs = await loadPdfJs();
+  if(!pdfjs){
+    setLast("PDF parsing nem elérhető (pdf.js/worker blokkolva). Fallback: töltsd fel a PDF-et a repo reports/ mappájába (Actions → JSON).");
+    return;
+  }
+  try{
+    setLast("PDF olvasás…");
+    const lines = await extractPdfLines(f, pdfjs);
+    setLast("Daily táblázat kinyerés…");
+    const rows = parseDailyFromLines(lines);
+    if(!rows.length){ setLast("Daily PDF: 0 sor (nem talált táblát)."); return; }
+    await handleRows(rows, "Daily(PDF)");
+    setLast("Daily(PDF) import kész.");
+  }catch(err){
+    console.error(err);
+    setLast("Daily PDF parse hiba. Fallback: repo reports/ + Actions.");
+  } finally { e.target.value=""; }
+});
+
+$("dailyJson")?.addEventListener("change", async (e)=>{
   const f=e.target.files?.[0];
   if(!f){ setLast("Daily JSON választás megszakítva."); return; }
   setLast(`Daily JSON: ${f.name} – olvasás…`);
