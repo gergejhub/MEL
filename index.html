@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/>
-<title>MEL Dispatch Assistant (v3.7.0-dailyreport)</title>
-<link rel="stylesheet" href="styles.css?v=v3.7.0-dailyreport"/>
+<title>MEL Dispatch Assistant (v3.7.4-dailyreport-pdf-inflate)</title>
+<link rel="stylesheet" href="styles.css?v=v3.7.4-dailyreport-pdf-inflate"/>
 </head>
 <body>
 <header class="topbar">
@@ -34,9 +34,10 @@
     </div>
 
     <div class="ioCol">
-      <label class="lbl">Daily Report (JSON)</label>
-      <input id="dailyJson" type="file" accept=".json,application/json" class="file"/>
-      <div class="hint">Automatikus mód: töltsd fel a napi PDF-et a repo <span class="kbd">reports/</span> mappájába → GitHub Actions legenerálja a <span class="kbd">data/daily_report.json</span>-t.</div>
+      <label class="lbl">Daily Report (PDF)</label>
+      <input id="dailyPdf" type="file" accept="application/pdf" class="file"/>
+      <div class="hint">A PDF-et itt helyben (natív) próbáljuk szöveggé bontani. Ha a PDF szkennelt (kép), abból nem tudunk megbízhatóan táblát kinyerni.</div>
+    </div>
     </div>
 
     <div class="ioCol">
@@ -90,6 +91,6 @@
 </main>
 
 <footer class="footer">Verzió: <b>v3.6.1-gpslabel</b>. Ha nem ezt látod, akkor nem a GitHub Pages által kiszolgált mappát frissítetted.</footer>
-<script src="app.js?v=v3.7.0-dailyreport"></script>
+<script src="app.js?v=v3.7.4-dailyreport-pdf-inflate"></script>
 </body>
 </html>

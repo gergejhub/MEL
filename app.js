@@ -457,7 +457,22 @@ function bind() {
   $("btnHandover").onclick=handover;
   $("btnCopy").onclick=copySummary;
 
-  $("csvFile").addEventListener("change", async (e)=>{
+  $("dailyPdf")?.addEventListener("change", async (e)=>{
+  const f=e.target.files?.[0];
+  if(!f){ setLast("Daily PDF választás megszakítva."); return; }
+  setLast(`Daily PDF: ${f.name} – szöveg kinyerés…`);
+  try{
+    const lines = await extractPdfLinesNative(f);
+    setLast("Daily táblázat keresés…");
+    const rows = parseDailyFromLines(lines);
+    if(!rows.length){ setLast("Daily PDF: 0 sor (nem talált táblát)."); return; }
+    await handleRows(rows, "Daily(PDF)");
+    setLast("Daily(PDF) import kész.");
+  }catch(err){ console.error(err); setLast("Daily PDF parse hiba. Tipp: ha a PDF szöveges, ez a verzió már should work. Ha szkennelt (kép), akkor csak OCR-rel lehetne feldolgozni."); }
+  finally{ e.target.value=""; }
+});
+
+$("csvFile").addEventListener("change", async (e)=>{
     const f=e.target.files?.[0];
     if(!f) { setLast("CSV választás megszakítva."); return; }
     setLast(`CSV: ${f.name} – olvasás…`);
@@ -465,19 +480,7 @@ function bind() {
     await handleCsvText(text);
     e.target.value="";
   });
-  $("dailyJson")?.addEventListener("change", async (e)=>{
-  const f=e.target.files?.[0];
-  if(!f){ setLast("Daily JSON választás megszakítva."); return; }
-  setLast(`Daily JSON: ${f.name} – olvasás…`);
-  const txt=await f.text();
-  let obj=null;
-  try{ obj=JSON.parse(txt); }catch(err){ setLast("Daily JSON parse hiba."); console.error(err); return; }
-  const rows=(obj.rows||obj.items||obj.data||[]);
-  if(!Array.isArray(rows) || rows.length===0){ setLast("Daily JSON üres / rossz formátum."); return; }
-  await handleRows(rows, "Daily");
-  e.target.value="";
-});
-
+  
 $("pdfFile").addEventListener("change", async (e)=>{
     const f=e.target.files?.[0];
     if(!f) { setLast("PDF választás megszakítva."); return; }
@@ -493,7 +496,6 @@ $("pdfFile").addEventListener("change", async (e)=>{
   await loadDB();
   bind();
   enableDnD();
-  await autoLoadDaily();
-  if(state.tails.length===0) setLast("Ready. Válassz CSV-t vagy Daily JSON-t.");
+  if(state.tails.length===0) setLast("Ready. Válassz CSV-t vagy Daily PDF-et.");
   console.log("MEL Dispatch Assistant v3.5.0-melindex");
 })();
