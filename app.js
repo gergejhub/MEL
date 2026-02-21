@@ -212,7 +212,42 @@ function aggregate(findings){
     if(lines.length) melInfo=lines.join("\n");
   }
 
-  return {fplText, lidoText:lidoLines.length?lidoLines.join("\n"):"—", opsText:ops.length?[...new Set(ops)].join("\n\n"):"—", gloss:[...gloss], melInfo};
+  
+  const mk = (s) => String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const fplHtml = (() => {
+    const row = (it, addArr, remArr) => `
+      <div class="fplRow fplItem">${mk(it)}</div>
+      <div class="fplRow fplCell"><span class="hlAddBadge">ADD</span>\n${mk(addArr.length?addArr.join(", "):"—")}</div>
+      <div class="fplRow fplCell"><span class="hlRemBadge">REMOVE</span>\n${mk(remArr.length?remArr.join(", "):"—")}</div>`;
+    const parts = [];
+    parts.push('<div class="fplTable">');
+    for (const it of ["ITEM10A","ITEM10B","ITEM18"]) {
+      const addArr=[...agg[it].add].sort();
+      const remArr=[...agg[it].rem].sort();
+      parts.push(row(it, addArr, remArr));
+    }
+    parts.push('</div>');
+    return parts.join("");
+  })();
+
+  const lidoHtml = (() => {
+    if(!lidoLines.length) return '<span class="muted">—</span>';
+    const lines = lidoLines.map(line=>{
+      const up=line.toUpperCase();
+      if(up.startsWith("ADD:")) {
+        const rest=line.slice(4).trim();
+        return `<div class="lidoLine"><span class="hlAddBadge">INSERT</span> <span class="hlAdd">${mk(rest)}</span></div>`;
+      }
+      if(up.startsWith("REMOVE:") || up.startsWith("REM:")) {
+        const rest=line.replace(/^REMOVE:|^REM:/i,"").trim();
+        return `<div class="lidoLine"><span class="hlRemBadge">REMOVE</span> <span class="hlRem">${mk(rest)}</span></div>`;
+      }
+      return `<div class="lidoLine">${mk(line)}</div>`;
+    }).join("");
+    return `<div class="lidoList">${lines}</div>`;
+  })();
+
+return {fplText, fplHtml, lidoText:lidoLines.length?lidoLines.join("\n"):"—", lidoHtml, opsText:ops.length?[...new Set(ops)].join("\n\n"):"—", gloss:[...gloss], melInfo};
 }
 
 function renderTails(){
@@ -254,7 +289,7 @@ function renderSelected(){
     box.classList.add("empty"); box.textContent="Válassz egy lajstromot.";
     $("selCount").textContent="—";
     $("selTitle").textContent="Teendők";
-    $("fplBox").textContent="—"; $("lidoBox").textContent="—"; $("opsBox").textContent="—"; $("glossBox").textContent="—"; $("melBox").textContent="—";
+    $("fplBox").innerHTML="—"; $("lidoBox").innerHTML="—"; $("opsBox").textContent="—"; $("glossBox").textContent="—"; $("melBox").textContent="—";
     return;
   }
   const t=state.tails.find(x=>x.tail===state.selectedTail);
@@ -270,8 +305,8 @@ function renderSelected(){
     box.appendChild(el);
   }
   const out=aggregate(fs);
-  $("fplBox").textContent=out.fplText;
-  $("lidoBox").textContent=out.lidoText;
+  $("fplBox").innerHTML=out.fplHtml;
+  $("lidoBox").innerHTML=out.lidoHtml;
   $("opsBox").textContent=out.opsText;
   $("glossBox").innerHTML=renderGloss(out.gloss);
   $("melBox").textContent=out.melInfo;
@@ -312,7 +347,7 @@ function clearAll() {
   $("itemList").classList.add("empty"); $("itemList").textContent="Válassz egy lajstromot.";
   $("stats").textContent="—"; $("selCount").textContent="—";
   $("selTitle").textContent="Teendők";
-  $("fplBox").textContent="—"; $("lidoBox").textContent="—"; $("opsBox").textContent="—"; $("glossBox").textContent="—"; $("melBox").textContent="—";
+  $("fplBox").innerHTML="—"; $("lidoBox").innerHTML="—"; $("opsBox").textContent="—"; $("glossBox").textContent="—"; $("melBox").textContent="—";
   setLast("Törölve.");
 }
 
