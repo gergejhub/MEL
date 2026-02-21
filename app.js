@@ -89,7 +89,13 @@ function deriveTag(act){
     if(m) return "ILS "+m[0].replace(/\s+/g,"");
     return "ILS CAT";
   }
-  if(act.tag==="GPS/PBN") return "PBN";
+  if (act.tag==="GPS/PBN") {
+    const up = (act.limitation||"").toUpperCase();
+    if (up.includes("BOTH") && up.includes("GPS") && up.includes("INOP")) return "BOTH GPS INOP";
+    if (up.includes("GPS") && up.includes("INOP")) return "GPS INOP";
+    if (up.includes("GNSS") && up.includes("INOP")) return "GNSS INOP";
+    return "PBN/GNSS";
+  }
   return act.tag;
 }
 
