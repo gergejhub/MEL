@@ -17,6 +17,7 @@
     "tag": "TCAS",
     "mel_refs": [],
     "keywords": [
+      "ACAS",
       "TCAS"
     ],
     "lido": "Remove: from item 10a:X, Remove:item 18 TCAS",
@@ -64,7 +65,9 @@
     "mel_refs": [],
     "keywords": [
       "ADS-B",
+      "ADS-B OUT",
       "ADSB",
+      "ADSB OUT",
       "EUADSBX",
       "SUR/EUADSBX"
     ],
@@ -96,6 +99,8 @@
     "keywords": [
       "GNSS",
       "GPS",
+      "GPS1",
+      "GPS2",
       "PBN"
     ],
     "lido": "Remove: from item 10a:G, Remove:item 18 PBN:A1, B1,C1,D1,O1,O2,S2 insert: B3,B4,B5,C4,D4 Remove: from item 10a:X,",
@@ -126,6 +131,7 @@
     "keywords": [
       "RADAR",
       "WX",
+      "WX RADAR",
       "WXR"
     ],
     "lido": "",
@@ -189,7 +195,8 @@
     "keywords": [
       "APCH",
       "APPCH",
-      "RNP"
+      "RNP",
+      "RNP APCH"
     ],
     "lido": "Remove: from item 18 PBN:S2",
     "other": "Check Minima for DEP/DES/ALT airports",
@@ -239,12 +246,12 @@
       "22-82-01/02"
     ],
     "keywords": [
-      "22-82-01",
       "22-82-01/02",
-      "22-82-02",
       "FMGC",
       "FMS",
-      "MCDU"
+      "MCDU",
+      "MCDU1",
+      "MCDU2"
     ],
     "lido": "Remove: from item 10a:X, Remove:item 18 PBN: A1, C1,L1,",
     "other": "Check VOR/DME/NDB coverage ",

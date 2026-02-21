@@ -1,14 +1,17 @@
 <!doctype html>
-<html lang="hu"><head>
+<html lang="hu">
+<head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>MEL Dispatch Assistant (Clean v3.2)</title>
-<link rel="stylesheet" href="styles.css"/></head>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/>
+<title>MEL Dispatch Assistant (v3.5.0-melindex)</title>
+<link rel="stylesheet" href="styles.css?v=v3.5.0-melindex"/>
+</head>
 <body>
 <header class="topbar">
   <div class="brand"><span class="dot"></span>
     <div>
-      <div class="title">MEL Dispatch Assistant <span class="ver">v3.2</span></div>
-      <div class="subtitle">Stabil feltöltés (látható input + drag&drop) • determinisztikus matching</div>
+      <div class="title">MEL Dispatch Assistant <span class="ver">v3.5.0-melindex</span></div>
+      <div class="subtitle">CSV → dispatch-releváns lajstromok → teendők • MEL-ref + MEL PDF index</div>
     </div>
   </div>
   <div class="health">
@@ -22,12 +25,12 @@
     <div class="ioCol">
       <label class="lbl">CSV fájl</label>
       <input id="csvFile" type="file" accept=".csv,text/csv" class="file"/>
-      <div class="hint">Vagy húzd be ide a CSV-t: <span class="kbd">drag&drop</span></div>
+      <div class="hint">Drag&drop is megy.</div>
     </div>
     <div class="ioCol">
-      <label class="lbl">MEL PDF (SHA ellenőrzés)</label>
+      <label class="lbl">MEL PDF feltöltés (SHA ellenőrzés)</label>
       <input id="pdfFile" type="file" accept="application/pdf" class="file"/>
-      <div class="hint">A PDF-et csak azonosításra használjuk ebben a buildben (nincs CDN).</div>
+      <div class="hint">A beépített index ref→title/CAT alapján működik.</div>
     </div>
     <div class="ioCol">
       <label class="lbl">CSV beillesztés</label>
@@ -57,13 +60,14 @@
     <div class="cardHead">
       <div>
         <div id="selTitle" class="cardTitle">Teendők</div>
-        <div class="cardSub">Mindig csak a kiválasztott lajstrom teendői.</div>
+        <div class="cardSub">Mindig csak a kiválasztott lajstrom.</div>
       </div>
     </div>
     <div class="twoCol">
       <div class="box"><div class="boxTitle">ICAO FPL</div><div id="fplBox" class="mono muted">—</div></div>
       <div class="box"><div class="boxTitle">LIDO 4D</div><div id="lidoBox" class="mono muted">—</div></div>
     </div>
+    <div class="box"><div class="boxTitle">MEL ref / Title / CAT (PDF index)</div><div id="melBox" class="mono muted">—</div></div>
     <div class="box"><div class="boxTitle">Operációs megjegyzések</div><div id="opsBox" class="muted">—</div></div>
     <div class="box"><div class="boxTitle">Kódok magyarázata</div><div id="glossBox" class="muted">—</div></div>
   </section>
@@ -77,6 +81,7 @@
   </aside>
 </main>
 
-<footer class="footer">Ha még így sem indul: nyisd meg a Console-t – de a “Last” pill már kiírja, hol áll meg.</footer>
-<script src="app.js"></script>
-</body></html>
+<footer class="footer">Verzió: <b>v3.5.0-melindex</b>. Ha nem ezt látod, akkor nem a GitHub Pages által kiszolgált mappát frissítetted.</footer>
+<script src="app.js?v=v3.5.0-melindex"></script>
+</body>
+</html>

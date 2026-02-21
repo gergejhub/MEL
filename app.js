@@ -1,47 +1,45 @@
 
-let ACTIONS=[], GLOSS={};
+let ACTIONS=[], GLOSS={}, MELIDX=null;
 let state={tails:[], selectedTail:null};
-const $=id=>document.getElementById(id);
 
-function setLast(msg){
-  $("last").textContent = msg;
-}
-function url(p){ return new URL(p, window.location.href).toString(); }
-function esc(s){ return (s||"").replace(/[&<>"']/g,c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
+const $=id=>document.getElementById(id);
+const esc=s=>(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const url=p=>new URL(p, window.location.href).toString();
+
+function setLast(msg){ $("last").textContent=msg; }
+function normRef(r){ return String(r).toUpperCase().replace(/(\d{2}-\d{2}-\d{2}(?:\/\d{2})?)-([A-Z])$/,'$1$2'); }
 
 async function loadDB(){
   const h=$("health");
-  try{
-
-    ACTIONS=await fetch(url("data/actions.json"), {cache:"no-store"}).then(r=>r.json());
-    // Normalize MEL refs in rules to match CSV variants (e.g. 30-45-03-A -> 30-45-03A)
-    for (const a of ACTIONS){
-      if(!a.mel_refs) continue;
-      a._mel_refs_norm = a.mel_refs.map(x => String(x).toUpperCase().replace(/(\d{2}-\d{2}-\d{2}(?:\/\d{2})?)-([A-Z])$/,'$1$2'));
-    }
-
-    GLOSS=await fetch(url("data/fpl_glossary.json"), {cache:"no-store"}).then(r=>r.json());
+  try {
+    ACTIONS=await fetch(url("data/actions.json"),{cache:"no-store"}).then(r=>r.json());
+    GLOSS=await fetch(url("data/fpl_glossary.json"),{cache:"no-store"}).then(r=>r.json());
+    try {
+      const idx=await fetch(url("data/mel_pdf_index.json"),{cache:"no-store"}).then(r=>r.json());
+      MELIDX=idx.index||null;
+    } catch(e) { MELIDX=null; }
+    for(const a of ACTIONS) a._mel_refs_norm=(a.mel_refs||[]).map(normRef);
     h.textContent=`DB: ${ACTIONS.length} rules`;
     h.style.borderColor="rgba(34,197,94,.35)";
     h.style.color="#bbf7d0";
     setLast("DB loaded.");
-  }catch(e){
+  } catch(e) {
     console.error(e);
     h.textContent="DB: HIBA";
     h.style.borderColor="rgba(239,68,68,.55)";
     h.style.color="#fecaca";
-    setLast("DB load HIBA (data mappa hiányzik?)");
+    setLast("DB load HIBA (data mappa?)");
   }
 }
 
 function splitCsvLine(line){
   const out=[]; let cur=""; let inQ=false;
-  for(let i=0;i<line.length;i++){
+  for(let i=0;i<line.length;i++) {
     const ch=line[i];
-    if(ch === '"'){
-      if(inQ && line[i+1] === '"'){ cur+='"'; i++; }
+    if(ch=='"') {
+      if(inQ && line[i+1]=='"') { cur+='"'; i++; }
       else inQ=!inQ;
-    } else if(ch===',' && !inQ){ out.push(cur); cur=""; }
+    } else if(ch==',' && !inQ) { out.push(cur); cur=""; }
     else cur+=ch;
   }
   out.push(cur); return out;
@@ -51,17 +49,18 @@ function parseCsv(text){
   const lines=text.replace(/\r/g,"").split("\n").filter(l=>l.trim().length>0);
   if(lines.length<2) return [];
   const header=splitCsvLine(lines[0]).map(h=>h.trim().toLowerCase());
-  const find=(pred)=>header.findIndex(pred);
+  const find=pred=>header.findIndex(pred);
   const iTail=find(h=>h.includes("aircraft")||h.includes("a/c")||h==="ac");
   const iWO=find(h=>h.includes("w/o")||h.includes("wo"));
   const iATA=find(h=>h.includes("ata"));
-  const iDesc=find(h=>h.includes("workorder")||h.includes("description")||h.includes("reason"));
+  const textCols=header.map((h,i)=>(h.includes("desc")||h.includes("reason")||h.includes("workorder")||h.includes("title")||h.includes("text"))?i:-1).filter(i=>i>=0);
   const rows=[];
-  for(let k=1;k<lines.length;k++){
+  for(let k=1;k<lines.length;k++) {
     const cols=splitCsvLine(lines[k]);
     const tail=(cols[iTail]||"").trim();
     if(!tail) continue;
-    rows.push({tail, wo:(cols[iWO]||"").trim(), ata:(cols[iATA]||"").trim(), desc:(cols[iDesc]||"").trim(), raw:lines[k]});
+    const desc=textCols.map(ci=>(cols[ci]||"").trim()).join(" • ");
+    rows.push({tail, wo:(cols[iWO]||"").trim(), ata:(cols[iATA]||"").trim(), desc, raw:lines[k]});
   }
   return rows;
 }
@@ -69,26 +68,22 @@ function parseCsv(text){
 function escapeRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
 function wordHit(hay, kw){
   const k=kw.toUpperCase();
+  if(["GPS","MCDU","ADF","VOR"].includes(k)) {
+    const re=new RegExp(`\\b${k}\\s*\\d?\\b`);
+    if(re.test(hay)) return true;
+  }
   if(k.includes(" ")) return hay.includes(k);
   return new RegExp(`\\b${escapeRe(k)}\\b`).test(hay);
 }
-
 function melRefs(hay){
-  // Capture common MEL reference variants:
-  //  - 30-45-03A
-  //  - 30-45-03-A
-  //  - 35-30-01-A
-  //  - 22-82-01/02-A
-  const re = /\b\d{2}-\d{2}-\d{2}(?:\/\d{2})?(?:-?[A-Z])?\b/g;
-  const m = hay.match(re);
+  const re=/\b\d{2}-\d{2}-\d{2}(?:\/\d{2})?(?:-?[A-Z])?\b/g;
+  const m=hay.match(re);
   if(!m) return [];
-  const normed = m.map(x => x.toUpperCase().replace(/(\d{2}-\d{2}-\d{2}(?:\/\d{2})?)-([A-Z])$/,'$1$2'));
-  return Array.from(new Set(normed));
+  return Array.from(new Set(m.map(x=>normRef(x))));
 }
 
-
 function deriveTag(act){
-  if(act.tag==="ILS CAT"){
+  if(act.tag==="ILS CAT") {
     const up=act.limitation.toUpperCase();
     const m=up.match(/CAT\s*IIIB.*IIIA|CAT\s*3B.*3A|CAT\s*II|CAT\s*III[A|B]?|CAT\s*I/);
     if(m) return "ILS "+m[0].replace(/\s+/g,"");
@@ -102,19 +97,21 @@ function matchRow(row){
   const hay=(row.ata+" "+row.desc+" "+row.raw).toUpperCase();
   const refs=melRefs(hay);
   const out=[];
-  for(const act of ACTIONS){
+  for(const act of ACTIONS) {
     let score=0, hits=0;
-    for(const r of (act._mel_refs_norm||act.mel_refs||[])) if(refs.includes(String(r).toUpperCase())) score+=5;
+    for(const r of (act._mel_refs_norm||[])) if(refs.includes(String(r).toUpperCase())) score+=5;
     for(const kw of (act.keywords||[])) if(kw && kw.length>=3 && wordHit(hay, kw)) hits++;
-    if(score===0){
+    if(score===0) {
       if(hits===0) continue;
       if(act.tag==="ILS CAT" && !/(ILS|AUTOLAND|LANDING|CAT)/.test(hay)) continue;
       score += Math.min(3,hits);
     }
-    if(score>=2) out.push({row, act});
+    const highSignal=["ADF","VOR","MCDU","GPS/PBN","CPDLC","ADS-B","TCAS","WX RADAR","RNP APCH","NAT HLA"].includes(act.tag);
+    const pass=(score>=2) || (highSignal && hits>=1);
+    if(pass) out.push({row, act, refs});
   }
   const seen=new Set(), uniq=[];
-  for(const f of out){
+  for(const f of out) {
     const key=`${f.row.wo||f.row.tail+"|"+f.row.desc}|${f.act.id}`;
     if(seen.has(key)) continue;
     seen.add(key); uniq.push(f);
@@ -124,7 +121,7 @@ function matchRow(row){
 
 function buildTails(rows){
   const map=new Map(); let imported=0; let findings=0;
-  for(const r of rows){
+  for(const r of rows) {
     imported++;
     const fs=matchRow(r);
     if(fs.length===0) continue;
@@ -133,15 +130,15 @@ function buildTails(rows){
     map.get(r.tail).push(...fs);
   }
   const tails=[];
-  for(const [tail, fs] of map.entries()){
+  for(const [tail, fs] of map.entries()) {
     const seen=new Set(), uniq=[];
-    for(const f of fs){
+    for(const f of fs) {
       const key=`${f.row.wo||f.row.tail+"|"+f.row.desc}|${f.act.id}`;
       if(seen.has(key)) continue;
       seen.add(key); uniq.push(f);
     }
     const tagCounts=new Map();
-    for(const f of uniq){
+    for(const f of uniq) {
       const tag=deriveTag(f.act);
       tagCounts.set(tag,(tagCounts.get(tag)||0)+1);
     }
@@ -156,7 +153,7 @@ function parseLido(lido){
   if(!raw) return [];
   const chunks=raw.split(/(?=(?:Remove:|REMOVE:|Insert|INSERT|Overwrite:|OVERWRITE:|Add:|ADD:))/);
   const steps=[];
-  for(let ch of chunks){
+  for(let ch of chunks) {
     ch=ch.trim(); if(!ch) continue;
     const isRem=/^remove:/i.test(ch);
     const isAdd=/^(insert|add:|overwrite:)/i.test(ch);
@@ -165,7 +162,7 @@ function parseLido(lido){
     const item=itemM?`ITEM${itemM[1].toUpperCase()}`:"—";
     const codes=new Set();
     const pbn=ch.match(/PBN\s*:\s*([A-Z0-9,\/ ]+)/i);
-    if(pbn){ pbn[1].split(/[, ]+/).filter(Boolean).forEach(p=>codes.add(`PBN:${p.toUpperCase()}`)); }
+    if(pbn) pbn[1].split(/[, ]+/).filter(Boolean).forEach(p=>codes.add(`PBN:${p.toUpperCase()}`));
     const tok=ch.replace(/PBN\s*:\s*[A-Z0-9,\/ ]+/ig," ");
     for(const m of tok.matchAll(/\b([A-Z]\d|TCAS|DAT\/CPDLCX|SUR\/EUADSBX|EUADSBX|X|Z|L|F|G|S|H|J1|J4)\b/g)) codes.add(m[1].toUpperCase());
     steps.push({kind:isAdd?"ADD":"REM", item, codes:[...codes]});
@@ -174,11 +171,13 @@ function parseLido(lido){
 }
 
 function aggregate(findings){
-  const agg={"ITEM10A":{add:new Set(),rem:new Set()},"ITEM10B":{add:new Set(),rem:new Set()},"ITEM18":{add:new Set(),rem:new Set()}};
+  const agg={"ITEM10A":{add:new Set(),rem:new Set()}, "ITEM10B":{add:new Set(),rem:new Set()}, "ITEM18":{add:new Set(),rem:new Set()}};
   const lidoLines=[]; const ops=[]; const gloss=new Set();
-  for(const f of findings){
+  const melRefsUsed=new Set();
+  for(const f of findings) {
+    (f.refs||[]).forEach(r=>melRefsUsed.add(r));
     if(f.act.other && f.act.other.trim()) ops.push(f.act.other.trim());
-    for(const s of parseLido(f.act.lido)){
+    for(const s of parseLido(f.act.lido)) {
       const tgt = s.kind==="ADD" ? agg[s.item]?.add : agg[s.item]?.rem;
       if(tgt) s.codes.forEach(c=>tgt.add(c));
       lidoLines.push(`${s.kind}: ${s.item} → ${s.codes.length?s.codes.join(", "):"—"}`);
@@ -195,22 +194,37 @@ function aggregate(findings){
     }
   }
   const fplText=["ITEM10A","ITEM10B","ITEM18"].map(it=>{
-    const a=[...agg[it].add].sort(); const r=[...agg[it].rem].sort();
+    const a=[...agg[it].add].sort(), r=[...agg[it].rem].sort();
     return `${it}: ADD ${a.length?a.join(", "):"—"}\n      REM ${r.length?r.join(", "):"—"}`;
   }).join("\n\n");
-  return {fplText, lidoText:lidoLines.length?lidoLines.join("\n"):"—", opsText:ops.length?[...new Set(ops)].join("\n\n"):"—", gloss:[...gloss]};
+
+  let melInfo="—";
+  if(MELIDX && melRefsUsed.size) {
+    const lines=[];
+    for(const ref of Array.from(melRefsUsed).slice(0,20)) {
+      const ent=MELIDX[ref];
+      if(!ent) continue;
+      const cats=(ent.cat_tokens||[]).join(", ");
+      const pg=(ent.pages||[]).slice(0,3).map(p=>p+1).join(", ");
+      const sn=(ent.snippets||[])[0]||"";
+      lines.push(`• ${ref} (p. ${pg})${cats? " ["+cats+"]":""} — ${sn.slice(0,160)}`);
+    }
+    if(lines.length) melInfo=lines.join("\n");
+  }
+
+  return {fplText, lidoText:lidoLines.length?lidoLines.join("\n"):"—", opsText:ops.length?[...new Set(ops)].join("\n\n"):"—", gloss:[...gloss], melInfo};
 }
 
 function renderTails(){
   const list=$("tailList");
-  if(state.tails.length===0){
+  if(state.tails.length===0) {
     list.classList.add("empty");
     list.textContent="Nincs dispatch-releváns találat.";
     return;
   }
   list.classList.remove("empty");
   list.innerHTML="";
-  for(const t of state.tails){
+  for(const t of state.tails) {
     const el=document.createElement("div");
     el.className="item"+(state.selectedTail===t.tail?" active":"");
     el.onclick=()=>selectTail(t.tail);
@@ -232,19 +246,15 @@ function renderGloss(keys){
   }).join("")+`</div>`;
 }
 
-function selectTail(tail){
-  state.selectedTail=tail;
-  renderTails();
-  renderSelected();
-}
+function selectTail(tail){ state.selectedTail=tail; renderTails(); renderSelected(); }
 
 function renderSelected(){
   const box=$("itemList");
-  if(!state.selectedTail){
+  if(!state.selectedTail) {
     box.classList.add("empty"); box.textContent="Válassz egy lajstromot.";
     $("selCount").textContent="—";
     $("selTitle").textContent="Teendők";
-    $("fplBox").textContent="—"; $("lidoBox").textContent="—"; $("opsBox").textContent="—"; $("glossBox").textContent="—";
+    $("fplBox").textContent="—"; $("lidoBox").textContent="—"; $("opsBox").textContent="—"; $("glossBox").textContent="—"; $("melBox").textContent="—";
     return;
   }
   const t=state.tails.find(x=>x.tail===state.selectedTail);
@@ -252,7 +262,7 @@ function renderSelected(){
   $("selTitle").textContent=`Teendők – ${state.selectedTail}`;
   $("selCount").textContent=`Aktív dispatch-releváns tételek: ${fs.length}`;
   box.classList.remove("empty"); box.innerHTML="";
-  for(const f of fs){
+  for(const f of fs) {
     const el=document.createElement("div"); el.className="item";
     el.innerHTML=`<div class="row"><div><b>${esc(f.act.limitation)}</b></div><div class="badge">${esc(deriveTag(f.act))}</div></div>
       <div class="cardSub">W/O ${esc(f.row.wo||"—")} • ATA ${esc(f.row.ata||"—")}</div>
@@ -264,28 +274,29 @@ function renderSelected(){
   $("lidoBox").textContent=out.lidoText;
   $("opsBox").textContent=out.opsText;
   $("glossBox").innerHTML=renderGloss(out.gloss);
+  $("melBox").textContent=out.melInfo;
 }
 
-async function handleCsvText(text){
+async function handleCsvText(text) {
   setLast("CSV feldolgozás…");
   const rows=parseCsv(text);
   const built=buildTails(rows);
   state.tails=built.tails;
   state.selectedTail=built.tails[0]?.tail||null;
   $("stats").textContent=`Importált sorok: ${built.imported} • Lajstromok: ${built.tails.length} • Találatok: ${built.findings}`;
-  renderTails();
-  renderSelected();
+  renderTails(); renderSelected();
   setLast(`Kész. Találatok: ${built.findings} • Lajstrom: ${built.tails.length}`);
 }
 
-function copySummary(){
+function copySummary() {
   if(!state.selectedTail) return;
   const t=state.tails.find(x=>x.tail===state.selectedTail);
   const out=aggregate(t.findings);
-  navigator.clipboard?.writeText(`MEL Dispatch – ${state.selectedTail}\n\nICAO FPL:\n${out.fplText}\n\nLIDO:\n${out.lidoText}\n\nOPS:\n${out.opsText}\n`);
+  navigator.clipboard?.writeText(`MEL Dispatch – ${state.selectedTail}\n\nICAO FPL:\n${out.fplText}\n\nLIDO:\n${out.lidoText}\n\nOPS:\n${out.opsText}\n\nMEL refs:\n${out.melInfo}\n`);
   setLast("Másolva.");
 }
-function handover(){
+
+function handover() {
   if(state.tails.length===0) return;
   const lines=state.tails.map(t=>{
     const tags=[...t.tagCounts.entries()].sort((a,b)=>b[1]-a[1]).map(([k,n])=>`${k}${n>1?`×${n}`:""}`).join(", ");
@@ -294,24 +305,25 @@ function handover(){
   navigator.clipboard?.writeText(lines);
   setLast("Handover a vágólapon.");
 }
-function clearAll(){
+
+function clearAll() {
   state={tails:[], selectedTail:null};
   $("tailList").classList.add("empty"); $("tailList").textContent="Tölts fel CSV-t.";
   $("itemList").classList.add("empty"); $("itemList").textContent="Válassz egy lajstromot.";
   $("stats").textContent="—"; $("selCount").textContent="—";
   $("selTitle").textContent="Teendők";
-  $("fplBox").textContent="—"; $("lidoBox").textContent="—"; $("opsBox").textContent="—"; $("glossBox").textContent="—";
+  $("fplBox").textContent="—"; $("lidoBox").textContent="—"; $("opsBox").textContent="—"; $("glossBox").textContent="—"; $("melBox").textContent="—";
   setLast("Törölve.");
 }
-async function sha256(file){
+
+async function sha256(file) {
   const buf=await file.arrayBuffer();
   const hash=await crypto.subtle.digest("SHA-256", buf);
   return [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,"0")).join("");
 }
 
-function enableDnD(){
-  const el=$("csvFile");
-  const dropTargets=[document.body, el];
+function enableDnD() {
+  const dropTargets=[document.body, $("csvFile")];
   dropTargets.forEach(t=>{
     t.addEventListener("dragover",(e)=>{ e.preventDefault(); setLast("Drop CSV…"); });
     t.addEventListener("drop", async (e)=>{
@@ -326,7 +338,7 @@ function enableDnD(){
   });
 }
 
-function bind(){
+function bind() {
   $("btnImportPaste").onclick=async()=>{ await handleCsvText($("csvPaste").value); };
   $("btnClear").onclick=clearAll;
   $("btnHandover").onclick=handover;
@@ -334,7 +346,7 @@ function bind(){
 
   $("csvFile").addEventListener("change", async (e)=>{
     const f=e.target.files?.[0];
-    if(!f){ setLast("CSV választás megszakítva."); return; }
+    if(!f) { setLast("CSV választás megszakítva."); return; }
     setLast(`CSV: ${f.name} – olvasás…`);
     const text=await f.text();
     await handleCsvText(text);
@@ -342,7 +354,7 @@ function bind(){
   });
   $("pdfFile").addEventListener("change", async (e)=>{
     const f=e.target.files?.[0];
-    if(!f){ setLast("PDF választás megszakítva."); return; }
+    if(!f) { setLast("PDF választás megszakítva."); return; }
     setLast(`PDF: ${f.name} – SHA…`);
     const hex=await sha256(f);
     $("stats").textContent = ($("stats").textContent==="—"?"":$("stats").textContent+" • ")+`PDF SHA: ${hex.slice(0,12)}…`;
@@ -351,9 +363,10 @@ function bind(){
   });
 }
 
-(async function init(){
+(async function init() {
+  await loadDB();
   bind();
   enableDnD();
-  await loadDB();
   setLast("Ready. Válassz CSV-t.");
+  console.log("MEL Dispatch Assistant v3.5.0-melindex");
 })();

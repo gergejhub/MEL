@@ -1,62 +1,62 @@
 {
   "TCAS": {
     "title": "TCAS",
-    "why": "TCAS capability jelölés az ICAO FPL-ben; INOP esetén törlendő, és OPS korlátozások lehetnek (pl. NAT HLA).",
-    "see": "EUROCONTROL IFPS Manual / Learning Zone"
+    "why": "TCAS/ACAS capability jelölés az ICAO FPL-ben; INOP esetén törlendő, és OPS korlátozások léphetnek életbe (pl. NAT HLA).",
+    "see": "EUROCONTROL IFPS User Manual / Learning Zone"
   },
   "DAT/CPDLCX": {
     "title": "DAT/CPDLCX",
     "why": "Item 18 DAT/…: CPDLC/datalink availability változás jelölése.",
-    "see": "EUROCONTROL IFPS Manual / Learning Zone"
+    "see": "EUROCONTROL IFPS User Manual / Learning Zone"
   },
   "PBN/": {
     "title": "PBN/…",
     "why": "Item 18 PBN/ mező: RNAV/RNP képességek deklarálása. MEL miatt módosítandó lehet.",
-    "see": "EUROCONTROL IFPS Manual / Learning Zone"
+    "see": "EUROCONTROL IFPS User Manual / Learning Zone"
   },
   "B3": {
     "title": "B3",
     "why": "RNAV 5 (DME/DME).",
-    "see": "EUROCONTROL IFPS / PBN guidance"
+    "see": "EUROCONTROL IFPS / PBN filing guidance"
   },
   "B4": {
     "title": "B4",
     "why": "RNAV 5 (VOR/DME).",
-    "see": "EUROCONTROL IFPS / PBN guidance"
+    "see": "EUROCONTROL IFPS / PBN filing guidance"
   },
   "B5": {
     "title": "B5",
     "why": "RNAV 5 (INS/IRS).",
-    "see": "EUROCONTROL IFPS / PBN guidance"
+    "see": "EUROCONTROL IFPS / PBN filing guidance"
   },
   "C4": {
     "title": "C4",
     "why": "RNAV 2 (DME/DME/IRU).",
-    "see": "EUROCONTROL IFPS / PBN guidance"
+    "see": "EUROCONTROL IFPS / PBN filing guidance"
   },
   "D4": {
     "title": "D4",
     "why": "RNAV 1 (DME/DME/IRU).",
-    "see": "EUROCONTROL IFPS / PBN guidance"
+    "see": "EUROCONTROL IFPS / PBN filing guidance"
   },
   "J1": {
     "title": "J1",
-    "why": "CPDLC capability code. INOP esetén törlendő.",
-    "see": "EUROCONTROL IFPS Manual"
+    "why": "CPDLC capability code (policy). INOP esetén törlendő.",
+    "see": "EUROCONTROL IFPS User Manual"
   },
   "J4": {
     "title": "J4",
-    "why": "CPDLC capability code. INOP esetén törlendő.",
-    "see": "EUROCONTROL IFPS Manual"
+    "why": "CPDLC capability code (policy). INOP esetén törlendő.",
+    "see": "EUROCONTROL IFPS User Manual"
   },
   "Z": {
     "title": "Z",
     "why": "Item 10a: Other equipment / see remarks.",
-    "see": "EUROCONTROL IFPS Manual"
+    "see": "EUROCONTROL IFPS User Manual"
   },
   "SUR/EUADSBX": {
     "title": "SUR/EUADSBX",
     "why": "Item 18 SUR/ remark: ADS-B exemption/special filing (policy).",
-    "see": "EUROCONTROL IFPS Manual / Learning Zone"
+    "see": "EUROCONTROL IFPS User Manual / Learning Zone"
   }
 }
