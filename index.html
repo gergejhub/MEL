@@ -1,36 +1,46 @@
-<!doctype html><html lang="hu"><head>
+<!doctype html>
+<html lang="hu"><head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>MEL Dispatch Assistant (Clean v3.1)</title>
-<link rel="stylesheet" href="styles.css"/></head><body>
+<title>MEL Dispatch Assistant (Clean v3.2)</title>
+<link rel="stylesheet" href="styles.css"/></head>
+<body>
 <header class="topbar">
-  <div class="brand"><span class="dot"></span><div>
-    <div class="title">MEL Dispatch Assistant</div>
-    <div class="subtitle">Clean • determinisztikus matching • feltöltés-debug</div>
-  </div></div>
-  <div class="actions">
-    <button id="btnCsvPick" class="btn">CSV feltöltés</button>
-    <button id="btnPaste" class="btn btn-ghost">CSV beillesztés</button>
-    <button id="btnPdfPick" class="btn btn-ghost">MEL PDF (SHA)</button>
-    <button id="btnHandover" class="btn btn-ghost">Handover export</button>
-    <button id="btnClear" class="btn btn-danger">Törlés</button>
+  <div class="brand"><span class="dot"></span>
+    <div>
+      <div class="title">MEL Dispatch Assistant <span class="ver">v3.2</span></div>
+      <div class="subtitle">Stabil feltöltés (látható input + drag&drop) • determinisztikus matching</div>
+    </div>
+  </div>
+  <div class="health">
+    <span id="health" class="pill">DB: …</span>
+    <span id="last" class="pill pill2">Ready.</span>
   </div>
 </header>
 
-<input id="csvFile" type="file" accept=".csv,text/csv" class="hidden"/>
-<input id="pdfFile" type="file" accept="application/pdf" class="hidden"/>
-
-<section id="pastePanel" class="panel hidden">
-  <div class="panelHead">
-    <div class="panelTitle">CSV beillesztés</div>
-    <button id="btnPasteClose" class="btn btn-ghost">Bezárás</button>
-  </div>
-  <textarea id="csvPaste" class="textarea" placeholder="Illeszd be a teljes CSV-t header-rel együtt…"></textarea>
-  <div class="panelActions">
-    <button id="btnImportPaste" class="btn">Import</button>
+<section class="io card">
+  <div class="ioRow">
+    <div class="ioCol">
+      <label class="lbl">CSV fájl</label>
+      <input id="csvFile" type="file" accept=".csv,text/csv" class="file"/>
+      <div class="hint">Vagy húzd be ide a CSV-t: <span class="kbd">drag&drop</span></div>
+    </div>
+    <div class="ioCol">
+      <label class="lbl">MEL PDF (SHA ellenőrzés)</label>
+      <input id="pdfFile" type="file" accept="application/pdf" class="file"/>
+      <div class="hint">A PDF-et csak azonosításra használjuk ebben a buildben (nincs CDN).</div>
+    </div>
+    <div class="ioCol">
+      <label class="lbl">CSV beillesztés</label>
+      <textarea id="csvPaste" class="ta" placeholder="Illeszd be a teljes CSV-t (headerrel)…"></textarea>
+      <div class="btnRow">
+        <button id="btnImportPaste" class="btn">Import</button>
+        <button id="btnClear" class="btn btn-danger">Törlés</button>
+        <button id="btnHandover" class="btn btn-ghost">Handover export</button>
+        <button id="btnCopy" class="btn btn-ghost">Másolás</button>
+      </div>
+    </div>
   </div>
 </section>
-
-<section id="toast" class="toast hidden"></section>
 
 <main class="grid">
   <aside class="card">
@@ -38,9 +48,7 @@
       <div>
         <div class="cardTitle">Dispatch-releváns repülőgépek</div>
         <div id="stats" class="cardSub">—</div>
-        <div id="lastAction" class="cardSub">Ready.</div>
       </div>
-      <div id="health" class="pill">DB: …</div>
     </div>
     <div id="tailList" class="list empty">Tölts fel CSV-t.</div>
   </aside>
@@ -49,9 +57,8 @@
     <div class="cardHead">
       <div>
         <div id="selTitle" class="cardTitle">Teendők</div>
-        <div class="cardSub">Csak a kiválasztott lajstrom.</div>
+        <div class="cardSub">Mindig csak a kiválasztott lajstrom teendői.</div>
       </div>
-      <button id="btnCopy" class="btn btn-ghost">Másolás</button>
     </div>
     <div class="twoCol">
       <div class="box"><div class="boxTitle">ICAO FPL</div><div id="fplBox" class="mono muted">—</div></div>
@@ -70,6 +77,6 @@
   </aside>
 </main>
 
-<footer class="footer"><span class="muted">Ha feltöltéskor “semmi nem történik”, a bal oldali “Last action” kiírja, hol akadt el.</span></footer>
+<footer class="footer">Ha még így sem indul: nyisd meg a Console-t – de a “Last” pill már kiírja, hol áll meg.</footer>
 <script src="app.js"></script>
 </body></html>
