@@ -1,0 +1,1325 @@
+{
+  "type": "daily_report",
+  "source_pdf": "Daily Report 20022026.pdf",
+  "pdf_sha256": "fef307fe95ec1be65f8cad34b834e81e85f411c8c1ec5d88fbfd096d1c929a36",
+  "generated_utc": "2026-02-21T14:24:58Z",
+  "rows": [
+    {
+      "tail": "9H-WAB",
+      "wo": "700129644",
+      "ata": "",
+      "desc": "02 Jun - 12 Jun 25-11-11A CPT RHS ARMREST COVER DETACHING",
+      "raw": "9H-WAB 700129644 02 Jun - 12 Jun 25-11-11A CPT RHS ARMREST COVER DETACHING",
+      "mel_ref": "25-11-11A"
+    },
+    {
+      "tail": "9H-WAD",
+      "wo": "700265688",
+      "ata": "",
+      "desc": "19 Feb - 01 Mar 35-30-01B 1 OXY BOTTLE 40ABC USED - 500PSI LEFT. O",
+      "raw": "9H-WAD 700265688 19 Feb - 01 Mar 35-30-01B 1 OXY BOTTLE 40ABC USED - 500PSI LEFT. O",
+      "mel_ref": "35-30-01B"
+    },
+    {
+      "tail": "9H-WAH",
+      "wo": "700106245",
+      "ata": "",
+      "desc": "19 Jan - 18 May 49-10-01-C APU INOP & DEACTIVATED - REFER TO WO 700",
+      "raw": "9H-WAH 700106245 19 Jan - 18 May MEL 49-10-01-C APU INOP & DEACTIVATED - REFER TO WO 700",
+      "mel_ref": "49-10-01C"
+    },
+    {
+      "tail": "9H-WAH",
+      "wo": "700107853",
+      "ata": "",
+      "desc": "26 Jan - 05 Feb 21-31-01B IN FLIGHT CAB PRESS SYS 2 FAULT.",
+      "raw": "9H-WAH 700107853 26 Jan - 05 Feb MEL 21-31-01B IN FLIGHT CAB PRESS SYS 2 FAULT.",
+      "mel_ref": "21-31-01B"
+    },
+    {
+      "tail": "9H-WAH",
+      "wo": "700107854",
+      "ata": "",
+      "desc": "26 Jan - 05 Feb 36-11-01A TWO CABIN ODOUR REPORTS OPENED. CREW SUS",
+      "raw": "9H-WAH 700107854 26 Jan - 05 Feb MEL 36-11-01A TWO CABIN ODOUR REPORTS OPENED. CREW SUS",
+      "mel_ref": "36-11-01A"
+    },
+    {
+      "tail": "9H-WAJ",
+      "wo": "700262528",
+      "ata": "",
+      "desc": "05 Feb - 05 Jun 52-30-07A AFT CARGO DOOR OPEN/LOCKED INDICATOR LIG",
+      "raw": "9H-WAJ 700262528 05 Feb - 05 Jun 52-30-07A AFT CARGO DOOR OPEN/LOCKED INDICATOR LIG",
+      "mel_ref": "52-30-07A"
+    },
+    {
+      "tail": "9H-WAL",
+      "wo": "700260388",
+      "ata": "",
+      "desc": "27 Jan - 27 May 30-45-03-A RAIN REPELLENT ON YELLOW",
+      "raw": "9H-WAL 700260388 27 Jan - 27 May 30-45-03-A RAIN REPELLENT ON YELLOW",
+      "mel_ref": "30-45-03A"
+    },
+    {
+      "tail": "9H-WAM",
+      "wo": "700107540",
+      "ata": "",
+      "desc": "25 Jan - 04 Feb 22-70-02a REF WO 11958315 DUE TO  PNA NAV. DARA BA",
+      "raw": "9H-WAM 700107540 25 Jan - 04 Feb 22-70-02a REF WO 11958315 DUE TO  PNA NAV. DARA BA",
+      "mel_ref": "22-70-02A"
+    },
+    {
+      "tail": "9H-WAN",
+      "wo": "700265327",
+      "ata": "",
+      "desc": "17 Feb - 27 Feb 35-30-01-B REV 05 DEC 25 OXYGEN BOTTLE FOR MEDICAL PURPOSES 1600",
+      "raw": "9H-WAN 700265327 17 Feb - 27 Feb 35-30-01-B REV 05 DEC 25 OXYGEN BOTTLE FOR MEDICAL PURPOSES 1600",
+      "mel_ref": "35-30-01B"
+    },
+    {
+      "tail": "9H-WAO",
+      "wo": "700264639",
+      "ata": "",
+      "desc": "15 Feb - 26 Feb 49-10-01A APU AUTO SHUTDOWN SECOND START ATTEMPT W",
+      "raw": "9H-WAO 700264639 15 Feb - 26 Feb 49-10-01A APU AUTO SHUTDOWN SECOND START ATTEMPT W",
+      "mel_ref": "49-10-01A"
+    },
+    {
+      "tail": "9H-WAS",
+      "wo": "700255486",
+      "ata": "",
+      "desc": "07 Jan - 04 May 30-45-03-A REF WO 24564495- RAIN REPELLENT FLUID QU",
+      "raw": "9H-WAS 700255486 07 Jan - 04 May 30-45-03-A REF WO 24564495- RAIN REPELLENT FLUID QU",
+      "mel_ref": "30-45-03A"
+    },
+    {
+      "tail": "9H-WAT",
+      "wo": "700265417",
+      "ata": "",
+      "desc": "18 Feb - 19 Jun 25-20-07a SEAT 1F TRAY TABLE COVER DETACHED",
+      "raw": "9H-WAT 700265417 18 Feb - 19 Jun 25-20-07a SEAT 1F TRAY TABLE COVER DETACHED",
+      "mel_ref": "25-20-07A"
+    },
+    {
+      "tail": "9H-WAU",
+      "wo": "700265934",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 35-30-01B OXY BOTTLE FORWARD 1ABC USED 800 PSI, OX",
+      "raw": "9H-WAU 700265934 20 Feb - 02 Mar 35-30-01B OXY BOTTLE FORWARD 1ABC USED 800 PSI, OX",
+      "mel_ref": "35-30-01B"
+    },
+    {
+      "tail": "9H-WAU",
+      "wo": "700265935",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 25-40-07A LAVATORIE A WATER RUNNING CONTINUOUSLY.",
+      "raw": "9H-WAU 700265935 20 Feb - 02 Mar 25-40-07A LAVATORIE A WATER RUNNING CONTINUOUSLY.",
+      "mel_ref": "25-40-07A"
+    },
+    {
+      "tail": "9H-WAV",
+      "wo": "700265890",
+      "ata": "",
+      "desc": "20 Feb - 01 Mar 28-02 REFUELING PANEL DOOR : ONE LATCH IS MISS",
+      "raw": "9H-WAV 700265890 20 Feb - 01 Mar 28-02 REFUELING PANEL DOOR : ONE LATCH IS MISS"
+    },
+    {
+      "tail": "9H-WAW",
+      "wo": "700265462",
+      "ata": "",
+      "desc": "18 Feb - 18 Jun 25-20-07A TRAY TABLE SEAT 1C COVER FLAP BROKEN",
+      "raw": "9H-WAW 700265462 18 Feb - 18 Jun 25-20-07A TRAY TABLE SEAT 1C COVER FLAP BROKEN",
+      "mel_ref": "25-20-07A"
+    },
+    {
+      "tail": "9H-WAX",
+      "wo": "700115924",
+      "ata": "",
+      "desc": "15 Mar - 13 Jul 25-20-05-B ARMREST BETWEEN SEATS 2BA BROKEN",
+      "raw": "9H-WAX 700115924 15 Mar - 13 Jul 25-20-05-B ARMREST BETWEEN SEATS 2BA BROKEN",
+      "mel_ref": "25-20-05B"
+    },
+    {
+      "tail": "9H-WAX",
+      "wo": "700115965",
+      "ata": "",
+      "desc": "16 Mar - 13 Jul 25-20-01B PAX SEATS 2A, 2B INOP. -DO NOT OCCUPY-",
+      "raw": "9H-WAX 700115965 16 Mar - 13 Jul 25-20-01B PAX SEATS 2A, 2B INOP. -DO NOT OCCUPY-",
+      "mel_ref": "25-20-01B"
+    },
+    {
+      "tail": "9H-WAY",
+      "wo": "700264399",
+      "ata": "",
+      "desc": "14 Feb - 24 Feb 36-11-01A DURING RUNUP/ICE SHEDDING ENG1 BLEED FAU",
+      "raw": "9H-WAY 700264399 14 Feb - 24 Feb 36-11-01A DURING RUNUP/ICE SHEDDING ENG1 BLEED FAU",
+      "mel_ref": "36-11-01A"
+    },
+    {
+      "tail": "9H-WBA",
+      "wo": "700246311",
+      "ata": "",
+      "desc": "02 Dec - 01 Apr 30-45-03A CM1 RAIN REPELLENT INOP",
+      "raw": "9H-WBA 700246311 02 Dec - 01 Apr 30-45-03A CM1 RAIN REPELLENT INOP",
+      "mel_ref": "30-45-03A"
+    },
+    {
+      "tail": "9H-WBA",
+      "wo": "700265771",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 31-63-05A LOWER ECAM INOP",
+      "raw": "9H-WBA 700265771 20 Feb - 02 Mar 31-63-05A LOWER ECAM INOP",
+      "mel_ref": "31-63-05A"
+    },
+    {
+      "tail": "9H-WBA",
+      "wo": "700264031",
+      "ata": "",
+      "desc": "12 Feb - 22 Feb 52-30-03A DOORS ARE NOT HYDRAULICALLY OPERATING",
+      "raw": "9H-WBA 700264031 12 Feb - 22 Feb 52-30-03A DOORS ARE NOT HYDRAULICALLY OPERATING",
+      "mel_ref": "52-30-03A"
+    },
+    {
+      "tail": "9H-WBA",
+      "wo": "700264612",
+      "ata": "",
+      "desc": "15 Feb - 25 Feb 21-31-01A ECAM CABIN PRESSURE SYST FAULT",
+      "raw": "9H-WBA 700264612 15 Feb - 25 Feb 21-31-01A ECAM CABIN PRESSURE SYST FAULT",
+      "mel_ref": "21-31-01A"
+    },
+    {
+      "tail": "9H-WBK",
+      "wo": "700107719",
+      "ata": "",
+      "desc": "26 Jan - 05 Feb 25-11-05A CAPT SEAT HORIZONTAL ELECTRICAL ADJUSTEM",
+      "raw": "9H-WBK 700107719 26 Jan - 05 Feb MEL 25-11-05A CAPT SEAT HORIZONTAL ELECTRICAL ADJUSTEM",
+      "mel_ref": "25-11-05A"
+    },
+    {
+      "tail": "9H-WBN",
+      "wo": "700110399",
+      "ata": "",
+      "desc": "10 Feb - 20 Feb 34.40.05A TCAS FAULT - RESET UNSUCCESSFUL",
+      "raw": "9H-WBN 700110399 10 Feb - 20 Feb 34.40.05A TCAS FAULT - RESET UNSUCCESSFUL"
+    },
+    {
+      "tail": "9H-WBP",
+      "wo": "700265830",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 25-40-07A LAVATORY A FLUSHING SYSTEM UNSERVICEABLE",
+      "raw": "9H-WBP 700265830 20 Feb - 02 Mar 25-40-07A LAVATORY A FLUSHING SYSTEM UNSERVICEABLE",
+      "mel_ref": "25-40-07A"
+    },
+    {
+      "tail": "9H-WBQ",
+      "wo": "700251169",
+      "ata": "",
+      "desc": "23 Dec - 22 Apr 30-45-03A RAIN REPELLENT INDICATOR IN YELLOW SECTO",
+      "raw": "9H-WBQ 700251169 23 Dec - 22 Apr 30-45-03A RAIN REPELLENT INDICATOR IN YELLOW SECTO",
+      "mel_ref": "30-45-03A"
+    },
+    {
+      "tail": "9H-WBR",
+      "wo": "700263349",
+      "ata": "",
+      "desc": "09 Feb - 01 Mar 25-20-09A CC3A JUMPSEAT EXTENDING TO OPEN POSITION",
+      "raw": "9H-WBR 700263349 09 Feb - 01 Mar 25-20-09A CC3A JUMPSEAT EXTENDING TO OPEN POSITION",
+      "mel_ref": "25-20-09A"
+    },
+    {
+      "tail": "9H-WBS",
+      "wo": "700106148",
+      "ata": "",
+      "desc": "18 Jan - 28 Jan 36-11-01-A FOR INFO - WET DOG SMELL AFTER BOTH DEPA",
+      "raw": "9H-WBS 700106148 18 Jan - 28 Jan MEL 36-11-01-A FOR INFO - WET DOG SMELL AFTER BOTH DEPA",
+      "mel_ref": "36-11-01A"
+    },
+    {
+      "tail": "9H-WBU",
+      "wo": "700265648",
+      "ata": "",
+      "desc": "19 Feb - 01 Mar 25-50-06A CARGO COMPARTMENT NO3 NET ATTACHED POINT",
+      "raw": "9H-WBU 700265648 19 Feb - 01 Mar 25-50-06A CARGO COMPARTMENT NO3 NET ATTACHED POINT",
+      "mel_ref": "25-50-06A"
+    },
+    {
+      "tail": "9H-WBX",
+      "wo": "700261613",
+      "ata": "",
+      "desc": "01 Feb - 01 Jun 25-20-06A 19ABC UNDERSEAT BAGGAGE RESTRAINT BAR DA",
+      "raw": "9H-WBX 700261613 01 Feb - 01 Jun 25-20-06A 19ABC UNDERSEAT BAGGAGE RESTRAINT BAR DA",
+      "mel_ref": "25-20-06A"
+    },
+    {
+      "tail": "9H-WBY",
+      "wo": "700265784",
+      "ata": "",
+      "desc": "20 Feb - 20 Jun 33-40-07A BOTH LOGO LIGHTS INOP",
+      "raw": "9H-WBY 700265784 20 Feb - 20 Jun 33-40-07A BOTH LOGO LIGHTS INOP",
+      "mel_ref": "33-40-07A"
+    },
+    {
+      "tail": "9H-WDA",
+      "wo": "700265471",
+      "ata": "",
+      "desc": "18 Feb - 28 Feb 35-30-01-B ONE OXYGEN BOTTLE USED WITH 1500PSI REMA",
+      "raw": "9H-WDA 700265471 18 Feb - 28 Feb 35-30-01-B ONE OXYGEN BOTTLE USED WITH 1500PSI REMA",
+      "mel_ref": "35-30-01B"
+    },
+    {
+      "tail": "9H-WDH",
+      "wo": "700263988",
+      "ata": "",
+      "desc": "12 Feb - 22 Feb 26-12-03A ENG 1 LOOP B FAULT DURING APPRCH AT 2800",
+      "raw": "9H-WDH 700263988 12 Feb - 22 Feb 26-12-03A ENG 1 LOOP B FAULT DURING APPRCH AT 2800",
+      "mel_ref": "26-12-03A"
+    },
+    {
+      "tail": "9H-WDJ",
+      "wo": "700265584",
+      "ata": "",
+      "desc": "19 Feb - 01 Mar 22-82-02A MCDU 2 INOP. RESET FROM QRH PERFORMED, U",
+      "raw": "9H-WDJ 700265584 19 Feb - 01 Mar 22-82-02A MCDU 2 INOP. RESET FROM QRH PERFORMED, U",
+      "mel_ref": "22-82-02A"
+    },
+    {
+      "tail": "9H-WDK",
+      "wo": "700264093",
+      "ata": "",
+      "desc": "12 Feb - 22 Feb 34-50-09D GPS2 DATA DASHED ON GPS MONITOR PAGE. RE",
+      "raw": "9H-WDK 700264093 12 Feb - 22 Feb 34-50-09D GPS2 DATA DASHED ON GPS MONITOR PAGE. RE",
+      "mel_ref": "34-50-09D"
+    },
+    {
+      "tail": "9H-WDM",
+      "wo": "700262539",
+      "ata": "",
+      "desc": "06 Feb - 06 Jun 33-40-07A LEFT LOGO LIGHT INOP",
+      "raw": "9H-WDM 700262539 06 Feb - 06 Jun 33-40-07A LEFT LOGO LIGHT INOP",
+      "mel_ref": "33-40-07A"
+    },
+    {
+      "tail": "9H-WDM",
+      "wo": "700264939",
+      "ata": "",
+      "desc": "16 Feb - 26 Feb 25-62-03A FOR INFO R3 DOOR SHOWED STEADY WHITE LIG",
+      "raw": "9H-WDM 700264939 16 Feb - 26 Feb 25-62-03A FOR INFO R3 DOOR SHOWED STEADY WHITE LIG",
+      "mel_ref": "25-62-03A"
+    },
+    {
+      "tail": "9H-WDN",
+      "wo": "700240682",
+      "ata": "",
+      "desc": "07 Nov - 07 Mar 30-45-03A RAIN REPELLENT ON YELLOW BAND. IT IS NOT",
+      "raw": "9H-WDN 700240682 07 Nov - 07 Mar 30-45-03A RAIN REPELLENT ON YELLOW BAND. IT IS NOT",
+      "mel_ref": "30-45-03A"
+    },
+    {
+      "tail": "9H-WDN",
+      "wo": "700265971",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 26-12-04A ENG 2 FIRE LOOP B FAULT DURING FLIGHT",
+      "raw": "9H-WDN 700265971 20 Feb - 02 Mar 26-12-04A ENG 2 FIRE LOOP B FAULT DURING FLIGHT",
+      "mel_ref": "26-12-04A"
+    },
+    {
+      "tail": "9H-WDQ",
+      "wo": "700265803",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 49-10-01-A APU AUTO SHUT DOWN",
+      "raw": "9H-WDQ 700265803 20 Feb - 02 Mar 49-10-01-A APU AUTO SHUT DOWN",
+      "mel_ref": "49-10-01A"
+    },
+    {
+      "tail": "9H-WDS",
+      "wo": "700264364",
+      "ata": "",
+      "desc": "14 Feb - 14 Jun 25-20-07A MEAL TABLE BACKREST SEAT 29C INOP",
+      "raw": "9H-WDS 700264364 14 Feb - 14 Jun 25-20-07A MEAL TABLE BACKREST SEAT 29C INOP",
+      "mel_ref": "25-20-07A"
+    },
+    {
+      "tail": "9H-WDU",
+      "wo": "700265858",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 74-31-01A DURNING ENGINE START ENGINE 1 IGNITION A",
+      "raw": "9H-WDU 700265858 20 Feb - 02 Mar 74-31-01A DURNING ENGINE START ENGINE 1 IGNITION A",
+      "mel_ref": "74-31-01A"
+    },
+    {
+      "tail": "9H-WDZ",
+      "wo": "700258229",
+      "ata": "",
+      "desc": "18 Jan - 18 May 33-30-01A CARGO HOLD 3 LIGHTS INOP",
+      "raw": "9H-WDZ 700258229 18 Jan - 18 May 33-30-01A CARGO HOLD 3 LIGHTS INOP",
+      "mel_ref": "33-30-01A"
+    },
+    {
+      "tail": "9H-WDZ",
+      "wo": "700264673",
+      "ata": "",
+      "desc": "15 Feb - 25 Feb 36-11-01-A ACRID OUOR DURING CLIMB FOR BRIEF PERIOD",
+      "raw": "9H-WDZ 700264673 15 Feb - 25 Feb 36-11-01-A ACRID OUOR DURING CLIMB FOR BRIEF PERIOD",
+      "mel_ref": "36-11-01A"
+    },
+    {
+      "tail": "9H-WMB",
+      "wo": "700265261",
+      "ata": "",
+      "desc": "17 Feb - 17 Jun 52-30-07A AFT CARGO DOOR OPEN/LOCKED INDICATOR LIG",
+      "raw": "9H-WMB 700265261 17 Feb - 17 Jun 52-30-07A AFT CARGO DOOR OPEN/LOCKED INDICATOR LIG",
+      "mel_ref": "52-30-07A"
+    },
+    {
+      "tail": "9H-WMB",
+      "wo": "700265371",
+      "ata": "",
+      "desc": "18 Feb - 18 Jun 33-30-01A SWITCH OF CARGO AREA LIGHT INOP",
+      "raw": "9H-WMB 700265371 18 Feb - 18 Jun 33-30-01A SWITCH OF CARGO AREA LIGHT INOP",
+      "mel_ref": "33-30-01A"
+    },
+    {
+      "tail": "9H-WMD",
+      "wo": "700239073",
+      "ata": "",
+      "desc": "31 Oct - 28 Feb 30-45-03-A REIN REPELLENT FLUID CAN IN YELLOW BAND",
+      "raw": "9H-WMD 700239073 31 Oct - 28 Feb 30-45-03-A REIN REPELLENT FLUID CAN IN YELLOW BAND",
+      "mel_ref": "30-45-03A"
+    },
+    {
+      "tail": "9H-WMH",
+      "wo": "700254248",
+      "ata": "",
+      "desc": "03 Jan - 03 May 30-45-03A RAIN REPELLENT BOTTLE NEEDS TO BE REFILL",
+      "raw": "9H-WMH 700254248 03 Jan - 03 May 30-45-03A RAIN REPELLENT BOTTLE NEEDS TO BE REFILL",
+      "mel_ref": "30-45-03A"
+    },
+    {
+      "tail": "9H-WMP",
+      "wo": "700265242",
+      "ata": "",
+      "desc": "17 Feb - 27 Feb 28-25-02A FUEL QUANTITY INDICATOR ON THE EXTERNALMEL / CDL Items (266 A/C)9H-WBY KTW 21 Feb / 03:42 9H-WBY - KTW - AOG - DENT ON FUSELAGE G-WUKO LTN 21 Feb / 05:45 G-WUKO - OOS - LTN - CABIN ODOUR HA-LVE WAW 21 Feb / 06:05 HA-LVE - WAW - AOG - NLG LOW H HA-LTH TIA 20 Feb / 03:56 21 Feb / 00:43 HA-LTH - TIA - AOG - LIGHTING STRIKE 9H-WDE VIE 20 Feb / 10:16 21 Feb / 01:20 9H-WDE - VIE - AOG - AVI VENT OUTLET VALVE FAULT 9H-WAL MXP 21 Feb / 01:24 21 Feb / 06:29 9H-WAL - MXP - AOG - RUDDER TRIM IN CRZ 2.9L OUT OF LIMIT Reg No WO Open/Due Date MEL/CDL Description",
+      "raw": "9H-WMP 700265242 17 Feb - 27 Feb 28-25-02A FUEL QUANTITY INDICATOR ON THE EXTERNALMEL / CDL Items (266 A/C)9H-WBY KTW 21 Feb / 03:42 9H-WBY - KTW - AOG - DENT ON FUSELAGE | G-WUKO LTN 21 Feb / 05:45 G-WUKO - OOS - LTN - CABIN ODOUR | HA-LVE WAW 21 Feb / 06:05 HA-LVE - WAW - AOG - NLG LOW H | HA-LTH TIA 20 Feb / 03:56 21 Feb / 00:43 HA-LTH - TIA - AOG - LIGHTING STRIKE | 9H-WDE VIE 20 Feb / 10:16 21 Feb / 01:20 9H-WDE - VIE - AOG - AVI VENT OUTLET VALVE FAULT | 9H-WAL MXP 21 Feb / 01:24 21 Feb / 06:29 9H-WAL - MXP - AOG - RUDDER TRIM IN CRZ 2.9L OUT OF LIMIT | Reg No WO Open/Due Date MEL/CDL Description",
+      "mel_ref": "28-25-02A"
+    },
+    {
+      "tail": "9H-WMP",
+      "wo": "700262565",
+      "ata": "",
+      "desc": "06 Feb - 06 Jun 30-45-03A RAIN REPELLENT INDICATOR IN YELLOW BAND.",
+      "raw": "9H-WMP 700262565 06 Feb - 06 Jun 30-45-03A RAIN REPELLENT INDICATOR IN YELLOW BAND.",
+      "mel_ref": "30-45-03A"
+    },
+    {
+      "tail": "9H-WMT",
+      "wo": "700265713",
+      "ata": "",
+      "desc": "19 Feb - 01 Mar 32-07-01A WHEEL 2 TEMP INDICATION FAULT",
+      "raw": "9H-WMT 700265713 19 Feb - 01 Mar 32-07-01A WHEEL 2 TEMP INDICATION FAULT",
+      "mel_ref": "32-07-01A"
+    },
+    {
+      "tail": "9H-WNA",
+      "wo": "700265898",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 25-40-07-A FOR INFO, CABIN REPORTS LAVATORY F LOW F",
+      "raw": "9H-WNA 700265898 20 Feb - 02 Mar 25-40-07-A FOR INFO, CABIN REPORTS LAVATORY F LOW F",
+      "mel_ref": "25-40-07A"
+    },
+    {
+      "tail": "9H-WNE",
+      "wo": "700264415",
+      "ata": "",
+      "desc": "14 Feb - 24 Feb 33-40-03A CB T5 (LEFT LDG LT CTL) FOUND POPPED.",
+      "raw": "9H-WNE 700264415 14 Feb - 24 Feb 33-40-03A CB T5 (LEFT LDG LT CTL) FOUND POPPED.",
+      "mel_ref": "33-40-03A"
+    },
+    {
+      "tail": "9H-WNI",
+      "wo": "700263705",
+      "ata": "",
+      "desc": "10 Feb - 10 Jun 30-45-03A RAIN REPELLENT FLUID LOW PRESSURE.",
+      "raw": "9H-WNI 700263705 10 Feb - 10 Jun 30-45-03A RAIN REPELLENT FLUID LOW PRESSURE.",
+      "mel_ref": "30-45-03A"
+    },
+    {
+      "tail": "9H-WNL",
+      "wo": "700265894",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 25-40-07A LAV F TAP LEAKING",
+      "raw": "9H-WNL 700265894 20 Feb - 02 Mar 25-40-07A LAV F TAP LEAKING",
+      "mel_ref": "25-40-07A"
+    },
+    {
+      "tail": "9H-WNN",
+      "wo": "700265551",
+      "ata": "",
+      "desc": "19 Feb - 01 Mar 22-70-02-A NAV DATA BASE - WIM2601001 ACTIVE UNTIL",
+      "raw": "9H-WNN 700265551 19 Feb - 01 Mar 22-70-02-A NAV DATA BASE - WIM2601001 ACTIVE UNTIL",
+      "mel_ref": "22-70-02A"
+    },
+    {
+      "tail": "9H-WNN",
+      "wo": "700262278",
+      "ata": "",
+      "desc": "04 Feb - 04 Jun 52-30-07A REAR CARGO DOOR OPEN/LOCKED INDICATOR LI",
+      "raw": "9H-WNN 700262278 04 Feb - 04 Jun 52-30-07A REAR CARGO DOOR OPEN/LOCKED INDICATOR LI",
+      "mel_ref": "52-30-07A"
+    },
+    {
+      "tail": "9H-WNN",
+      "wo": "700265939",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 28-00-01-A AFTER PARKING ON STAND ECAM MAINTENANCE",
+      "raw": "9H-WNN 700265939 20 Feb - 02 Mar 28-00-01-A AFTER PARKING ON STAND ECAM MAINTENANCE",
+      "mel_ref": "28-00-01A"
+    },
+    {
+      "tail": "9H-WNS",
+      "wo": "700246042",
+      "ata": "",
+      "desc": "01 Dec - 31 Mar 30-45-03A RAIN REPELLENT LEVEL FOUND TO IN YELLOW",
+      "raw": "9H-WNS 700246042 01 Dec - 31 Mar 30-45-03A RAIN REPELLENT LEVEL FOUND TO IN YELLOW",
+      "mel_ref": "30-45-03A"
+    },
+    {
+      "tail": "9H-WNS",
+      "wo": "700265818",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 24-00-03A MAINT MSG AC GEN APPEARED ON SD",
+      "raw": "9H-WNS 700265818 20 Feb - 02 Mar 24-00-03A MAINT MSG AC GEN APPEARED ON SD",
+      "mel_ref": "24-00-03A"
+    },
+    {
+      "tail": "9H-WNU",
+      "wo": "700265104",
+      "ata": "",
+      "desc": "16 Feb - 16 Jun 52-30-07a DURING DAILY WALKAROUND FOUND FWD CARGO",
+      "raw": "9H-WNU 700265104 16 Feb - 16 Jun 52-30-07a DURING DAILY WALKAROUND FOUND FWD CARGO",
+      "mel_ref": "52-30-07A"
+    },
+    {
+      "tail": "9H-WZA",
+      "wo": "700264664",
+      "ata": "",
+      "desc": "15 Feb - 15 Jun 46-21-05A COMPANY DATALINK STBY. RESET UNSUCCESSFU",
+      "raw": "9H-WZA 700264664 15 Feb - 15 Jun 46-21-05A COMPANY DATALINK STBY. RESET UNSUCCESSFU",
+      "mel_ref": "46-21-05A"
+    },
+    {
+      "tail": "9H-WZB",
+      "wo": "700265323",
+      "ata": "",
+      "desc": "17 Feb - 17 Jun 33-40-07A R LOGO LIGHT INOP",
+      "raw": "9H-WZB 700265323 17 Feb - 17 Jun 33-40-07A R LOGO LIGHT INOP",
+      "mel_ref": "33-40-07A"
+    },
+    {
+      "tail": "9H-WZB",
+      "wo": "700265693",
+      "ata": "",
+      "desc": "19 Feb - 01 Mar 74-31-01A ENG 2 START FAULT/ ENG 2 IGNITION FAULT",
+      "raw": "9H-WZB 700265693 19 Feb - 01 Mar 74-31-01A ENG 2 START FAULT/ ENG 2 IGNITION FAULT",
+      "mel_ref": "74-31-01A"
+    },
+    {
+      "tail": "9H-WZQ",
+      "wo": "700265902",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 25-11-11A CM1 INBOARD VERTICAL ADJUSTMENT NOT LOCK",
+      "raw": "9H-WZQ 700265902 20 Feb - 02 Mar 25-11-11A CM1 INBOARD VERTICAL ADJUSTMENT NOT LOCK",
+      "mel_ref": "25-11-11A"
+    },
+    {
+      "tail": "9H-WZQ",
+      "wo": "700263647",
+      "ata": "",
+      "desc": "10 Feb - 02 Mar 34-40-04A NAV RA 2 FAULT WITH UNSUCCESSFULL RESET",
+      "raw": "9H-WZQ 700263647 10 Feb - 02 Mar 34-40-04A NAV RA 2 FAULT WITH UNSUCCESSFULL RESET",
+      "mel_ref": "34-40-04A"
+    },
+    {
+      "tail": "9H-WZR",
+      "wo": "700265601",
+      "ata": "",
+      "desc": "19 Feb - 01 Mar 52-10-10A CAB PR EXCES RESIDUAL PR MASTER WARNING",
+      "raw": "9H-WZR 700265601 19 Feb - 01 Mar 52-10-10A CAB PR EXCES RESIDUAL PR MASTER WARNING",
+      "mel_ref": "52-10-10A"
+    },
+    {
+      "tail": "9H-WZR",
+      "wo": "700265880",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 25-50-06A 2 ATTACH POINTS ARE BROKEN ON THE FLOOR",
+      "raw": "9H-WZR 700265880 20 Feb - 02 Mar 25-50-06A 2 ATTACH POINTS ARE BROKEN ON THE FLOOR",
+      "mel_ref": "25-50-06A"
+    },
+    {
+      "tail": "9H-WZX",
+      "wo": "700265077",
+      "ata": "",
+      "desc": "16 Feb - 26 Feb 35-20-01A 26DEF PAX OXYGEN MASKS NOT STOWED",
+      "raw": "9H-WZX 700265077 16 Feb - 26 Feb 35-20-01A 26DEF PAX OXYGEN MASKS NOT STOWED",
+      "mel_ref": "35-20-01A"
+    },
+    {
+      "tail": "9H-WZX",
+      "wo": "700265078",
+      "ata": "",
+      "desc": "16 Feb - 16 Jun 25-20-01A 26DEF SEATS CONSIDERED INOP DUE TO LACK",
+      "raw": "9H-WZX 700265078 16 Feb - 16 Jun 25-20-01A 26DEF SEATS CONSIDERED INOP DUE TO LACK",
+      "mel_ref": "25-20-01A"
+    },
+    {
+      "tail": "9H-WZX",
+      "wo": "700265862",
+      "ata": "",
+      "desc": "20 Feb - 20 Jun 25-24-02A ROW 13 DEF OVERHEADE COMPARTMENT HANDLE",
+      "raw": "9H-WZX 700265862 20 Feb - 20 Jun 25-24-02A ROW 13 DEF OVERHEADE COMPARTMENT HANDLE",
+      "mel_ref": "25-24-02A"
+    },
+    {
+      "tail": "9H-WZX",
+      "wo": "700265434",
+      "ata": "",
+      "desc": "18 Feb - 28 Feb 36-11-07-B ENGINE 2 BLEED CONSIDERED INOP HP VALVE",
+      "raw": "9H-WZX 700265434 18 Feb - 28 Feb 36-11-07-B ENGINE 2 BLEED CONSIDERED INOP HP VALVE",
+      "mel_ref": "36-11-07B"
+    },
+    {
+      "tail": "9H-XLA",
+      "wo": "700229055",
+      "ata": "",
+      "desc": "20 Sep - 09 Dec 33-20-01A ROW 10 ABC SIDE PANEL LIGHT INOPERATIVE. G-WUKM 1859730 18 Feb - 28 Feb 33-40-11AFOR INFO T/O LIGHT U/S MCC #45145 G-WUKN 1865910 19 Feb - 19 Jun 25-20-07A TRAY TABLE AT ROW 1ABCDF AND ROW 29 ABCE G-WUKO 1859703 18 Feb - 28 Feb 34-40-05A ON LANDING, ECAM: NAV/TCAS FAULT. RESET G-WUKU 1861366 15 Feb - 15 Jun 49-10-01C F/DECK + CABIN CREW REPORT ODOUR ON TAKE G-WUKZ 1861254 20 Feb - 20 Jun 25-20-07ATRAY TABLE SAGGING AT ROW 1ABEF REF 452 G-XLRB 1865898 22 Dec - 21 Apr 30-45-03 RAIN REPELLENT INDICATION IS IN REFILL Y",
+      "raw": "9H-XLA 700229055 20 Sep - 09 Dec 33-20-01A ROW 10 ABC SIDE PANEL LIGHT INOPERATIVE. | G-WUKM 1859730 18 Feb - 28 Feb 33-40-11AFOR INFO T/O LIGHT U/S | MCC #45145 | G-WUKN 1865910 19 Feb - 19 Jun 25-20-07A TRAY TABLE AT ROW 1ABCDF AND ROW 29 ABCE | G-WUKO 1859703 18 Feb - 28 Feb 34-40-05A ON LANDING, ECAM: NAV/TCAS FAULT. RESET | G-WUKU 1861366 15 Feb - 15 Jun 49-10-01C F/DECK + CABIN CREW REPORT ODOUR ON TAKE | G-WUKZ 1861254 20 Feb - 20 Jun 25-20-07ATRAY TABLE SAGGING AT ROW 1ABEF | REF 452 | G-XLRB 1865898 22 Dec - 21 Apr 30-45-03 RAIN REPELLENT INDICATION IS IN REFILL Y",
+      "mel_ref": "33-20-01A"
+    },
+    {
+      "tail": "HA-LDA",
+      "wo": "700253406",
+      "ata": "",
+      "desc": "31 Dec - 30 Apr 30-45-03A DURING SERVICE CHECK RAINREPELLENT FLUID",
+      "raw": "HA-LDA 700253406 31 Dec - 30 Apr 30-45-03A DURING SERVICE CHECK RAINREPELLENT FLUID",
+      "mel_ref": "30-45-03A"
+    },
+    {
+      "tail": "HA-LDC",
+      "wo": "700265841",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 34-40-04A RA 2 FAULT",
+      "raw": "HA-LDC 700265841 20 Feb - 02 Mar 34-40-04A RA 2 FAULT",
+      "mel_ref": "34-40-04A"
+    },
+    {
+      "tail": "HA-LDH",
+      "wo": "700265011",
+      "ata": "",
+      "desc": "16 Feb - 26 Feb 46-21-04B ATC DATALINK. PROCEDURES REQUIRE ATC DAT",
+      "raw": "HA-LDH 700265011 16 Feb - 26 Feb 46-21-04B ATC DATALINK. PROCEDURES REQUIRE ATC DAT",
+      "mel_ref": "46-21-04B"
+    },
+    {
+      "tail": "HA-LDK",
+      "wo": "700265768",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 23-20-04-C REF WO 700265606 VHF1 INOP , CONSIDERED",
+      "raw": "HA-LDK 700265768 20 Feb - 02 Mar 23-20-04-C REF WO 700265606 VHF1 INOP , CONSIDERED",
+      "mel_ref": "23-20-04C"
+    },
+    {
+      "tail": "HA-LDK",
+      "wo": "700265660",
+      "ata": "",
+      "desc": "19 Feb - 01 Mar 23-10-02C VHF1 RADIO RECEPTION POOR, HEAVY BACKGRO",
+      "raw": "HA-LDK 700265660 19 Feb - 01 Mar 23-10-02C VHF1 RADIO RECEPTION POOR, HEAVY BACKGRO",
+      "mel_ref": "23-10-02C"
+    },
+    {
+      "tail": "HA-LDM",
+      "wo": "700265891",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 27-00-01A AFTER PARKING F/CTL ON MAINTANANCE APPEA",
+      "raw": "HA-LDM 700265891 20 Feb - 02 Mar 27-00-01A AFTER PARKING F/CTL ON MAINTANANCE APPEA",
+      "mel_ref": "27-00-01A"
+    },
+    {
+      "tail": "HA-LGB",
+      "wo": "700121122",
+      "ata": "",
+      "desc": "15 Apr - 25 Apr 29-09-03A AFTER GEAR RETACTION ON TOFF Y SYS LO PR",
+      "raw": "HA-LGB 700121122 15 Apr - 25 Apr 29-09-03A AFTER GEAR RETACTION ON TOFF Y SYS LO PR",
+      "mel_ref": "29-09-03A"
+    },
+    {
+      "tail": "HA-LGE",
+      "wo": "700117053",
+      "ata": "",
+      "desc": "22 Mar - 01 Apr 34-40-05A NAV TCAS FAULT",
+      "raw": "HA-LGE 700117053 22 Mar - 01 Apr 34-40-05A NAV TCAS FAULT",
+      "mel_ref": "34-40-05A"
+    },
+    {
+      "tail": "HA-LGH",
+      "wo": "700265611",
+      "ata": "",
+      "desc": "19 Feb - 19 Jun 25-20-06A UNDERSEAT BAGGAGE RESTRAINING BARS AT SE",
+      "raw": "HA-LGH 700265611 19 Feb - 19 Jun 25-20-06A UNDERSEAT BAGGAGE RESTRAINING BARS AT SE",
+      "mel_ref": "25-20-06A"
+    },
+    {
+      "tail": "HA-LGI",
+      "wo": "700265549",
+      "ata": "",
+      "desc": "19 Feb - 19 Jun 25-62-07-AREF WO700265443 DUE TO FAP INOP PLEASE P",
+      "raw": "HA-LGI 700265549 19 Feb - 19 Jun 25-62-07-AREF WO700265443 | DUE TO FAP INOP PLEASE P",
+      "mel_ref": "25-62-07"
+    },
+    {
+      "tail": "HA-LGI",
+      "wo": "700265443",
+      "ata": "",
+      "desc": "18 Feb - 28 Feb 23-74-01A FAP RESET ON GND WAS SUCCESSFUL. DURING",
+      "raw": "HA-LGI 700265443 18 Feb - 28 Feb 23-74-01A FAP RESET ON GND WAS SUCCESSFUL. DURING",
+      "mel_ref": "23-74-01A"
+    },
+    {
+      "tail": "HA-LGQ",
+      "wo": "700265893",
+      "ata": "",
+      "desc": "20 Feb - 20 Jun 23-51-02-A 3RD OCCUPANT HEADSET VERY NOISY",
+      "raw": "HA-LGQ 700265893 20 Feb - 20 Jun 23-51-02-A 3RD OCCUPANT HEADSET VERY NOISY",
+      "mel_ref": "23-51-02A"
+    },
+    {
+      "tail": "HA-LGS",
+      "wo": "700265084",
+      "ata": "",
+      "desc": "16 Feb - 26 Feb 25-40-07A LAVATORY F TOILET SEAT BROKEN",
+      "raw": "HA-LGS 700265084 16 Feb - 26 Feb 25-40-07A LAVATORY F TOILET SEAT BROKEN",
+      "mel_ref": "25-40-07A"
+    },
+    {
+      "tail": "HA-LGT",
+      "wo": "700265986",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 33-20-01A CEILING LIGHT ABOVE ROW 3DEF INOP.",
+      "raw": "HA-LGT 700265986 20 Feb - 02 Mar 33-20-01A CEILING LIGHT ABOVE ROW 3DEF INOP.",
+      "mel_ref": "33-20-01A"
+    },
+    {
+      "tail": "HA-LGV",
+      "wo": "700264900",
+      "ata": "",
+      "desc": "16 Feb - 16 Jun 25-66-01C 1 INFANT LIFEVEST OPEN IN THE FRONT",
+      "raw": "HA-LGV 700264900 16 Feb - 16 Jun 25-66-01C 1 INFANT LIFEVEST OPEN IN THE FRONT",
+      "mel_ref": "25-66-01C"
+    },
+    {
+      "tail": "HA-LGW",
+      "wo": "700265447",
+      "ata": "",
+      "desc": "18 Feb - 28 Feb 25-11-03-A CM1 SEAT RECLINE ADJUSTMENT INOP",
+      "raw": "HA-LGW 700265447 18 Feb - 28 Feb 25-11-03-A CM1 SEAT RECLINE ADJUSTMENT INOP",
+      "mel_ref": "25-11-03A"
+    },
+    {
+      "tail": "HA-LGX",
+      "wo": "700258621",
+      "ata": "",
+      "desc": "20 Jan - 20 May 25-35-04A ONE KICKLOAD RETAINER POS 414 IN AFT GAL",
+      "raw": "HA-LGX 700258621 20 Jan - 20 May 25-35-04A ONE KICKLOAD RETAINER POS 414 IN AFT GAL",
+      "mel_ref": "25-35-04A"
+    },
+    {
+      "tail": "HA-LGX",
+      "wo": "700265390",
+      "ata": "",
+      "desc": "18 Feb - 18 Jun 52-51-08C BOTTOM STRIKE OF COCKPIT DOOR SHOWS FAUL",
+      "raw": "HA-LGX 700265390 18 Feb - 18 Jun 52-51-08C BOTTOM STRIKE OF COCKPIT DOOR SHOWS FAUL",
+      "mel_ref": "52-51-08C"
+    },
+    {
+      "tail": "HA-LTA",
+      "wo": "700257767",
+      "ata": "",
+      "desc": "17 Jan - 17 May 30-45-03A RAIN REPELLENT NEEDLE IN YELLOW SECTOR",
+      "raw": "HA-LTA 700257767 17 Jan - 17 May 30-45-03A RAIN REPELLENT NEEDLE IN YELLOW SECTOR",
+      "mel_ref": "30-45-03A"
+    },
+    {
+      "tail": "HA-LTA",
+      "wo": "700264700",
+      "ata": "",
+      "desc": "15 Feb - 25 Feb 23-73-06-02A CABIN HANDSET CA5 STATION INOP",
+      "raw": "HA-LTA 700264700 15 Feb - 25 Feb 23-73-06-02A CABIN HANDSET CA5 STATION INOP",
+      "mel_ref": "23-73-06"
+    },
+    {
+      "tail": "HA-LTE",
+      "wo": "700260194",
+      "ata": "",
+      "desc": "26 Jan - 20 Feb 21-31-01C UNPRESSURIZED FLIGHT FOR 2 FC ONLY.",
+      "raw": "HA-LTE 700260194 26 Jan - 20 Feb 21-31-01C UNPRESSURIZED FLIGHT FOR 2 FC ONLY.",
+      "mel_ref": "21-31-01C"
+    },
+    {
+      "tail": "HA-LTF",
+      "wo": "700260405",
+      "ata": "",
+      "desc": "27 Jan - 27 May 30-45-03A RAIN REPELLENT FLUID LEVEL IN THE YELLOW",
+      "raw": "HA-LTF 700260405 27 Jan - 27 May 30-45-03A RAIN REPELLENT FLUID LEVEL IN THE YELLOW",
+      "mel_ref": "30-45-03A"
+    },
+    {
+      "tail": "HA-LTG",
+      "wo": "700265695",
+      "ata": "",
+      "desc": "19 Feb - 01 Mar 23-73-06-02-A REFER TO WO 24923701 4L CABIN ATTENDANT Reg No WO Open/Due Date MEL/CDL Description",
+      "raw": "HA-LTG 700265695 19 Feb - 01 Mar 23-73-06-02-A REFER TO WO 24923701 4L CABIN ATTENDANT | Reg No WO Open/Due Date MEL/CDL Description",
+      "mel_ref": "23-73-06"
+    },
+    {
+      "tail": "HA-LTG",
+      "wo": "700265696",
+      "ata": "",
+      "desc": "19 Feb - 19 Jun 25-20-06-A REFER TO WO24923705 SEAT ROW 31ABC BAGGA",
+      "raw": "HA-LTG 700265696 19 Feb - 19 Jun 25-20-06-A REFER TO WO24923705 SEAT ROW 31ABC BAGGA",
+      "mel_ref": "25-20-06A"
+    },
+    {
+      "tail": "HA-LTG",
+      "wo": "700265698",
+      "ata": "",
+      "desc": "19 Feb - 01 Mar 25-12-01-A REFER TO WO 24923808 FLIGHT DECK OBSERVE",
+      "raw": "HA-LTG 700265698 19 Feb - 01 Mar 25-12-01-A REFER TO WO 24923808 FLIGHT DECK OBSERVE",
+      "mel_ref": "25-12-01A"
+    },
+    {
+      "tail": "HA-LTI",
+      "wo": "700265581",
+      "ata": "",
+      "desc": "19 Feb - 19 Jun 25-66-01C 2 SPARE ADULT LIFE VEST MISSING.",
+      "raw": "HA-LTI 700265581 19 Feb - 19 Jun 25-66-01C 2 SPARE ADULT LIFE VEST MISSING.",
+      "mel_ref": "25-66-01C"
+    },
+    {
+      "tail": "HA-LTM",
+      "wo": "700264989",
+      "ata": "",
+      "desc": "16 Feb - 26 Feb 33-40-01B NAV1 LIGHT INOP",
+      "raw": "HA-LTM 700264989 16 Feb - 26 Feb 33-40-01B NAV1 LIGHT INOP",
+      "mel_ref": "33-40-01B"
+    },
+    {
+      "tail": "HA-LVC",
+      "wo": "700111751",
+      "ata": "",
+      "desc": "18 Feb - 28 Feb 36-00-01-F AIR BLEED MAINT MESSAGE DISPLAYED ON THE",
+      "raw": "HA-LVC 700111751 18 Feb - 28 Feb 36-00-01-F AIR BLEED MAINT MESSAGE DISPLAYED ON THE",
+      "mel_ref": "36-00-01F"
+    },
+    {
+      "tail": "HA-LVE",
+      "wo": "700265720",
+      "ata": "",
+      "desc": "19 Feb - 19 Jun 25-20-07A 34B SEAT MEAL TABLE LATCH BROKEN, SECURE",
+      "raw": "HA-LVE 700265720 19 Feb - 19 Jun 25-20-07A 34B SEAT MEAL TABLE LATCH BROKEN, SECURE",
+      "mel_ref": "25-20-07A"
+    },
+    {
+      "tail": "HA-LVF",
+      "wo": "700106221",
+      "ata": "",
+      "desc": "18 Jan - 28 Jan 32-42-01-A #3 MAIN WHEEL BRAKE WORN TO LIMIT",
+      "raw": "HA-LVF 700106221 18 Jan - 28 Jan MEL 32-42-01-A #3 MAIN WHEEL BRAKE WORN TO LIMIT",
+      "mel_ref": "32-42-01A"
+    },
+    {
+      "tail": "HA-LVF",
+      "wo": "700106223",
+      "ata": "",
+      "desc": "19 Jan - 28 Jan 32-42-05-A AUTO BRK FUNCTION CONSIDERED INOP",
+      "raw": "HA-LVF 700106223 19 Jan - 28 Jan MEL 32-42-05-A AUTO BRK FUNCTION CONSIDERED INOP",
+      "mel_ref": "32-42-05A"
+    },
+    {
+      "tail": "HA-LVJ",
+      "wo": "700265787",
+      "ata": "",
+      "desc": "20 Feb - 20 Jun 31-00-03-A DAR ON ECAM MAINTENANCE STS PAGE.",
+      "raw": "HA-LVJ 700265787 20 Feb - 20 Jun 31-00-03-A DAR ON ECAM MAINTENANCE STS PAGE.",
+      "mel_ref": "31-00-03A"
+    },
+    {
+      "tail": "HA-LVJ",
+      "wo": "700265566",
+      "ata": "",
+      "desc": "19 Feb - 01 Mar 52-10-08-A CABIN PRESSURE LIGHTS BLIKING",
+      "raw": "HA-LVJ 700265566 19 Feb - 01 Mar 52-10-08-A CABIN PRESSURE LIGHTS BLIKING",
+      "mel_ref": "52-10-08A"
+    },
+    {
+      "tail": "HA-LVK",
+      "wo": "700265555",
+      "ata": "",
+      "desc": "19 Feb - 01 Mar 34-50-04A DURING CKPT PREPARATION DME 1 FOUND INOP",
+      "raw": "HA-LVK 700265555 19 Feb - 01 Mar 34-50-04A DURING CKPT PREPARATION DME 1 FOUND INOP",
+      "mel_ref": "34-50-04A"
+    },
+    {
+      "tail": "HA-LVO",
+      "wo": "700112940",
+      "ata": "",
+      "desc": "26 Feb - 25 Jun 52-30-07A FWD CARGO DOOR OPEN/LOCKED INDICATOR LIG",
+      "raw": "HA-LVO 700112940 26 Feb - 25 Jun 52-30-07A FWD CARGO DOOR OPEN/LOCKED INDICATOR LIG",
+      "mel_ref": "52-30-07A"
+    },
+    {
+      "tail": "HA-LVP",
+      "wo": "700263025",
+      "ata": "",
+      "desc": "08 Feb - 28 Feb 25-20-09A CABIN ATTENDANT SEAT CA3A HAS DAMAGE , C",
+      "raw": "HA-LVP 700263025 08 Feb - 28 Feb 25-20-09A CABIN ATTENDANT SEAT CA3A HAS DAMAGE , C",
+      "mel_ref": "25-20-09A"
+    },
+    {
+      "tail": "HA-LVP",
+      "wo": "700262347",
+      "ata": "",
+      "desc": "05 Feb - 05 Jun 33-40-07A RIGHT SIDE LOGO LIGHT INOP",
+      "raw": "HA-LVP 700262347 05 Feb - 05 Jun 33-40-07A RIGHT SIDE LOGO LIGHT INOP",
+      "mel_ref": "33-40-07A"
+    },
+    {
+      "tail": "HA-LVW",
+      "wo": "700106412",
+      "ata": "",
+      "desc": "19 Jan - 18 May REV: NOV/23 CREW VREBAL REPORT: 5F PAX SEAT ARMCAP B",
+      "raw": "HA-LVW 700106412 19 Jan - 18 May MEL MEL REV: NOV/23 CREW VREBAL REPORT: 5F PAX SEAT ARMCAP B"
+    },
+    {
+      "tail": "HA-LWC",
+      "wo": "700258070",
+      "ata": "",
+      "desc": "18 Jan - 18 May 33-40-07A BOTH LOGO LIGHTS INOP",
+      "raw": "HA-LWC 700258070 18 Jan - 18 May 33-40-07A BOTH LOGO LIGHTS INOP",
+      "mel_ref": "33-40-07A"
+    },
+    {
+      "tail": "HA-LWE",
+      "wo": "700265620",
+      "ata": "",
+      "desc": "19 Feb - 01 Mar 21-52-01D PILOT REPORTED AIR PACK 2 OVHT",
+      "raw": "HA-LWE 700265620 19 Feb - 01 Mar 21-52-01D PILOT REPORTED AIR PACK 2 OVHT",
+      "mel_ref": "21-52-01D"
+    },
+    {
+      "tail": "HA-LWE",
+      "wo": "700262055",
+      "ata": "",
+      "desc": "03 Feb - 03 Jun 52-30-07A AFT CARGO DOOR OPEN/LOCKED GREEN INDICAT",
+      "raw": "HA-LWE 700262055 03 Feb - 03 Jun 52-30-07A AFT CARGO DOOR OPEN/LOCKED GREEN INDICAT",
+      "mel_ref": "52-30-07A"
+    },
+    {
+      "tail": "HA-LWV",
+      "wo": "700264177",
+      "ata": "",
+      "desc": "13 Feb - 13 Jun 31-00-03A ON STS PAGE MAINTENANCE DAR MSG",
+      "raw": "HA-LWV 700264177 13 Feb - 13 Jun 31-00-03A ON STS PAGE MAINTENANCE DAR MSG",
+      "mel_ref": "31-00-03A"
+    },
+    {
+      "tail": "HA-LXA",
+      "wo": "700265117",
+      "ata": "",
+      "desc": "16 Feb - 16 Jun 33-40-07A RIGHT SIDE LOGO LIGHT INOP",
+      "raw": "HA-LXA 700265117 16 Feb - 16 Jun 33-40-07A RIGHT SIDE LOGO LIGHT INOP",
+      "mel_ref": "33-40-07A"
+    },
+    {
+      "tail": "HA-LXA",
+      "wo": "700265680",
+      "ata": "",
+      "desc": "19 Feb - 19 Jun 35-20-05A CC3 MRT IS DAMAGED",
+      "raw": "HA-LXA 700265680 19 Feb - 19 Jun 35-20-05A CC3 MRT IS DAMAGED",
+      "mel_ref": "35-20-05A"
+    },
+    {
+      "tail": "HA-LXC",
+      "wo": "700263992",
+      "ata": "",
+      "desc": "12 Feb - 22 Feb 33-40-01B NAV 1 TAIL CONE LIGHT INOP.",
+      "raw": "HA-LXC 700263992 12 Feb - 22 Feb 33-40-01B NAV 1 TAIL CONE LIGHT INOP.",
+      "mel_ref": "33-40-01B"
+    },
+    {
+      "tail": "HA-LXD",
+      "wo": "700265249",
+      "ata": "",
+      "desc": "17 Feb - 17 Jun 25-20-05-A1C ARMREST ONE  SCREW LOST SECURED BY S",
+      "raw": "HA-LXD 700265249 17 Feb - 17 Jun 25-20-05-A1C ARMREST ONE  SCREW LOST | SECURED BY S",
+      "mel_ref": "25-20-05"
+    },
+    {
+      "tail": "HA-LXD",
+      "wo": "700265153",
+      "ata": "",
+      "desc": "17 Feb - 27 Feb 31-62-02-A EIS DMC2 FAULT",
+      "raw": "HA-LXD 700265153 17 Feb - 27 Feb 31-62-02-A EIS DMC2 FAULT",
+      "mel_ref": "31-62-02A"
+    },
+    {
+      "tail": "HA-LXE",
+      "wo": "700265512",
+      "ata": "",
+      "desc": "18 Feb - 28 Feb 25-50-06-AAFT CARGO-DOOR NET DAMAGED. AFT CARGO SE",
+      "raw": "HA-LXE 700265512 18 Feb - 28 Feb 25-50-06-AAFT CARGO-DOOR NET DAMAGED. | AFT CARGO SE",
+      "mel_ref": "25-50-06"
+    },
+    {
+      "tail": "HA-LXE",
+      "wo": "700252838",
+      "ata": "",
+      "desc": "29 Dec - 28 Apr 30-45-03A RAIN REPELLENT ON THE EDGE BETWEEN GREEN",
+      "raw": "HA-LXE 700252838 29 Dec - 28 Apr 30-45-03A RAIN REPELLENT ON THE EDGE BETWEEN GREEN",
+      "mel_ref": "30-45-03A"
+    },
+    {
+      "tail": "HA-LXH",
+      "wo": "700265161",
+      "ata": "",
+      "desc": "17 Feb - 27 Feb 36-11-07B ENG 2 HP VLV SHOWS OPEN ON ECAM",
+      "raw": "HA-LXH 700265161 17 Feb - 27 Feb 36-11-07B ENG 2 HP VLV SHOWS OPEN ON ECAM",
+      "mel_ref": "36-11-07B"
+    },
+    {
+      "tail": "HA-LXI",
+      "wo": "700263797",
+      "ata": "",
+      "desc": "11 Feb - 11 Jun 31-00-02A ACMS MAINTENANCE MESSAGE ON STATUS SC PA",
+      "raw": "HA-LXI 700263797 11 Feb - 11 Jun 31-00-02A ACMS MAINTENANCE MESSAGE ON STATUS SC PA",
+      "mel_ref": "31-00-02A"
+    },
+    {
+      "tail": "HA-LXI",
+      "wo": "700259538",
+      "ata": "",
+      "desc": "23 Jan - 23 May 25-20-07A SEAT 26D ARMREST BROKEN",
+      "raw": "HA-LXI 700259538 23 Jan - 23 May 25-20-07A SEAT 26D ARMREST BROKEN",
+      "mel_ref": "25-20-07A"
+    },
+    {
+      "tail": "HA-LXJ",
+      "wo": "700252349",
+      "ata": "",
+      "desc": "27 Dec - 26 Apr 33-30-01A FWD AND AFT CARGO HOLD INTERNAL LIGHTS U",
+      "raw": "HA-LXJ 700252349 27 Dec - 26 Apr 33-30-01A FWD AND AFT CARGO HOLD INTERNAL LIGHTS U",
+      "mel_ref": "33-30-01A"
+    },
+    {
+      "tail": "HA-LXO",
+      "wo": "700265914",
+      "ata": "",
+      "desc": "20 Feb - 20 Jun 31-00-03-A DAR MAINTENANCE MESSAGE",
+      "raw": "HA-LXO 700265914 20 Feb - 20 Jun 31-00-03-A DAR MAINTENANCE MESSAGE",
+      "mel_ref": "31-00-03A"
+    },
+    {
+      "tail": "HA-LXP",
+      "wo": "700265846",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 28-26-01B FUEL CTR L XFR FAULT AFTER TAKEOFF",
+      "raw": "HA-LXP 700265846 20 Feb - 02 Mar 28-26-01B FUEL CTR L XFR FAULT AFTER TAKEOFF",
+      "mel_ref": "28-26-01B"
+    },
+    {
+      "tail": "HA-LXP",
+      "wo": "700265847",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 25-07-02-A DOOR 4L/4R SHOWING DISARMED IN FLIGHT",
+      "raw": "HA-LXP 700265847 20 Feb - 02 Mar 25-07-02-A DOOR 4L/4R SHOWING DISARMED IN FLIGHT",
+      "mel_ref": "25-07-02A"
+    },
+    {
+      "tail": "HA-LXQ",
+      "wo": "700264448",
+      "ata": "",
+      "desc": "14 Feb - 24 Feb 27-00-02-A SFCS MX MSG ON STS PAGE.",
+      "raw": "HA-LXQ 700264448 14 Feb - 24 Feb 27-00-02-A SFCS MX MSG ON STS PAGE.",
+      "mel_ref": "27-00-02A"
+    },
+    {
+      "tail": "HA-LXQ",
+      "wo": "700264485",
+      "ata": "",
+      "desc": "14 Feb - 24 Feb 33-40-01-B TAIL WHITE NAV 1 LIGHT INOP. NAV 2 SET F",
+      "raw": "HA-LXQ 700264485 14 Feb - 24 Feb 33-40-01-B TAIL WHITE NAV 1 LIGHT INOP. NAV 2 SET F",
+      "mel_ref": "33-40-01B"
+    },
+    {
+      "tail": "HA-LXQ",
+      "wo": "700259469",
+      "ata": "",
+      "desc": "23 Jan - 23 May 34-50-03C ADF 1 INOP. TRIED DIFFERENT FREQUENCIES",
+      "raw": "HA-LXQ 700259469 23 Jan - 23 May 34-50-03C ADF 1 INOP. TRIED DIFFERENT FREQUENCIES",
+      "mel_ref": "34-50-03C"
+    },
+    {
+      "tail": "HA-LXQ",
+      "wo": "700263911",
+      "ata": "",
+      "desc": "12 Feb - 22 Feb 21-52-01-D REF. W/O: 700256579. AIR PACK 1 UNUSUAL",
+      "raw": "HA-LXQ 700263911 12 Feb - 22 Feb 21-52-01-D REF. W/O: 700256579. AIR PACK 1 UNUSUAL",
+      "mel_ref": "21-52-01D"
+    },
+    {
+      "tail": "HA-LXR",
+      "wo": "700265793",
+      "ata": "",
+      "desc": "20 Feb - 01 Mar 25-20-09-A CABIN ATTENDANT SEAT CA3A NOT RETRACTING",
+      "raw": "HA-LXR 700265793 20 Feb - 01 Mar 25-20-09-A CABIN ATTENDANT SEAT CA3A NOT RETRACTING",
+      "mel_ref": "25-20-09A"
+    },
+    {
+      "tail": "HA-LXS",
+      "wo": "700265704",
+      "ata": "",
+      "desc": "19 Feb - 01 Mar 34-40-04A NAV RA1 FAULT ECAM APPEARED AFTER ARRIVA",
+      "raw": "HA-LXS 700265704 19 Feb - 01 Mar 34-40-04A NAV RA1 FAULT ECAM APPEARED AFTER ARRIVA",
+      "mel_ref": "34-40-04A"
+    },
+    {
+      "tail": "HA-LXT",
+      "wo": "700264724",
+      "ata": "",
+      "desc": "15 Feb - 15 Jun 25-35-04A LATCH AT COMPARTMENT 518 IN AFT GALLEY I",
+      "raw": "HA-LXT 700264724 15 Feb - 15 Jun 25-35-04A LATCH AT COMPARTMENT 518 IN AFT GALLEY I",
+      "mel_ref": "25-35-04A"
+    },
+    {
+      "tail": "HA-LXT",
+      "wo": "700265259",
+      "ata": "",
+      "desc": "17 Feb - 27 Feb 23-73-06-02-A REF TO WO 700265246 HANDSET INOP",
+      "raw": "HA-LXT 700265259 17 Feb - 27 Feb 23-73-06-02-A REF TO WO 700265246 HANDSET INOP",
+      "mel_ref": "23-73-06"
+    },
+    {
+      "tail": "HA-LXV",
+      "wo": "700262414",
+      "ata": "",
+      "desc": "05 Feb - 25 Feb 21-52-01D FOR INFO AFTER ENGINE START AND TAXI SME",
+      "raw": "HA-LXV 700262414 05 Feb - 25 Feb 21-52-01D FOR INFO AFTER ENGINE START AND TAXI SME",
+      "mel_ref": "21-52-01D"
+    },
+    {
+      "tail": "HA-LXV",
+      "wo": "700262357",
+      "ata": "",
+      "desc": "05 Feb - 26 Feb 21-00-04A TEMP CTL 2 MAINTENANCE MESSAGE ON STS PA",
+      "raw": "HA-LXV 700262357 05 Feb - 26 Feb 21-00-04A TEMP CTL 2 MAINTENANCE MESSAGE ON STS PA",
+      "mel_ref": "21-00-04A"
+    },
+    {
+      "tail": "HA-LXV",
+      "wo": "700262369",
+      "ata": "",
+      "desc": "05 Feb - 25 Feb 21-52-01G AIR PACK 2 OVHT",
+      "raw": "HA-LXV 700262369 05 Feb - 25 Feb 21-52-01G AIR PACK 2 OVHT",
+      "mel_ref": "21-52-01G"
+    },
+    {
+      "tail": "HA-LXY",
+      "wo": "700265017",
+      "ata": "",
+      "desc": "16 Feb - 26 Feb 21-52-01-D PACK 1 SUPPLIES TEMPERATURE ABOVE 50 DEG",
+      "raw": "HA-LXY 700265017 16 Feb - 26 Feb 21-52-01-D PACK 1 SUPPLIES TEMPERATURE ABOVE 50 DEG",
+      "mel_ref": "21-52-01D"
+    },
+    {
+      "tail": "HA-LYF",
+      "wo": "700265865",
+      "ata": "",
+      "desc": "20 Feb - 20 Jun 25-13-01-A CM2 SLIDING TABLE INOP. STOWED IN CLSD P",
+      "raw": "HA-LYF 700265865 20 Feb - 20 Jun 25-13-01-A CM2 SLIDING TABLE INOP. STOWED IN CLSD P",
+      "mel_ref": "25-13-01A"
+    },
+    {
+      "tail": "HA-LYG",
+      "wo": "700263384",
+      "ata": "",
+      "desc": "09 Feb - 20 Feb 25-65-05-E REF TO WO24523396 AND WO13425011 FIXED E",
+      "raw": "HA-LYG 700263384 09 Feb - 20 Feb 25-65-05-E REF TO WO24523396 AND WO13425011 FIXED E",
+      "mel_ref": "25-65-05E"
+    },
+    {
+      "tail": "HA-LYS",
+      "wo": "700264714",
+      "ata": "",
+      "desc": "15 Feb - 25 Feb 23-73-05-01A PISA-LOUDSPEAKER CABIN MAIN DECK (652RH1",
+      "raw": "HA-LYS 700264714 15 Feb - 25 Feb 23-73-05-01A PISA-LOUDSPEAKER CABIN MAIN DECK (652RH1",
+      "mel_ref": "23-73-05"
+    },
+    {
+      "tail": "HA-LYS",
+      "wo": "700264718",
+      "ata": "",
+      "desc": "15 Feb - 25 Feb 23-73-05-03A LOUDSPEAKER CABIN MAIN DECK ATT 4",
+      "raw": "HA-LYS 700264718 15 Feb - 25 Feb 23-73-05-03A LOUDSPEAKER CABIN MAIN DECK ATT 4",
+      "mel_ref": "23-73-05"
+    },
+    {
+      "tail": "HA-LYS",
+      "wo": "700250207",
+      "ata": "",
+      "desc": "19 Dec - 18 Apr 33-40-10A RH WING STROBE LIGHT IS INOP",
+      "raw": "HA-LYS 700250207 19 Dec - 18 Apr 33-40-10A RH WING STROBE LIGHT IS INOP",
+      "mel_ref": "33-40-10A"
+    },
+    {
+      "tail": "HA-LYS",
+      "wo": "700263899",
+      "ata": "",
+      "desc": "12 Feb - 22 Feb 25-11-05A CM1 ELECTRICAL ADJUSMENT INOP",
+      "raw": "HA-LYS 700263899 12 Feb - 22 Feb 25-11-05A CM1 ELECTRICAL ADJUSMENT INOP",
+      "mel_ref": "25-11-05A"
+    },
+    {
+      "tail": "HA-LYT",
+      "wo": "700261201",
+      "ata": "",
+      "desc": "31 Jan - 30 May 33-40-07A RIGHT SIDE LOGO LIGHT INOP",
+      "raw": "HA-LYT 700261201 31 Jan - 30 May 33-40-07A RIGHT SIDE LOGO LIGHT INOP",
+      "mel_ref": "33-40-07A"
+    },
+    {
+      "tail": "HA-LYT",
+      "wo": "700260948",
+      "ata": "",
+      "desc": "30 Jan - 09 Feb 70-00-01a PFR WARNING/MAINT STATUS MESSAGE : ENG 1",
+      "raw": "HA-LYT 700260948 30 Jan - 09 Feb 70-00-01a PFR WARNING/MAINT STATUS MESSAGE : ENG 1",
+      "mel_ref": "70-00-01A"
+    },
+    {
+      "tail": "HA-LZI",
+      "wo": "700265241",
+      "ata": "",
+      "desc": "17 Feb - 27 Feb 21-00-04-A MAINT MSG TEMP CTL 1 ON STATUS PAGE",
+      "raw": "HA-LZI 700265241 17 Feb - 27 Feb 21-00-04-A MAINT MSG TEMP CTL 1 ON STATUS PAGE",
+      "mel_ref": "21-00-04A"
+    },
+    {
+      "tail": "HA-LZJ",
+      "wo": "700104294",
+      "ata": "",
+      "desc": "10 Jan - 30 Jan 29-07-02A YELLOW ENG DRIVEN PUMP INDICATION GREEN",
+      "raw": "HA-LZJ 700104294 10 Jan - 30 Jan MEL 29-07-02A YELLOW ENG DRIVEN PUMP INDICATION GREEN",
+      "mel_ref": "29-07-02A"
+    },
+    {
+      "tail": "HA-LZK",
+      "wo": "700265362",
+      "ata": "",
+      "desc": "18 Feb - 28 Feb 27-22-01B RUD TRIM 2 FAULT DISPLAYED ON ECAM Reg No WO Open/Due Date MEL/CDL Description",
+      "raw": "HA-LZK 700265362 18 Feb - 28 Feb 27-22-01B RUD TRIM 2 FAULT DISPLAYED ON ECAM | Reg No WO Open/Due Date MEL/CDL Description",
+      "mel_ref": "27-22-01B"
+    },
+    {
+      "tail": "HA-LZK",
+      "wo": "700262878",
+      "ata": "",
+      "desc": "07 Feb - 27 Feb 34-50-09D ECAM NAV GPS1 FAULT POPPING IN AND OUT.",
+      "raw": "HA-LZK 700262878 07 Feb - 27 Feb 34-50-09D ECAM NAV GPS1 FAULT POPPING IN AND OUT.",
+      "mel_ref": "34-50-09D"
+    },
+    {
+      "tail": "HA-LZM",
+      "wo": "700265295",
+      "ata": "",
+      "desc": "17 Feb - 17 Jun 25-20-06A UNDERSEAT BAGGAGE RESTRAINING BAR UNDER",
+      "raw": "HA-LZM 700265295 17 Feb - 17 Jun 25-20-06A UNDERSEAT BAGGAGE RESTRAINING BAR UNDER",
+      "mel_ref": "25-20-06A"
+    },
+    {
+      "tail": "HA-LZM",
+      "wo": "700254074",
+      "ata": "",
+      "desc": "03 Jan - 03 May 30-45-03A RAIN REPELLENT FLUID CAN ON YELLOW",
+      "raw": "HA-LZM 700254074 03 Jan - 03 May 30-45-03A RAIN REPELLENT FLUID CAN ON YELLOW",
+      "mel_ref": "30-45-03A"
+    },
+    {
+      "tail": "HA-LZM",
+      "wo": "700264597",
+      "ata": "",
+      "desc": "15 Feb - 15 Jun 25-66-01C 3EA ADULT LIFE VESTS MISSING FROM THE SP",
+      "raw": "HA-LZM 700264597 15 Feb - 15 Jun 25-66-01C 3EA ADULT LIFE VESTS MISSING FROM THE SP",
+      "mel_ref": "25-66-01C"
+    },
+    {
+      "tail": "HA-LZO",
+      "wo": "700265000",
+      "ata": "",
+      "desc": "16 Feb - 26 Feb 33-40-06-A TO LIGHT INOP,CB POPED BY ITSELF",
+      "raw": "HA-LZO 700265000 16 Feb - 26 Feb 33-40-06-A TO LIGHT INOP,CB POPED BY ITSELF",
+      "mel_ref": "33-40-06A"
+    },
+    {
+      "tail": "HA-LZP",
+      "wo": "700265759",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 30-71-01-A PFR MSG ***DRAINMAST UNIT FWD/ DEU-B(300",
+      "raw": "HA-LZP 700265759 20 Feb - 02 Mar 30-71-01-A PFR MSG ***DRAINMAST UNIT FWD/ DEU-B(300",
+      "mel_ref": "30-71-01A"
+    },
+    {
+      "tail": "HA-LZP",
+      "wo": "700265763",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 25-40-07-A REF. TO WO 700265759 DUE TO DRAINMAST (4",
+      "raw": "HA-LZP 700265763 20 Feb - 02 Mar 25-40-07-A REF. TO WO 700265759 DUE TO DRAINMAST (4",
+      "mel_ref": "25-40-07A"
+    },
+    {
+      "tail": "HA-LZQ",
+      "wo": "700119113",
+      "ata": "",
+      "desc": "03 Apr - 13 Apr 32-42-01-A BRAKE #2 REMOVED BY OPERATOR REQUEST REF",
+      "raw": "HA-LZQ 700119113 03 Apr - 13 Apr 32-42-01-A BRAKE #2 REMOVED BY OPERATOR REQUEST REF",
+      "mel_ref": "32-42-01A"
+    },
+    {
+      "tail": "HA-LZQ",
+      "wo": "700119115",
+      "ata": "",
+      "desc": "03 Apr - 13 Apr 32-42-05-A AUTO BRK FUNCTION INOP REF WO 700119113",
+      "raw": "HA-LZQ 700119115 03 Apr - 13 Apr 32-42-05-A AUTO BRK FUNCTION INOP REF WO 700119113",
+      "mel_ref": "32-42-05A"
+    },
+    {
+      "tail": "HA-LZR",
+      "wo": "700265809",
+      "ata": "",
+      "desc": "20 Feb - 02 Mar 78-30-01-A ENG1 REV PRESSURIZED FAULT AFTER LANDING",
+      "raw": "HA-LZR 700265809 20 Feb - 02 Mar 78-30-01-A ENG1 REV PRESSURIZED FAULT AFTER LANDING",
+      "mel_ref": "78-30-01A"
+    },
+    {
+      "tail": "HA-LZT",
+      "wo": "700261730",
+      "ata": "",
+      "desc": "02 Feb - 02 Jun 25-20-07E PAX TRAY TABLE 1D STUCK IN OPEN POSITION",
+      "raw": "HA-LZT 700261730 02 Feb - 02 Jun 25-20-07E PAX TRAY TABLE 1D STUCK IN OPEN POSITION",
+      "mel_ref": "25-20-07E"
+    },
+    {
+      "tail": "HA-LZV",
+      "wo": "700109994",
+      "ata": "",
+      "desc": "08 Feb - 07 Jun 52-30-07A FWD CARGO DOOR OPEN/LOCKED INDICATOR LIG Reportable Occurences Reg No Occurrence description (bird strike, lightning strike, damage) 9H-WMI 9H-WMI - BCN - AOG - FUMES COCKPIT Items due in 20FH/10FC/1day Reg No Date Description WO Expected Planned Limit FH Limit FC Due TAH Due TAC Due Date 9H-WADA32N033-24-IM-01/MAIN LANDING GEAR DOOR24915111 25 Feb 2026 5 4202 25.02.2026 9H-WADA32N033-24-IM-01/MAIN LANDING GEAR DOOR24915125 25 Feb 2026 5 4202 25.02.2026 9H-WAI 21.02.2026700266083/FWD WATER BOILER LEAKING. VALV700266083 22 Feb 2026 22.02.2026 9H-WAK 13.02.2026A320-29-1192-IM-01-LH/W23281287 /HYDRAUL23281287 22 Feb 2026 21 Feb 2026 750 14065:54 9H-WAQA32N033-24-IM-01/MAIN LANDING GEAR DOOR24915531 26 Feb 2026 5 6775 26.02.2026 9H-WAQA32N033-24-IM-01/MAIN LANDING GEAR DOOR24915536 26 Feb 2026 5 6775 26.02.2026 9H-WATA32N033-24-IM-01/MAIN LANDING GEAR DOOR24929414 28 Feb 2026 5 4250 28.02.2026 9H-WATA32N033-24-IM-01/MAIN LANDING GEAR DOOR24929416 28 Feb 2026 5 4250 28.02.2026 9H-WAY 21.02.2026700266051/REPETITIVE INSPECTION FOR WO.7700266051 22 Feb 2026 22.02.2026 9H-WAY 21.02.2026700266054/REPETITIVE INSPECTION FOR WAY-700266054 22 Feb 2026 22.02.2026 9H-WAYA32N033-24-IM-01/MAIN LANDING GEAR DOOR24903615 24 Feb 2026 5 4372 24.02.2026 9H-WAYA32N033-24-IM-01/MAIN LANDING GEAR DOOR24903633 24 Feb 2026 5 4372 24.02.2026 9H-WBA 20.02.2026700265775/REPETITIVE INSPECTION FOR WO.7700265775 22 Feb 2026 22.02.2026 9H-WBA 12.02.2026700264031/DOORS ARE NOT HYDRAULICALLY OP700264031 22 Feb 2026 22.02.2026 9H-WBI 15.02.2026700264720/REPETITIVE INSPECTION FOR WO.7700264720 22 Feb 2026 22.02.2026 9H-WBI00100100-01 (24.2M) / 1Z - DAILY CHECK24905284 22 Feb 2026 21 Feb 2026 22.02.2026 9H-WBIA32N033-24-IM-01/MAIN LANDING GEAR DOOR24922216 27 Feb 2026 5 6087 27.02.2026 9H-WBIA32N033-24-IM-01/MAIN LANDING GEAR DOOR24922219 27 Feb 2026 5 6087 27.02.2026 9H-WBRA32N033-24-IM-01/MAIN LANDING GEAR DOOR24907971 25 Feb 2026 5 3756 25.02.2026 9H-WBRA32N033-24-IM-01/MAIN LANDING GEAR DOOR24907973 25 Feb 2026 5 3756 25.02.2026 9H-WBU 22.12.202524496984/IN REF. WO 70250816 PANIT MISSI24496984 21 Feb 2026 21.02.2026 9H-WBU 04.02.2026700262143/REPETITIVE INSPECTION FOR WO.7700262143 22 Feb 2026 21 Feb 2026 22.02.2026 9H-WDE 21.02.2026700266055/AVIONICS SKIN AIR OUTLET VALVE700266055 21 Feb 2026 Due TAH Due TAC Due Date Reg No Date Description WO Expected Planned Limit FH Limit FC 9H-WDJPCMCIA CARD REPLACEMENT (0) / PCMCIA CAR24863802 22 Feb 2026 21 Feb 2026 22.02.2026 9H-WDJ 21.02.2026700266079/QRH FMGC 2 RESET SUCCESSFUL DU700266079 22 Feb 2026 22.02.2026 9H-WDJA32N033-24-IM-01/MAIN LANDING GEAR DOOR24907968 25 Feb 2026 5 4824 25.02.2026 9H-WDK 12.02.2026700264093/GPS2 DATA DASHED ON GPS MONITO700264093 22 Feb 2026 22 Feb 2026 22.02.2026 9H-WDQ00100100-01 (24.2M) / 1Z - DAILY CHECK24899161 21 Feb 2026 20 Feb 2026 21.02.2026 9H-WDQ 18.02.2026700265426/APU AUTO SHUT DOWN DURING TAXI700265426 21 Feb 2026 20 Feb 2026 21.02.2026 9H-WMH 25.10.2025700237637/CABIN ROW 19 CEILING PANEL SCR700237637 22 Feb 2026 21 Feb 2026 22.02.2026 9H-WMW27900005-01 (22.0) / ELECTRICAL FLIGHT C24816097 22 Feb 2026 400 400:00 22.05.2026 9H-WNHA32N033-24-IM-01/MAIN LANDING GEAR DOOR24907950 25 Feb 2026 5 3645 25.02.2026 9H-WNHA32N033-24-IM-01/MAIN LANDING GEAR DOOR24915131 26 Feb 2026 5 3649 26.02.2026 9H-WNJ 20.02.2026A32N033-24-IM-01/W24903572 /MAIN LANDING24903572 23 Feb 2026 22 Feb 2026 5 3099 23.02.2026 9H-WNL 10.02.2026700263587/NO1 ENGINE OGV GUIDE VANE LINE700263587 21 Feb 2026 01 Mar 2026 9H-WNNPCMCIA CARD REPLACEMENT (0) / PCMCIA CAR24863811 21 Feb 2026 21.02.2026 9H-WNP 22.01.202624733755/FINDING (NRC) TASKCARD 2910001524733755 21 Feb 2026 21.02.2026 9H-WNP 23.10.2025700237241/WXR/PWS PANEL TURB LIGHT INOP700237241 22 Feb 2026 22.02.2026 9H-WNW 19.02.2026700265624/CM2 SIDE FIXED WINDOW DELAMINA700265624 22 Feb 2026 21 Feb 2026 22.02.2026 9H-WZB 21.02.2026700266082/COCKPIT OXY AT 960 PSI.700266082 22 Feb 2026 22.02.2026 9H-WZC 19.02.2026700265738/4L DOOR SHOWS INTERMITTENTLY A700265738 22 Feb 2026 22.02.2026 9H-WZQ 21.02.2026700266046/REPETITIVE INSPECTION FOR WO.7700266046 22 Feb 2026 9H-XLD27900005-01 (22.0) / ELECTRICAL FLIGHT C24816099 22 Feb 2026 400 400:00 17.05.2026 9H-XLE27900005-01 (22.0) / ELECTRICAL FLIGHT C24816098 22 Feb 2026 400 400:00 11.06.2026 HA-LDH 19.02.202624922184/[ADEM] HA-LDH ENG 2 (P802139) F24922184 22 Feb 2026 21 Feb 2026 22.02.2026 HA-LGLA32N033-24-IM-01/MAIN LANDING GEAR DOOR24915488 26 Feb 2026 5 4830 26.02.2026 HA-LGL 24.12.202524508711/P652085 /SEVERAL LOCATIONS FOUN24508711 22 Feb 2026 22.02.2026 HA-LGLA32N033-24-IM-01/MAIN LANDING GEAR DOOR24915443 26 Feb 2026 5 4830 26.02.2026 HA-LGQ38100001-01 (23.0) / POTABLE WATER SYSTE22355802 21 Feb 2026 21.02.2026 HA-LTC 20.02.2026REPLACE 3214-31/833495/W24930008 (BATTER24930008 21 Feb 2026 21 Feb 2026 21.02.2026 HA-LTD 23.01.202624740867/REFER WO 700256847 TEST OF THE24740867 22 Feb 2026 22.02.2026 HA-LWE 11.02.2026700263825/30D BOTTOM PLASRIC COVER LOOSE700263825 22 Feb 2026 22.02.2026 HA-LWM29100015-01 (28.0) / MAIN HYDRAULIC POWE24240858 22 Feb 2026 7500 46801:31 22.02.2026 HA-LWN12565 (0) / DEEP CLEANING OF THE PAX CAB20712372 22 Feb 2026 750 750 50862:21 25862 01.10.2026 HA-LWU 21.02.2026700266065/REF WO 24852182 ENG#1 AND ENG#700266065 21 Feb 2026 21.02.2026 Due TAH Due TAC Due Date Reg No Date Description WO Expected Planned Limit FH Limit FC HA-LWVPCMCIA CARD REPLACEMENT (0) / PCMCIA CAR24878465 21 Feb 2026 21.02.2026 HA-LWV00100100-01 (24.2M) / 1Z - DAILY CHECK24892843 22 Feb 2026 22.02.2026 HA-LXA 02.01.20261634843/REF TO WO 1634842, REPETITIVE IN1634843 22 Feb 2026 21 Feb 2026 22.02.2026 HA-LXA 16.02.202624902078/CREW OXYGEN CYLINDER LOW PRESSU24902078 21 Feb 2026 21.02.2026 HA-LXC 12.02.2026700263992/NAV 1 TAIL CONE LIGHT INOP.700263992 22 Feb 2026 21 Feb 2026 22.02.2026 HA-LXO 20.02.2026700265915/AFT GALLEY T DIVIDER BETWEEN P700265915 21 Feb 2026 21.02.2026 HA-LXO 20.02.2026700265916/DEMO KIT 39ABC LIFE VEST DAMAG700265916 21 Feb 2026 21.02.2026 HA-LXO 20.02.2026700265917/LAV A WATER HEATER INOP700265917 21 Feb 2026 21.02.2026 HA-LXS 16.02.202624901998/CREW OXYGEN CYLINDER LOW PRESSU24901998 21 Feb 2026 21.02.2026 HA-LXS 03.01.2026700254104/REPETITIVE INSPECTION FOR WO.7700254104 22 Feb 2026 21 Feb 2026 22.02.2026 HA-LXS 03.01.2026700254109/REPETITIVE INSPECTION FOR WO.7700254109 22 Feb 2026 21 Feb 2026 22.02.2026 HA-LXV 12.02.2026700263991/P652167 /WATER SERVICE DOOR OP700263991 22 Feb 2026 22.02.2026 HA-LXW 17.11.202524201481/REF TO WO #22415020 BORESCOPE I24201481 22 Feb 2026 21 Feb 2026 HA-LXW 21.02.2026700266069/SEAT 31A IS MISSING \"FASTEN SE700266069 22 Feb 2026 22.02.2026 HA-LXW 21.02.2026700266070/SEAT 33A IS MISSING \"LIFE VEST700266070 22 Feb 2026 22.02.2026 HA-LYS 12.02.2026700263899/CM1 ELECTRICAL ADJUSMENT INOP700263899 22 Feb 2026 22.02.2026 HA-LZKA32N033-24-IM-01/MAIN LANDING GEAR DOOR24907942 24 Feb 2026 5 6208 24.02.2026 HA-LZKA32N033-24-IM-01/MAIN LANDING GEAR DOOR24907945 24 Feb 2026 5 6208 24.02.2026 HA-LZK 19.02.202624924381/WIZZ AUDIT PLEASE 1) PROVIDE AS24924381 22 Feb 2026 21 Feb 2026 22.02.2026 HA-LZOA32N033-24-IM-01/MAIN LANDING GEAR DOOR24929402 28 Feb 2026 5 4102 28.02.2026 HA-LZOA32N033-24-IM-01/MAIN LANDING GEAR DOOR24929406 28 Feb 2026 5 4102 28.02.2026 HA-LZR 20.02.2026A32N033-24-IM-01/W24903567 /MAIN LANDING24903567 23 Feb 2026 21 Feb 2026 5 6758 23.02.2026 HA-LZRA32N033-24-IM-01/MAIN LANDING GEAR DOOR24907976 25 Feb 2026 5 6768 25.02.2026 HA-LZT00100100-02 (24.0M) / 1S - SERVICE CHECK24540793 22 Feb 2026 21 Feb 2026 22.02.2026 HA-LZTA32N033-24-IM-01/MAIN LANDING GEAR DOOR24929418 27 Feb 2026 5 3404 27.02.2026 HA-LZUA32N033-24-IM-01/MAIN LANDING GEAR DOOR24907974 25 Feb 2026 5 5183 25.02.2026 HA-LZU 15.09.202523577811/LITERATURE POCKETS AT PAX SEATS23577811 22 Feb 2026 22.02.2026 HA-LZYA32N033-24-IM-01/MAIN LANDING GEAR DOOR24922202 27 Feb 2026 5 6561 27.02.2026 HA-LZY 20.02.2026A32N033-24-IM-01/W24903569 /MAIN LANDING24903569 23 Feb 2026 21 Feb 2026 5 6545 23.02.2026",
+      "raw": "HA-LZV 700109994 08 Feb - 07 Jun MEL 52-30-07A FWD CARGO DOOR OPEN/LOCKED INDICATOR LIG | Reportable Occurences | Reg No Occurrence description (bird strike, lightning strike, damage) | 9H-WMI 9H-WMI - BCN - AOG - FUMES COCKPIT | Items due in 20FH/10FC/1day | Reg No Date Description WO Expected Planned Limit FH Limit FC Due TAH Due TAC Due Date | 9H-WADA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24915111 25 Feb 2026 5 4202 25.02.2026 | 9H-WADA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24915125 25 Feb 2026 5 4202 25.02.2026 | 9H-WAI 21.02.2026700266083/FWD WATER | BOILER LEAKING. VALV700266083 22 Feb 2026 22.02.2026 | 9H-WAK 13.02.2026A320-29-1192-IM-01-LH/W23281287 | /HYDRAUL23281287 22 Feb 2026 21 Feb 2026 750 14065:54 | 9H-WAQA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24915531 26 Feb 2026 5 6775 26.02.2026 | 9H-WAQA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24915536 26 Feb 2026 5 6775 26.02.2026 | 9H-WATA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24929414 28 Feb 2026 5 4250 28.02.2026 | 9H-WATA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24929416 28 Feb 2026 5 4250 28.02.2026 | 9H-WAY 21.02.2026700266051/REPETITIVE | INSPECTION FOR WO.7700266051 22 Feb 2026 22.02.2026 | 9H-WAY 21.02.2026700266054/REPETITIVE | INSPECTION FOR WAY-700266054 22 Feb 2026 22.02.2026 | 9H-WAYA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24903615 24 Feb 2026 5 4372 24.02.2026 | 9H-WAYA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24903633 24 Feb 2026 5 4372 24.02.2026 | 9H-WBA 20.02.2026700265775/REPETITIVE | INSPECTION FOR WO.7700265775 22 Feb 2026 22.02.2026 | 9H-WBA 12.02.2026700264031/DOORS ARE NOT | HYDRAULICALLY OP700264031 22 Feb 2026 22.02.2026 | 9H-WBI 15.02.2026700264720/REPETITIVE | INSPECTION FOR WO.7700264720 22 Feb 2026 22.02.2026 | 9H-WBI00100100-01 (24.2M) / 1Z - | DAILY CHECK24905284 22 Feb 2026 21 Feb 2026 22.02.2026 | 9H-WBIA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24922216 27 Feb 2026 5 6087 27.02.2026 | 9H-WBIA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24922219 27 Feb 2026 5 6087 27.02.2026 | 9H-WBRA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24907971 25 Feb 2026 5 3756 25.02.2026 | 9H-WBRA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24907973 25 Feb 2026 5 3756 25.02.2026 | 9H-WBU 22.12.202524496984/IN REF. WO | 70250816 PANIT MISSI24496984 21 Feb 2026 21.02.2026 | 9H-WBU 04.02.2026700262143/REPETITIVE | INSPECTION FOR WO.7700262143 22 Feb 2026 21 Feb 2026 22.02.2026 | 9H-WDE 21.02.2026700266055/AVIONICS SKIN | AIR OUTLET VALVE700266055 21 Feb 2026 | Due TAH Due TAC Due Date Reg No Date Description WO Expected Planned Limit FH Limit FC | 9H-WDJPCMCIA CARD REPLACEMENT | (0) / PCMCIA CAR24863802 22 Feb 2026 21 Feb 2026 22.02.2026 | 9H-WDJ 21.02.2026700266079/QRH FMGC 2 | RESET SUCCESSFUL DU700266079 22 Feb 2026 22.02.2026 | 9H-WDJA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24907968 25 Feb 2026 5 4824 25.02.2026 | 9H-WDK 12.02.2026700264093/GPS2 DATA | DASHED ON GPS MONITO700264093 22 Feb 2026 22 Feb 2026 22.02.2026 | 9H-WDQ00100100-01 (24.2M) / 1Z - | DAILY CHECK24899161 21 Feb 2026 20 Feb 2026 21.02.2026 | 9H-WDQ 18.02.2026700265426/APU AUTO SHUT | DOWN DURING TAXI700265426 21 Feb 2026 20 Feb 2026 21.02.2026 | 9H-WMH 25.10.2025700237637/CABIN ROW 19 | CEILING PANEL SCR700237637 22 Feb 2026 21 Feb 2026 22.02.2026 | 9H-WMW27900005-01 (22.0) / | ELECTRICAL FLIGHT C24816097 22 Feb 2026 400 400:00 22.05.2026 | 9H-WNHA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24907950 25 Feb 2026 5 3645 25.02.2026 | 9H-WNHA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24915131 26 Feb 2026 5 3649 26.02.2026 | 9H-WNJ 20.02.2026A32N033-24-IM-01/W24903572 | /MAIN LANDING24903572 23 Feb 2026 22 Feb 2026 5 3099 23.02.2026 | 9H-WNL 10.02.2026700263587/NO1 ENGINE OGV | GUIDE VANE LINE700263587 21 Feb 2026 01 Mar 2026 | 9H-WNNPCMCIA CARD REPLACEMENT | (0) / PCMCIA CAR24863811 21 Feb 2026 21.02.2026 | 9H-WNP 22.01.202624733755/FINDING (NRC) | TASKCARD 2910001524733755 21 Feb 2026 21.02.2026 | 9H-WNP 23.10.2025700237241/WXR/PWS PANEL | TURB LIGHT INOP700237241 22 Feb 2026 22.02.2026 | 9H-WNW 19.02.2026700265624/CM2 SIDE FIXED | WINDOW DELAMINA700265624 22 Feb 2026 21 Feb 2026 22.02.2026 | 9H-WZB 21.02.2026700266082/COCKPIT OXY AT | 960 PSI.700266082 22 Feb 2026 22.02.2026 | 9H-WZC 19.02.2026700265738/4L DOOR SHOWS | INTERMITTENTLY A700265738 22 Feb 2026 22.02.2026 | 9H-WZQ 21.02.2026700266046/REPETITIVE | INSPECTION FOR WO.7700266046 22 Feb 2026 | 9H-XLD27900005-01 (22.0) / | ELECTRICAL FLIGHT C24816099 22 Feb 2026 400 400:00 17.05.2026 | 9H-XLE27900005-01 (22.0) / | ELECTRICAL FLIGHT C24816098 22 Feb 2026 400 400:00 11.06.2026 | HA-LDH 19.02.202624922184/[ADEM] HA-LDH | ENG 2 (P802139) F24922184 22 Feb 2026 21 Feb 2026 22.02.2026 | HA-LGLA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24915488 26 Feb 2026 5 4830 26.02.2026 | HA-LGL 24.12.202524508711/P652085 /SEVERAL | LOCATIONS FOUN24508711 22 Feb 2026 22.02.2026 | HA-LGLA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24915443 26 Feb 2026 5 4830 26.02.2026 | HA-LGQ38100001-01 (23.0) / | POTABLE WATER SYSTE22355802 21 Feb 2026 21.02.2026 | HA-LTC 20.02.2026REPLACE | 3214-31/833495/W24930008 | (BATTER24930008 21 Feb 2026 21 Feb 2026 21.02.2026 | HA-LTD 23.01.202624740867/REFER WO | 700256847 TEST OF THE24740867 22 Feb 2026 22.02.2026 | HA-LWE 11.02.2026700263825/30D BOTTOM | PLASRIC COVER LOOSE700263825 22 Feb 2026 22.02.2026 | HA-LWM29100015-01 (28.0) / MAIN | HYDRAULIC POWE24240858 22 Feb 2026 7500 46801:31 22.02.2026 | HA-LWN12565 (0) / DEEP CLEANING | OF THE PAX CAB20712372 22 Feb 2026 750 750 50862:21 25862 01.10.2026 | HA-LWU 21.02.2026700266065/REF WO 24852182 | ENG#1 AND ENG#700266065 21 Feb 2026 21.02.2026 | Due TAH Due TAC Due Date Reg No Date Description WO Expected Planned Limit FH Limit FC | HA-LWVPCMCIA CARD REPLACEMENT | (0) / PCMCIA CAR24878465 21 Feb 2026 21.02.2026 | HA-LWV00100100-01 (24.2M) / 1Z - | DAILY CHECK24892843 22 Feb 2026 22.02.2026 | HA-LXA 02.01.20261634843/REF TO WO | 1634842, REPETITIVE IN1634843 22 Feb 2026 21 Feb 2026 22.02.2026 | HA-LXA 16.02.202624902078/CREW OXYGEN | CYLINDER LOW PRESSU24902078 21 Feb 2026 21.02.2026 | HA-LXC 12.02.2026700263992/NAV 1 TAIL CONE | LIGHT INOP.700263992 22 Feb 2026 21 Feb 2026 22.02.2026 | HA-LXO 20.02.2026700265915/AFT GALLEY T | DIVIDER BETWEEN P700265915 21 Feb 2026 21.02.2026 | HA-LXO 20.02.2026700265916/DEMO KIT 39ABC | LIFE VEST DAMAG700265916 21 Feb 2026 21.02.2026 | HA-LXO 20.02.2026700265917/LAV A WATER | HEATER INOP700265917 21 Feb 2026 21.02.2026 | HA-LXS 16.02.202624901998/CREW OXYGEN | CYLINDER LOW PRESSU24901998 21 Feb 2026 21.02.2026 | HA-LXS 03.01.2026700254104/REPETITIVE | INSPECTION FOR WO.7700254104 22 Feb 2026 21 Feb 2026 22.02.2026 | HA-LXS 03.01.2026700254109/REPETITIVE | INSPECTION FOR WO.7700254109 22 Feb 2026 21 Feb 2026 22.02.2026 | HA-LXV 12.02.2026700263991/P652167 /WATER | SERVICE DOOR OP700263991 22 Feb 2026 22.02.2026 | HA-LXW 17.11.202524201481/REF TO WO | #22415020 BORESCOPE I24201481 22 Feb 2026 21 Feb 2026 | HA-LXW 21.02.2026700266069/SEAT 31A IS | MISSING \"FASTEN SE700266069 22 Feb 2026 22.02.2026 | HA-LXW 21.02.2026700266070/SEAT 33A IS | MISSING \"LIFE VEST700266070 22 Feb 2026 22.02.2026 | HA-LYS 12.02.2026700263899/CM1 ELECTRICAL | ADJUSMENT INOP700263899 22 Feb 2026 22.02.2026 | HA-LZKA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24907942 24 Feb 2026 5 6208 24.02.2026 | HA-LZKA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24907945 24 Feb 2026 5 6208 24.02.2026 | HA-LZK 19.02.202624924381/WIZZ AUDIT | PLEASE 1) PROVIDE AS24924381 22 Feb 2026 21 Feb 2026 22.02.2026 | HA-LZOA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24929402 28 Feb 2026 5 4102 28.02.2026 | HA-LZOA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24929406 28 Feb 2026 5 4102 28.02.2026 | HA-LZR 20.02.2026A32N033-24-IM-01/W24903567 | /MAIN LANDING24903567 23 Feb 2026 21 Feb 2026 5 6758 23.02.2026 | HA-LZRA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24907976 25 Feb 2026 5 6768 25.02.2026 | HA-LZT00100100-02 (24.0M) / 1S - | SERVICE CHECK24540793 22 Feb 2026 21 Feb 2026 22.02.2026 | HA-LZTA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24929418 27 Feb 2026 5 3404 27.02.2026 | HA-LZUA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24907974 25 Feb 2026 5 5183 25.02.2026 | HA-LZU 15.09.202523577811/LITERATURE | POCKETS AT PAX SEATS23577811 22 Feb 2026 22.02.2026 | HA-LZYA32N033-24-IM-01/MAIN | LANDING GEAR DOOR24922202 27 Feb 2026 5 6561 27.02.2026 | HA-LZY 20.02.2026A32N033-24-IM-01/W24903569 | /MAIN LANDING24903569 23 Feb 2026 21 Feb 2026 5 6545 23.02.2026",
+      "mel_ref": "52-30-07A"
+    }
+  ]
+}

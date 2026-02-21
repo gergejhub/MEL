@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/>
-<title>MEL Dispatch Assistant (v3.6.1-gpslabel)</title>
-<link rel="stylesheet" href="styles.css?v=v3.6.1-gpslabel"/>
+<title>MEL Dispatch Assistant (v3.7.0-dailyreport)</title>
+<link rel="stylesheet" href="styles.css?v=v3.7.0-dailyreport"/>
 </head>
 <body>
 <header class="topbar">
@@ -32,6 +32,13 @@
       <input id="pdfFile" type="file" accept="application/pdf" class="file"/>
       <div class="hint">A beépített index ref→title/CAT alapján működik.</div>
     </div>
+
+    <div class="ioCol">
+      <label class="lbl">Daily Report (JSON)</label>
+      <input id="dailyJson" type="file" accept=".json,application/json" class="file"/>
+      <div class="hint">Automatikus mód: töltsd fel a napi PDF-et a repo <span class="kbd">reports/</span> mappájába → GitHub Actions legenerálja a <span class="kbd">data/daily_report.json</span>-t.</div>
+    </div>
+
     <div class="ioCol">
       <label class="lbl">CSV beillesztés</label>
       <textarea id="csvPaste" class="ta" placeholder="Illeszd be a teljes CSV-t (headerrel)…"></textarea>
@@ -83,6 +90,6 @@
 </main>
 
 <footer class="footer">Verzió: <b>v3.6.1-gpslabel</b>. Ha nem ezt látod, akkor nem a GitHub Pages által kiszolgált mappát frissítetted.</footer>
-<script src="app.js?v=v3.6.1-gpslabel"></script>
+<script src="app.js?v=v3.7.0-dailyreport"></script>
 </body>
 </html>

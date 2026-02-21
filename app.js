@@ -386,15 +386,19 @@ function renderSelected(){
   $("whyBox").innerHTML=out.whyHtml;
 }
 
-async function handleCsvText(text) {
-  setLast("CSV feldolgozás…");
-  const rows=parseCsv(text);
+async function handleRows(rows, label){
+  setLast((label||'Import') + ' feldolgozás…');
   const built=buildTails(rows);
   state.tails=built.tails;
   state.selectedTail=built.tails[0]?.tail||null;
   $("stats").textContent=`Importált sorok: ${built.imported} • Lajstromok: ${built.tails.length} • Találatok: ${built.findings}`;
   renderTails(); renderSelected();
   setLast(`Kész. Találatok: ${built.findings} • Lajstrom: ${built.tails.length}`);
+}
+
+async function handleCsvText(text) {
+  const rows=parseCsv(text);
+  await handleRows(rows, 'CSV');
 }
 
 function copySummary() {
@@ -461,7 +465,20 @@ function bind() {
     await handleCsvText(text);
     e.target.value="";
   });
-  $("pdfFile").addEventListener("change", async (e)=>{
+  $("dailyJson")?.addEventListener("change", async (e)=>{
+  const f=e.target.files?.[0];
+  if(!f){ setLast("Daily JSON választás megszakítva."); return; }
+  setLast(`Daily JSON: ${f.name} – olvasás…`);
+  const txt=await f.text();
+  let obj=null;
+  try{ obj=JSON.parse(txt); }catch(err){ setLast("Daily JSON parse hiba."); console.error(err); return; }
+  const rows=(obj.rows||obj.items||obj.data||[]);
+  if(!Array.isArray(rows) || rows.length===0){ setLast("Daily JSON üres / rossz formátum."); return; }
+  await handleRows(rows, "Daily");
+  e.target.value="";
+});
+
+$("pdfFile").addEventListener("change", async (e)=>{
     const f=e.target.files?.[0];
     if(!f) { setLast("PDF választás megszakítva."); return; }
     setLast(`PDF: ${f.name} – SHA…`);
@@ -476,6 +493,7 @@ function bind() {
   await loadDB();
   bind();
   enableDnD();
-  setLast("Ready. Válassz CSV-t.");
+  await autoLoadDaily();
+  if(state.tails.length===0) setLast("Ready. Válassz CSV-t vagy Daily JSON-t.");
   console.log("MEL Dispatch Assistant v3.5.0-melindex");
 })();
