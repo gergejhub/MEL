@@ -60,11 +60,18 @@ function parseCsv(text){
 }
 
 function escapeRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+
 function wordHit(hay, kw){
   const k=kw.toUpperCase();
+  // allow common "equipment+number" forms like GPS2, MCDU2, ADF1, VOR2
+  if (["GPS","MCDU","ADF","VOR"].includes(k)) {
+    const re = new RegExp(`\b${k}\s*\d?\b`);
+    if (re.test(hay)) return true;
+  }
   if(k.includes(" ")) return hay.includes(k);
-  return new RegExp(`\\b${escapeRe(k)}\\b`).test(hay);
+  return new RegExp(`\b${escapeRe(k)}\b`).test(hay);
 }
+
 function melRefs(hay){
   const m=hay.match(/\b\d{2}-\d{2}-\d{2}(?:\/\d{2})?(?:-[A-Z])?\b/g);
   return m?Array.from(new Set(m.map(x=>x.toUpperCase()))):[];
@@ -94,7 +101,10 @@ function matchRow(row){
       if(act.tag==="ILS CAT" && !/(ILS|AUTOLAND|LANDING|CAT)/.test(hay)) continue;
       score += Math.min(3,hits);
     }
-    if(score>=2) out.push({row, act});
+    // High-signal equipment tags: allow single strong hit (prevents missing ADF/MCDU/GPS cases)
+    const highSignal = ["ADF","VOR","MCDU","GPS/PBN","CPDLC","ADS-B","TCAS","WX RADAR","RNP APCH"].includes(act.tag);
+    const pass = (score>=2) || (highSignal && score>=1 && hits>=1);
+    if(pass) out.push({row, act});
   }
   const seen=new Set(), uniq=[];
   for(const f of out){
