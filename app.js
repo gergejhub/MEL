@@ -247,7 +247,74 @@ function aggregate(findings){
     return `<div class="lidoList">${lines}</div>`;
   })();
 
-return {fplText, fplHtml, lidoText:lidoLines.length?lidoLines.join("\n"):"—", lidoHtml, opsText:ops.length?[...new Set(ops)].join("\n\n"):"—", gloss:[...gloss], melInfo};
+
+  // ---- Explanation builder (Hungarian) ----
+  const explainCode = (code) => {
+    const c = String(code||"").toUpperCase();
+    if (c === "G") return "Item 10a 'G' = GNSS. Ha GPS/GNSS INOP, a GNSS-képességet nem szabad deklarálni → REMOVE.";
+    if (c === "J1" || c === "J4") return "CPDLC capability code (J1/J4). CPDLC INOP esetén törlendő.";
+    if (c === "TCAS") return "TCAS/ACAS capability. INOP esetén a TCAS jelölés(ek)et ki kell venni.";
+    if (c === "DAT/CPDLCX") return "Item 18 DAT/CPDLCX: datalink/CPDLC jelölés. INOP esetén törlendő / működő esetben deklarálandó (policy szerint).";
+    if (c === "SUR/EUADSBX" || c === "EUADSBX") return "ADS-B special filing (SUR/EUADSBX). ADS-B OUT INOP esetén a policy szerinti jelölések változhatnak.";
+    if (c.startsWith("PBN:")) return "PBN/ mezőben deklarált RNAV/RNP képesség. MEL miatt (pl. GNSS kiesés) GNSS-függő kódokat el kell távolítani, és csak a ténylegesen rendelkezésre álló szenzoros módokat szabad hagyni.";
+    if (/^[A-Z]\d$/.test(c)) return "PBN kód: RNAV/RNP navspec + szenzor. Csak akkor maradhat, ha a vonatkozó navigációs mód ténylegesen elérhető.";
+    if (c === "Z") return "Item 10a 'Z' = egyéb felszerelés, részletezés az Item 18-ban.";
+    return "";
+  };
+
+  const expLines = [];
+  for (const it of ["ITEM10A","ITEM10B","ITEM18"]) {
+    for (const c of [...agg[it].add]) expLines.push({kind:"ADD", item:it, code:c});
+    for (const c of [...agg[it].rem]) expLines.push({kind:"REMOVE", item:it, code:c});
+  }
+  const seenExp = new Set();
+  const uniqExp = expLines.filter(x=>{
+    const k = `${x.kind}|${x.item}|${x.code}`;
+    if (seenExp.has(k)) return false;
+    seenExp.add(k); return true;
+  });
+
+  const srcText = (refsArr) => {
+    const refs = Array.from(new Set(refsArr||[])).slice(0,6);
+    return refs.length ? `Forrás: Excel action-mátrix + MEL ref: ${refs.join(", ")} (PDF index, ha elérhető)` : "Forrás: Excel action-mátrix (MEL ref nem azonosítható a CSV-ben)";
+  };
+
+  const refsForAudit = Array.from(melRefsUsed||[]);
+  const whyCards = [];
+  if (uniqExp.length === 0) {
+    whyCards.push(`
+      <div class="whyCard">
+        <div class="whyHead">
+          <div class="whyTitle">Nincs FPL/LIDO változtatás</div>
+          <div class="whySrc">${mk(srcText(refsForAudit))}</div>
+        </div>
+        <div class="whyBody">Ehhez a lajstromhoz nem került azonosításra olyan dispatch-releváns teendő, ami FPL módosítást igényel.</div>
+      </div>`);
+  } else {
+    const byItem = {};
+    for (const x of uniqExp) (byItem[x.item] ||= []).push(x);
+    for (const item of Object.keys(byItem)) {
+      const arr = byItem[item].sort((a,b)=>a.kind.localeCompare(b.kind)||String(a.code).localeCompare(String(b.code)));
+      const lines = arr.map(x=>{
+        const reason = explainCode(x.code);
+        const badge = x.kind === "ADD" ? '<span class="hlAddBadge">INSERT</span>' : '<span class="hlRemBadge">REMOVE</span>';
+        const colClass = x.kind === "ADD" ? "hlAdd" : "hlRem";
+        return `<div class="whyLine">${badge} <span class="k">${mk(item)}</span> <b class="${colClass}">${mk(x.code)}</b>${reason?`<div class="cardSub">${mk(reason)}</div>`:""}</div>`;
+      }).join("");
+      whyCards.push(`
+        <div class="whyCard">
+          <div class="whyHead">
+            <div class="whyTitle">${mk(item)} – miért ez a változás?</div>
+            <div class="whySrc">${mk(srcText(refsForAudit))}</div>
+          </div>
+          <div class="whyCodes">${lines}</div>
+          <div class="cardSub">Hivatkozás: EUROCONTROL IFPS User Manual / Learning Zone (kódfeltöltési szabályok) + belső action-mátrix.</div>
+        </div>`);
+    }
+  }
+  const whyHtml = `<div class="whyList">${whyCards.join("")}</div>`;
+
+return {fplText, fplHtml, lidoText:lidoLines.length?lidoLines.join("\n"):"—", lidoHtml, opsText:ops.length?[...new Set(ops)].join("\n\n"):"—", gloss:[...gloss], melInfo, whyHtml};
 }
 
 function renderTails(){
@@ -310,6 +377,7 @@ function renderSelected(){
   $("opsBox").textContent=out.opsText;
   $("glossBox").innerHTML=renderGloss(out.gloss);
   $("melBox").textContent=out.melInfo;
+  $("whyBox").innerHTML=out.whyHtml;
 }
 
 async function handleCsvText(text) {
