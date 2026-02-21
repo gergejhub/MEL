@@ -386,19 +386,15 @@ function renderSelected(){
   $("whyBox").innerHTML=out.whyHtml;
 }
 
-async function handleRows(rows, label){
-  setLast((label||'Import') + ' feldolgozás…');
+async function handleCsvText(text) {
+  setLast("CSV feldolgozás…");
+  const rows=parseCsv(text);
   const built=buildTails(rows);
   state.tails=built.tails;
   state.selectedTail=built.tails[0]?.tail||null;
   $("stats").textContent=`Importált sorok: ${built.imported} • Lajstromok: ${built.tails.length} • Találatok: ${built.findings}`;
   renderTails(); renderSelected();
   setLast(`Kész. Találatok: ${built.findings} • Lajstrom: ${built.tails.length}`);
-}
-
-async function handleCsvText(text) {
-  const rows=parseCsv(text);
-  await handleRows(rows, 'CSV');
 }
 
 function copySummary() {
@@ -460,15 +456,16 @@ function bind() {
   $("dailyPdf")?.addEventListener("change", async (e)=>{
   const f=e.target.files?.[0];
   if(!f){ setLast("Daily PDF választás megszakítva."); return; }
-  setLast(`Daily PDF: ${f.name} – szöveg kinyerés…`);
+  setLast(`Daily PDF: ${f.name} – feldolgozás…`);
+  const dbg=document.getElementById("dailyDebug");
   try{
-    const lines = await extractPdfLinesNative(f);
-    setLast("Daily táblázat keresés…");
+    const lines = await extractPdfLinesDaily(f);
+    if(dbg) dbg.textContent = `Extracted lines: ${lines.length}`;
     const rows = parseDailyFromLines(lines);
-    if(!rows.length){ setLast("Daily PDF: 0 sor (nem talált táblát)."); return; }
+    if(!rows.length){ setLast("Daily PDF: 0 sor (header megtalálva, de üres)."); return; }
     await handleRows(rows, "Daily(PDF)");
-    setLast("Daily(PDF) import kész.");
-  }catch(err){ console.error(err); setLast("Daily PDF parse hiba. Tipp: ha a PDF szöveges, ez a verzió már should work. Ha szkennelt (kép), akkor csak OCR-rel lehetne feldolgozni."); }
+    setLast(`Daily(PDF) import kész: ${rows.length} sor`);
+  }catch(err){ console.error(err); if(dbg) dbg.textContent = String(err); setLast("Daily PDF parse hiba (pdf.js / header)."); }
   finally{ e.target.value=""; }
 });
 
@@ -480,8 +477,7 @@ $("csvFile").addEventListener("change", async (e)=>{
     await handleCsvText(text);
     e.target.value="";
   });
-  
-$("pdfFile").addEventListener("change", async (e)=>{
+  $("pdfFile").addEventListener("change", async (e)=>{
     const f=e.target.files?.[0];
     if(!f) { setLast("PDF választás megszakítva."); return; }
     setLast(`PDF: ${f.name} – SHA…`);
@@ -496,6 +492,6 @@ $("pdfFile").addEventListener("change", async (e)=>{
   await loadDB();
   bind();
   enableDnD();
-  if(state.tails.length===0) setLast("Ready. Válassz CSV-t vagy Daily PDF-et.");
+  setLast("Ready. Válassz CSV-t.");
   console.log("MEL Dispatch Assistant v3.5.0-melindex");
 })();

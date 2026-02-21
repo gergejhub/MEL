@@ -1,1 +1,1 @@
-v3.7.4-dailyreport-pdf-inflate
+v3.7.6-dailyreport-pdf-cdn-workerless

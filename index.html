@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/>
-<title>MEL Dispatch Assistant (v3.7.4-dailyreport-pdf-inflate)</title>
-<link rel="stylesheet" href="styles.css?v=v3.7.4-dailyreport-pdf-inflate"/>
+<title>MEL Dispatch Assistant (v3.7.6-dailyreport-pdf-cdn-workerless)</title>
+<link rel="stylesheet" href="styles.css?v=v3.7.6-dailyreport-pdf-cdn-workerless"/>
 </head>
 <body>
 <header class="topbar">
@@ -36,8 +36,8 @@
     <div class="ioCol">
       <label class="lbl">Daily Report (PDF)</label>
       <input id="dailyPdf" type="file" accept="application/pdf" class="file"/>
-      <div class="hint">A PDF-et itt helyben (natív) próbáljuk szöveggé bontani. Ha a PDF szkennelt (kép), abból nem tudunk megbízhatóan táblát kinyerni.</div>
-    </div>
+      <div class="hint">PDF feldolgozás: böngészőben, pdf.js modullal. Worker nélkül is működik (lassabb, de stabil corporate környezetben).</div>
+      <div id="dailyDebug" class="hint"></div>
     </div>
 
     <div class="ioCol">
@@ -91,6 +91,6 @@
 </main>
 
 <footer class="footer">Verzió: <b>v3.6.1-gpslabel</b>. Ha nem ezt látod, akkor nem a GitHub Pages által kiszolgált mappát frissítetted.</footer>
-<script src="app.js?v=v3.7.4-dailyreport-pdf-inflate"></script>
+<script src="app.js?v=v3.7.6-dailyreport-pdf-cdn-workerless"></script>
 </body>
 </html>
