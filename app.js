@@ -12,7 +12,14 @@ function esc(s){ return (s||"").replace(/[&<>"']/g,c=>({ "&":"&amp;","<":"&lt;",
 async function loadDB(){
   const h=$("health");
   try{
+
     ACTIONS=await fetch(url("data/actions.json"), {cache:"no-store"}).then(r=>r.json());
+    // Normalize MEL refs in rules to match CSV variants (e.g. 30-45-03-A -> 30-45-03A)
+    for (const a of ACTIONS){
+      if(!a.mel_refs) continue;
+      a._mel_refs_norm = a.mel_refs.map(x => String(x).toUpperCase().replace(/(\d{2}-\d{2}-\d{2}(?:\/\d{2})?)-([A-Z])$/,'$1$2'));
+    }
+
     GLOSS=await fetch(url("data/fpl_glossary.json"), {cache:"no-store"}).then(r=>r.json());
     h.textContent=`DB: ${ACTIONS.length} rules`;
     h.style.borderColor="rgba(34,197,94,.35)";
@@ -60,22 +67,25 @@ function parseCsv(text){
 }
 
 function escapeRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
-
 function wordHit(hay, kw){
   const k=kw.toUpperCase();
-  // allow common "equipment+number" forms like GPS2, MCDU2, ADF1, VOR2
-  if (["GPS","MCDU","ADF","VOR"].includes(k)) {
-    const re = new RegExp(`\b${k}\s*\d?\b`);
-    if (re.test(hay)) return true;
-  }
   if(k.includes(" ")) return hay.includes(k);
-  return new RegExp(`\b${escapeRe(k)}\b`).test(hay);
+  return new RegExp(`\\b${escapeRe(k)}\\b`).test(hay);
 }
 
 function melRefs(hay){
-  const m=hay.match(/\b\d{2}-\d{2}-\d{2}(?:\/\d{2})?(?:-[A-Z])?\b/g);
-  return m?Array.from(new Set(m.map(x=>x.toUpperCase()))):[];
+  // Capture common MEL reference variants:
+  //  - 30-45-03A
+  //  - 30-45-03-A
+  //  - 35-30-01-A
+  //  - 22-82-01/02-A
+  const re = /\b\d{2}-\d{2}-\d{2}(?:\/\d{2})?(?:-?[A-Z])?\b/g;
+  const m = hay.match(re);
+  if(!m) return [];
+  const normed = m.map(x => x.toUpperCase().replace(/(\d{2}-\d{2}-\d{2}(?:\/\d{2})?)-([A-Z])$/,'$1$2'));
+  return Array.from(new Set(normed));
 }
+
 
 function deriveTag(act){
   if(act.tag==="ILS CAT"){
@@ -94,17 +104,14 @@ function matchRow(row){
   const out=[];
   for(const act of ACTIONS){
     let score=0, hits=0;
-    for(const r of (act.mel_refs||[])) if(refs.includes(r.toUpperCase())) score+=5;
+    for(const r of (act._mel_refs_norm||act.mel_refs||[])) if(refs.includes(String(r).toUpperCase())) score+=5;
     for(const kw of (act.keywords||[])) if(kw && kw.length>=3 && wordHit(hay, kw)) hits++;
     if(score===0){
       if(hits===0) continue;
       if(act.tag==="ILS CAT" && !/(ILS|AUTOLAND|LANDING|CAT)/.test(hay)) continue;
       score += Math.min(3,hits);
     }
-    // High-signal equipment tags: allow single strong hit (prevents missing ADF/MCDU/GPS cases)
-    const highSignal = ["ADF","VOR","MCDU","GPS/PBN","CPDLC","ADS-B","TCAS","WX RADAR","RNP APCH"].includes(act.tag);
-    const pass = (score>=2) || (highSignal && score>=1 && hits>=1);
-    if(pass) out.push({row, act});
+    if(score>=2) out.push({row, act});
   }
   const seen=new Set(), uniq=[];
   for(const f of out){
